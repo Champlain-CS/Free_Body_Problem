@@ -2,17 +2,17 @@ package com.example.free_body_problem;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Circle;
-import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
+import javafx.scene.layout.VBox;
+
 import javafx.stage.Stage;
+
 
 public class GUI extends Application {
     public void start(Stage primaryStage) {
@@ -21,43 +21,62 @@ public class GUI extends Application {
         primaryStage.setMaximized(true);
 
         //Main Menu
-        BorderPane mainMenuRoot = new BorderPane();
-        mainMenuRoot.setPadding(new Insets(75, 10, 75, 10));
-
-        Scene mainMenUScene = new Scene(mainMenuRoot);
-        mainMenUScene.getStylesheets().add("StyleSheet.css");
+        VBox mainMenuRoot = new VBox();
+        mainMenuRoot.setSpacing(75);
+        mainMenuRoot.setPadding(new Insets(70, 100, 100, 150));
         mainMenuRoot.setId("menuID");
+
 
 
         Label nameLabel = new Label("Free Body Problem");
         nameLabel.getStyleClass().add("titleStyle");
-        StackPane labelPane = new StackPane(nameLabel);
-        mainMenuRoot.setTop(labelPane);
-
-        Circle logo = new Circle();
-        logo.setRadius(100);
-        mainMenuRoot.setCenter(logo);
+        nameLabel.setEffect(new DropShadow());
 
 
-        HBox buttonBox = new HBox();
-        buttonBox.setSpacing(100);
-        buttonBox.setAlignment(Pos.CENTER);
+        ImageView logoView = new ImageView(
+                new Image(getClass().getResourceAsStream("/images/logoAlt.png")));
+        logoView.setFitHeight(450);
+        logoView.setFitWidth(450);
+        logoView.setTranslateX(150);
+        logoView.setTranslateY(-50);
+        logoView.setEffect(new DropShadow());
+
+
+        VBox buttonBox = new VBox();
+        buttonBox.setSpacing(20);
 
         Button optionsBT = new Button("OPTIONS");
         optionsBT.getStyleClass().add("buttonStyle");
+        optionsBT.setOnMouseEntered(e -> buttonHover(optionsBT));
 
         Button startBT = new Button("START");
         startBT.getStyleClass().add("buttonStyle");
+        startBT.setOnMouseEntered(e -> buttonHover(startBT));
 
         Button creditsBT = new Button("CREDITS");
         creditsBT.getStyleClass().add("buttonStyle");
+        creditsBT.setOnMouseEntered(e -> buttonHover(creditsBT));
 
         buttonBox.getChildren().addAll(optionsBT,startBT,creditsBT);
-        mainMenuRoot.setBottom(buttonBox);
 
 
-        primaryStage.setScene(mainMenUScene);
+
+
+        HBox buttonsAndLogo = new HBox();
+        buttonsAndLogo.setSpacing(30);
+        buttonsAndLogo.getChildren().addAll(buttonBox, logoView);
+        mainMenuRoot.getChildren().addAll(nameLabel, buttonsAndLogo);
+
+        Scene mainMenuScene = new Scene(mainMenuRoot);
+        mainMenuScene.getStylesheets().add("StyleSheet.css");
+
+
+        primaryStage.setScene(mainMenuScene);
         primaryStage.show();
 
+    }
+
+    private void buttonHover(Button button) {
+        button.getStyleClass().add("buttonHover");
     }
 }

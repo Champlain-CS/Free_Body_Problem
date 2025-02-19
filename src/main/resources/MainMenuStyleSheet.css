@@ -1,4 +1,3 @@
-/* Button Style */
 .buttonStyle {
     -fx-background-color: #76b5c5;
     -fx-background-radius: 20;
@@ -19,7 +18,7 @@
     -fx-text-fill: #000;
     -fx-font-weight: bold;
     -fx-font-family: "Arial";
-    -fx-font-size: 21px;
+    -fx-font-size: 22px;
 }
 
 .titleStyle {

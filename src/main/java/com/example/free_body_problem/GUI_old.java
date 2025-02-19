@@ -12,7 +12,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 
@@ -27,7 +26,7 @@ public class GUI_old extends Application {
         mainMenuRoot.setPadding(new Insets(75, 10, 75, 10));
 
         Scene mainMenuScene = new Scene(mainMenuRoot);
-        mainMenuScene.getStylesheets().add("StyleSheet.css");
+        mainMenuScene.getStylesheets().add("MainMenuStyleSheet.css");
         mainMenuRoot.setId("menuID");
 
 

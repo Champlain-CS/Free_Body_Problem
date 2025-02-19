@@ -2,6 +2,7 @@ package com.example.free_body_problem;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseButton;
@@ -12,13 +13,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 
 public class DraggableShapesApp extends Application {
 
     private static final double GRAVITY = 9.8; // Gravity acceleration
-
+    private static final double HANDLE_RADIUS = 5; // Handle radius for resizing
+    private boolean dragging = false; // Flag to indicate if a shape is being dragged
+    private AnimationTimer gravityTimer;
 
     @Override
     public void start(Stage primaryStage) {
@@ -41,11 +43,14 @@ public class DraggableShapesApp extends Application {
         rectangleButton.setOnMouseClicked(event -> {
             Rectangle newRectangle = createDraggableRectangle(100, 50, 150, 100, Color.WHITE);
             mainPane.getChildren().add(newRectangle);
+            Circle handle = createHandle(newRectangle.getX() + newRectangle.getWidth(), newRectangle.getY() + newRectangle.getHeight());
+            addDragListener(newRectangle, handle);
+            mainPane.getChildren().add(handle);
         });
 
         circleButton.setOnMouseClicked(event -> {
-            Circle newCircle = createDraggableCircle(100, 50, 25, Color.GRAY);
-            mainPane.getChildren().add(newCircle);
+            Group newCircleGroup = createDraggableCircleGroup(100, 50, 25, 10, Color.GRAY, Color.BLACK);
+            mainPane.getChildren().add(newCircleGroup);
         });
 
         lineButton.setOnMouseClicked(event -> {
@@ -60,21 +65,28 @@ public class DraggableShapesApp extends Application {
         VBox root = new VBox(mainPane, bottomBar);
 
         // Animation timer to simulate gravity and collisions
-        AnimationTimer gravityTimer = new AnimationTimer() {
+        gravityTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                for (Node shape : mainPane.getChildren()) {
-                    if (shape.getClass().equals(Rectangle.class)) {
-                        Rectangle rectangle = (Rectangle) shape;
-                        rectangle.setY(rectangle.getY() + 3); // Move rectangle down
-                    } else if (shape.getClass().equals(Circle.class)) {
-                        Circle circle = (Circle) shape;
-                        circle.setCenterY(circle.getCenterY() + 3); // Move circle down
+                if (!dragging) {
+                    for (Node shape : mainPane.getChildren()) {
+                        if (shape instanceof Group) {
+                            Group group = (Group) shape;
+                            for (Node node : group.getChildren()) {
+                                if (node instanceof Circle) {
+                                    Circle circle = (Circle) node;
+                                    circle.setCenterY(circle.getCenterY() + 3); // Move circle down
+                                }
+                            }
+                        } else if (shape instanceof Rectangle) {
+                            Rectangle rectangle = (Rectangle) shape;
+                            rectangle.setY(rectangle.getY() + 3); // Move rectangle down
+                        }
                     }
                 }
             }
         };
-        gravityTimer.start();
+         gravityTimer.start();
 
         // Enable dragging and removal for shapes
 
@@ -96,14 +108,19 @@ public class DraggableShapesApp extends Application {
         return rectangle;
     }
 
-    // Method to create a draggable circle
-    private Circle createDraggableCircle(double x, double y, double radius, Color color) {
-        Circle circle = new Circle(x, y, radius, color);
-        circle.setStroke(Color.BLACK);
+    // Method to create a draggable circle group
+    private Group createDraggableCircleGroup(double x, double y, double outerRadius, double innerRadius, Color outerColor, Color innerColor) {
+        Circle outerCircle = new Circle(x, y, outerRadius, outerColor);
+        outerCircle.setStroke(Color.BLACK);
 
-        enableDraggingAndRemoval(circle);
+        Circle innerCircle = new Circle(x, y, innerRadius, innerColor);
+        innerCircle.setStroke(Color.BLACK);
 
-        return circle;
+        Group circleGroup = new Group(outerCircle, innerCircle);
+
+        enableDraggingAndRemoval(circleGroup);
+
+        return circleGroup;
     }
 
     // Method to create a draggable line
@@ -114,6 +131,7 @@ public class DraggableShapesApp extends Application {
 
         // Enable dragging for a line
         line.setOnMousePressed(event -> {
+            dragging = true;
             line.setUserData(new double[]{
                     event.getSceneX() - line.getStartX(),
                     event.getSceneY() - line.getStartY(),
@@ -130,6 +148,8 @@ public class DraggableShapesApp extends Application {
             line.setEndY(event.getSceneY() - offset[3]);
         });
 
+        line.setOnMouseReleased(event -> dragging = false);
+
         // Enable right-click removal
         line.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY) { // Right-click
@@ -144,22 +164,30 @@ public class DraggableShapesApp extends Application {
     // Helper method to enable dragging and removal for shapes
     private void enableDraggingAndRemoval(javafx.scene.Node shape) {
         shape.setOnMousePressed(event -> {
+            dragging = true;
             shape.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
         });
 
         shape.setOnMouseDragged(event -> {
             double[] offset = (double[]) shape.getUserData();
-            if (shape instanceof Rectangle) {
+            if (shape instanceof Group) {
+                Group group = (Group) shape;
+                for (Node node : group.getChildren()) {
+                    if (node instanceof Circle) {
+                        Circle circle = (Circle) node;
+                        circle.setCenterX(circle.getCenterX() + (event.getSceneX() - offset[0]));
+                        circle.setCenterY(circle.getCenterY() + (event.getSceneY() - offset[1]));
+                    }
+                }
+            } else if (shape instanceof Rectangle) {
                 Rectangle rect = (Rectangle) shape;
                 rect.setX(rect.getX() + (event.getSceneX() - offset[0]));
                 rect.setY(rect.getY() + (event.getSceneY() - offset[1]));
-            } else if (shape instanceof Circle) {
-                Circle circle = (Circle) shape;
-                circle.setCenterX(circle.getCenterX() + (event.getSceneX() - offset[0]));
-                circle.setCenterY(circle.getCenterY() + (event.getSceneY() - offset[1]));
             }
             shape.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
         });
+
+        shape.setOnMouseReleased(event -> dragging = false);
 
         shape.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.SECONDARY) { // Right-click
@@ -191,7 +219,26 @@ public class DraggableShapesApp extends Application {
         return line;
     }
 
+    // Method to create a handle for resizing
+    private Circle createHandle(double x, double y) {
+        Circle handle = new Circle(x, y, HANDLE_RADIUS);
+        handle.setFill(Color.RED);
+        return handle;
+    }
 
+    // Method to add drag listener for resizing
+    private void addDragListener(Rectangle rectangle, Circle handle) {
+        handle.setOnMouseDragged(event -> {
+            double offsetX = event.getX() - handle.getCenterX();
+            double offsetY = event.getY() - handle.getCenterY();
+
+            rectangle.setWidth(rectangle.getWidth() + offsetX);
+            rectangle.setHeight(rectangle.getHeight() + offsetY);
+
+            handle.setCenterX(event.getX());
+            handle.setCenterY(event.getY());
+        });
+    }
 
     public static void main(String[] args) {
         launch(args);

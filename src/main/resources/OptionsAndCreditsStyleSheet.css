@@ -1,0 +1,47 @@
+.roundBox {
+    -fx-fill: #a1e9fb;
+    -fx-stroke: #4473c9;
+    -fx-stroke-width: 5;
+    -fx-arc-height: 50;
+    -fx-arc-width: 50;
+    -fx-opacity: 0.6;
+}
+
+.titleStyle {
+    -fx-font-weight: bold;
+    -fx-font-family: "Arial";
+    -fx-font-size: 80px;
+    -fx-text-fill: #4473c9;
+}
+.textStyle {
+    -fx-font-weight: normal;
+    -fx-font-family: "Arial";
+    -fx-font-size: 30px;
+    -fx-text-fill: #245d77;
+}
+
+.slider {
+    -fx-pref-width: 350;
+}
+.slider .track {
+    -fx-background-color: #e0e0e0;
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.2), 0.5, 0.2, 2, 2);
+}
+.slider .thumb {
+    -fx-background-color: #4473c9;
+    -fx-border-color: #4c7cd5;
+    -fx-pref-width: 14px;
+    -fx-pref-height: 14px;
+    -fx-border-radius: 50%;
+}
+.slider .fill {
+    -fx-background-color: #4473c9;
+}
+
+
+
+
+#root {
+    -fx-background-image: url("images/stoneAlt.png");
+    -fx-background-size: cover;
+}

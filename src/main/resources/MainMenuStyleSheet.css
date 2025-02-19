@@ -1,0 +1,34 @@
+.buttonStyle {
+    -fx-background-color: #76b5c5;
+    -fx-background-radius: 20;
+    -fx-pref-width: 300;
+    -fx-pref-height: 100;
+
+    -fx-text-fill: #000;
+    -fx-font-weight: bold;
+    -fx-font-family: "Arial";
+    -fx-font-size: 20px;
+}
+.buttonHover:hover {
+    -fx-background-color: #4473c9;
+    -fx-background-radius: 20;
+    -fx-pref-width: 300;
+    -fx-pref-height: 100;
+
+    -fx-text-fill: #000;
+    -fx-font-weight: bold;
+    -fx-font-family: "Arial";
+    -fx-font-size: 22px;
+}
+
+.titleStyle {
+    -fx-font-weight: bold;
+    -fx-font-family: "Arial";
+    -fx-font-size: 100px;
+    -fx-text-fill: #76b5c5;
+}
+
+#menuID {
+    -fx-background-image: url("images/stoneAlt.png");
+    -fx-background-size: cover;
+}

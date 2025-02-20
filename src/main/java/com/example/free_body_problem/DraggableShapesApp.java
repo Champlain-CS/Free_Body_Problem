@@ -86,7 +86,7 @@ public class DraggableShapesApp extends Application {
                 }
             }
         };
-         gravityTimer.start();
+        //gravityTimer.start();
 
         // Enable dragging and removal for shapes
 

@@ -28,6 +28,10 @@ public class DraggableShapesApp extends Application {
         Pane mainPane = new Pane();
         mainPane.setPrefSize(600, 350);
 
+        // Create a handle for resizing the Pane
+        Circle paneHandle = createHandle(mainPane.getPrefWidth(), mainPane.getPrefHeight());
+        addPaneResizeListener(mainPane, paneHandle);
+
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
         bottomBar.setPrefHeight(50);
@@ -41,11 +45,13 @@ public class DraggableShapesApp extends Application {
 
         // Add click handlers for each button
         rectangleButton.setOnMouseClicked(event -> {
-            Rectangle newRectangle = createDraggableRectangle(100, 50, 150, 100, Color.WHITE);
+            Rectangle newRectangle = createDraggableRectangle(100, 50, 150, 100, Color.TRANSPARENT);
             mainPane.getChildren().add(newRectangle);
-            Circle handle = createHandle(newRectangle.getX() + newRectangle.getWidth(), newRectangle.getY() + newRectangle.getHeight());
-            addDragListener(newRectangle, handle);
-            mainPane.getChildren().add(handle);
+            Circle resizeHandle = createHandle(newRectangle.getX() + newRectangle.getWidth(), newRectangle.getY() + newRectangle.getHeight());
+            Circle rotateHandle = createHandle(newRectangle.getX() + newRectangle.getWidth(), newRectangle.getY() + newRectangle.getHeight() / 2);
+            addDragListener(newRectangle, resizeHandle);
+            addRotateListener(newRectangle, rotateHandle);
+            mainPane.getChildren().addAll(resizeHandle, rotateHandle);
         });
 
         circleButton.setOnMouseClicked(event -> {
@@ -56,6 +62,10 @@ public class DraggableShapesApp extends Application {
         lineButton.setOnMouseClicked(event -> {
             Line newLine = createDraggableLine(100, 50, 200, 50, Color.BLACK);
             mainPane.getChildren().add(newLine);
+            Circle startHandle = createHandle(newLine.getStartX(), newLine.getStartY());
+            Circle endHandle = createHandle(newLine.getEndX(), newLine.getEndY());
+            addLineResizeListener(newLine, startHandle, endHandle);
+            mainPane.getChildren().addAll(startHandle, endHandle);
         });
 
         // Add buttons to the bottom bar
@@ -63,6 +73,7 @@ public class DraggableShapesApp extends Application {
 
         // Root layout with main pane and bottom bar
         VBox root = new VBox(mainPane, bottomBar);
+        mainPane.getChildren().add(paneHandle);
 
         // Animation timer to simulate gravity and collisions
         gravityTimer = new AnimationTimer() {
@@ -71,16 +82,9 @@ public class DraggableShapesApp extends Application {
                 if (!dragging) {
                     for (Node shape : mainPane.getChildren()) {
                         if (shape instanceof Group) {
-                            Group group = (Group) shape;
-                            for (Node node : group.getChildren()) {
-                                if (node instanceof Circle) {
-                                    Circle circle = (Circle) node;
-                                    circle.setCenterY(circle.getCenterY() + 3); // Move circle down
-                                }
-                            }
+                            // Handle gravity for circle groups
                         } else if (shape instanceof Rectangle) {
-                            Rectangle rectangle = (Rectangle) shape;
-                            rectangle.setY(rectangle.getY() + 3); // Move rectangle down
+                            // Handle gravity for rectangles
                         }
                     }
                 }
@@ -129,34 +133,7 @@ public class DraggableShapesApp extends Application {
         line.setStroke(color);
         line.setStrokeWidth(8);
 
-        // Enable dragging for a line
-        line.setOnMousePressed(event -> {
-            dragging = true;
-            line.setUserData(new double[]{
-                    event.getSceneX() - line.getStartX(),
-                    event.getSceneY() - line.getStartY(),
-                    event.getSceneX() - line.getEndX(),
-                    event.getSceneY() - line.getEndY()
-            });
-        });
-
-        line.setOnMouseDragged(event -> {
-            double[] offset = (double[]) line.getUserData();
-            line.setStartX(event.getSceneX() - offset[0]);
-            line.setStartY(event.getSceneY() - offset[1]);
-            line.setEndX(event.getSceneX() - offset[2]);
-            line.setEndY(event.getSceneY() - offset[3]);
-        });
-
-        line.setOnMouseReleased(event -> dragging = false);
-
-        // Enable right-click removal
-        line.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.SECONDARY) { // Right-click
-                Pane parent = (Pane) line.getParent();
-                parent.getChildren().remove(line);
-            }
-        });
+        enableDraggingAndRemoval(line);
 
         return line;
     }
@@ -237,6 +214,108 @@ public class DraggableShapesApp extends Application {
 
             handle.setCenterX(event.getX());
             handle.setCenterY(event.getY());
+        });
+
+        rectangle.xProperty().addListener((obs, oldVal, newVal) -> {
+            handle.setCenterX(newVal.doubleValue() + rectangle.getWidth());
+        });
+
+        rectangle.yProperty().addListener((obs, oldVal, newVal) -> {
+            handle.setCenterY(newVal.doubleValue() + rectangle.getHeight());
+        });
+
+        rectangle.widthProperty().addListener((obs, oldVal, newVal) -> {
+            handle.setCenterX(rectangle.getX() + newVal.doubleValue());
+        });
+
+        rectangle.heightProperty().addListener((obs, oldVal, newVal) -> {
+            handle.setCenterY(rectangle.getY() + newVal.doubleValue());
+        });
+    }
+
+    // Method to add resize listener to the Pane
+    private void addPaneResizeListener(Pane pane, Circle handle) {
+        handle.setOnMouseDragged(event -> {
+            double offsetX = event.getX() - handle.getCenterX();
+            double offsetY = event.getY() - handle.getCenterY();
+
+            pane.setPrefWidth(pane.getPrefWidth() + offsetX);
+            pane.setPrefHeight(pane.getPrefHeight() + offsetY);
+
+            handle.setCenterX(event.getX());
+            handle.setCenterY(event.getY());
+        });
+    }
+
+    // Method to add resize listener to the Line
+    private void addLineResizeListener(Line line, Circle startHandle, Circle endHandle) {
+        startHandle.setOnMouseDragged(event -> {
+            line.setStartX(event.getX());
+            line.setStartY(event.getY());
+            startHandle.setCenterX(event.getX());
+            startHandle.setCenterY(event.getY());
+        });
+
+        endHandle.setOnMouseDragged(event -> {
+            line.setEndX(event.getX());
+            line.setEndY(event.getY());
+            endHandle.setCenterX(event.getX());
+            endHandle.setCenterY(event.getY());
+        });
+
+        line.startXProperty().addListener((obs, oldVal, newVal) -> {
+            startHandle.setCenterX(newVal.doubleValue());
+        });
+
+        line.startYProperty().addListener((obs, oldVal, newVal) -> {
+            startHandle.setCenterY(newVal.doubleValue());
+        });
+
+        line.endXProperty().addListener((obs, oldVal, newVal) -> {
+            endHandle.setCenterX(newVal.doubleValue());
+        });
+
+        line.endYProperty().addListener((obs, oldVal, newVal) -> {
+            endHandle.setCenterY(newVal.doubleValue());
+        });
+    }
+
+    // Method to add rotate listener to the rectangle
+    private void addRotateListener(Rectangle rectangle, Circle handle) {
+        handle.setFill(Color.BLUE);
+        handle.setOnMouseDragged(event -> {
+            double centerX = rectangle.getX() + rectangle.getWidth() / 2;
+            double centerY = rectangle.getY() + rectangle.getHeight() / 2;
+            double angle = Math.toDegrees(Math.atan2(event.getY() - centerY, event.getX() - centerX));
+            rectangle.setRotate(angle);
+            handle.setCenterX(event.getX());
+            handle.setCenterY(event.getY());
+        });
+
+        rectangle.xProperty().addListener((obs, oldVal, newVal) -> {
+            handle.setCenterX(newVal.doubleValue() + rectangle.getWidth());
+        });
+
+        rectangle.yProperty().addListener((obs, oldVal, newVal) -> {
+            handle.setCenterY(newVal.doubleValue() + rectangle.getHeight() / 2);
+        });
+
+        rectangle.widthProperty().addListener((obs, oldVal, newVal) -> {
+            handle.setCenterX(rectangle.getX() + newVal.doubleValue());
+        });
+
+        rectangle.heightProperty().addListener((obs, oldVal, newVal) -> {
+            handle.setCenterY(rectangle.getY() + rectangle.getHeight() / 2);
+        });
+
+        rectangle.rotateProperty().addListener((obs, oldVal, newVal) -> {
+            double centerX = rectangle.getX() + rectangle.getWidth() / 2;
+            double centerY = rectangle.getY() + rectangle.getHeight() / 2;
+            double angle = Math.toRadians(newVal.doubleValue());
+            double handleX = centerX + (rectangle.getWidth() / 2) * Math.cos(angle);
+            double handleY = centerY + (rectangle.getWidth() / 2) * Math.sin(angle);
+            handle.setCenterX(handleX);
+            handle.setCenterY(handleY);
         });
     }
 

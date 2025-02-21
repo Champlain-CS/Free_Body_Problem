@@ -9,8 +9,11 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -18,11 +21,13 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.scene.text.Text;
 
 public class Sandbox extends Application {
 
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
     private boolean dragging = false; // Flag to indicate if a shape is being dragged
+    private Rectangle helpBox; // Reference to the large rectangle
 
     TextField gravityField;
 
@@ -38,6 +43,32 @@ public class Sandbox extends Application {
         Pane sandBoxPane = new Pane();
         sandBoxPane.setPrefSize(600, 350);
         sandBoxRoot.setCenter(sandBoxPane);
+
+        // Right bar for images
+        VBox rightBar = new VBox();
+        rightBar.setAlignment(Pos.TOP_RIGHT);
+        rightBar.setPadding(new Insets(20));
+        rightBar.setSpacing(40);
+
+        // Add images to the right bar
+        ImageView imageView1 = new ImageView(new Image("file:/Users/sl4k/IdeaProjects/Free_Body_Problem/src/main/Info%20Display.png"));
+        ImageView imageView2 = new ImageView(new Image("file:/Users/sl4k/IdeaProjects/Free_Body_Problem/src/main/Vector%20Display.png"));
+        imageView1.setFitWidth(50);
+        imageView1.setFitHeight(50);
+        imageView1.setPreserveRatio(true);
+        imageView1.setScaleX(2);
+        imageView1.setScaleY(2);
+        imageView1.setPickOnBounds(true);
+
+        imageView2.setFitWidth(50);
+        imageView2.setFitHeight(50);
+        imageView2.setPreserveRatio(true);
+        imageView2.setScaleX(2);
+        imageView2.setScaleY(2);
+        imageView2.setPickOnBounds(true);
+        rightBar.getChildren().addAll(imageView1, imageView2);
+
+        sandBoxRoot.setRight(rightBar);
 
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
@@ -177,6 +208,42 @@ public class Sandbox extends Application {
         primaryStage.setTitle("Sandbox");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        // Add event handler to imageView1 to create a large rectangle
+        imageView1.setOnMouseClicked(event -> {
+            if (helpBox == null) {
+                helpBox = new Rectangle(900, 500, Color.LIGHTBLUE);
+                helpBox.setStroke(Color.BLACK);
+                helpBox.setX((sandBoxPane.getWidth() - helpBox.getWidth()) / 2);
+                helpBox.setY((sandBoxPane.getHeight() - helpBox.getHeight()) / 2);
+                sandBoxPane.getChildren().add(helpBox);
+
+                // Create and add text inside the helpBox
+                Text helpText = new Text("Help Information");
+                helpText.setFill(Color.BLACK);
+                helpText.setStyle("-fx-font-size: 24px;");
+                helpText.setX(helpBox.getX() + 20);
+                helpText.setY(helpBox.getY() + 40);
+                sandBoxPane.getChildren().add(helpText);
+
+                // Add event handler to remove the large rectangle and text when Escape is pressed
+                scene.setOnKeyPressed(keyEvent -> {
+                    if (keyEvent.getCode() == KeyCode.ESCAPE && helpBox != null) {
+                        sandBoxPane.getChildren().remove(helpBox);
+                        sandBoxPane.getChildren().remove(helpText);
+                        helpBox = null;
+                    }
+                });
+            }
+        });
+
+        // Add event handler to remove the large rectangle when Escape is pressed
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ESCAPE && helpBox != null) {
+                sandBoxPane.getChildren().remove(helpBox);
+                helpBox = null;
+            }
+        });
     }
 
     private void addDragHandlers(Node button, Pane sandBoxPane, String shapeType) {

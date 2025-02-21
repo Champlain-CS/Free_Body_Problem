@@ -178,7 +178,7 @@ public class Sandbox extends Application {
         Region leftSpacer = new Region();
         Region rightSpacer = new Region();
         HBox.setHgrow(leftSpacer, Priority.ALWAYS);
-        leftSpacer.setMinWidth(150);
+        leftSpacer.setMinWidth(175);
         HBox.setHgrow(rightSpacer, Priority.ALWAYS);
 
 // Add elements to the bottom bar

@@ -4,12 +4,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 
-public class Plane {
+public class Rope {
     private Line line;
     private Circle startHandle;
     private Circle endHandle;
 
-    public Plane(double startX, double startY, double endX, double endY, Color color) {
+    public Rope(double startX, double startY, double endX, double endY, Color color) {
         line = new Line(startX, startY, endX, endY);
         line.setStroke(color);
         line.setStrokeWidth(8);

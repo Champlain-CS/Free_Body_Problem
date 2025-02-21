@@ -1,12 +1,12 @@
 package com.example.free_body_problem;
 
-import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
@@ -17,11 +17,10 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
-public class DraggableShapesApp extends Application {
+public class Sandbox extends Application {
 
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
     private boolean dragging = false; // Flag to indicate if a shape is being dragged
-    private AnimationTimer gravityTimer;
 
     @Override
     public void start(Stage primaryStage) {
@@ -29,17 +28,15 @@ public class DraggableShapesApp extends Application {
         Pane mainPane = new Pane();
         mainPane.setPrefSize(600, 350);
 
-        // Create a handle for resizing the Pane
-        Circle paneHandle = createHandle(mainPane.getPrefWidth(), mainPane.getPrefHeight());
-        addPaneResizeListener(mainPane, paneHandle);
-
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
         bottomBar.setPrefHeight(50);
         bottomBar.setStyle("-fx-background-color: lightgray;");
         bottomBar.setSpacing(10);
+        bottomBar.setAlignment(Pos.CENTER); // Center the buttons
+        bottomBar.setPadding(new Insets(0, 20, 0, 20)); // Add padding to the left and right
 
-// Back to Menu Button
+        // Back to Menu Button
         Button menuBT = new Button("MENU");
         menuBT.getStyleClass().add("menu-button"); // Apply CSS class
         menuBT.setOnMouseClicked(e -> {
@@ -48,16 +45,11 @@ public class DraggableShapesApp extends Application {
             primaryStage.close();
         });
 
-// Load CSS into the Scene
-
-
-
-
-
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(100, 30, Color.WHITE);
         Circle circleButton = createButtonCircle(15, Color.GRAY);
-        Line lineButton = createButtonLine(50, 5, Color.BLACK);
+        Line lineButton = createButtonLine(50, 10, Color.BLACK);
+        Line ropeButton = createButtonLine(50, 10, Color.BROWN);
 
         // Add click handlers for each button
         rectangleButton.setOnMouseClicked(event -> {
@@ -71,55 +63,52 @@ public class DraggableShapesApp extends Application {
         circleButton.setOnMouseClicked(event -> {
             Pulley newPulley = new Pulley(100, 50, 25, 10, Color.GRAY, Color.BLACK);
             mainPane.getChildren().add(newPulley.getCircleGroup());
+            newPulley.addDragListener();
         });
 
         lineButton.setOnMouseClicked(event -> {
             Plane newPlane = new Plane(100, 50, 200, 50, Color.BLACK);
             mainPane.getChildren().add(newPlane.getLine());
             newPlane.addLineResizeListener();
+            newPlane.addDragListener();
             mainPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
         });
 
+        ropeButton.setOnMouseClicked(event -> {
+            Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN);
+            mainPane.getChildren().add(newRope.getLine());
+            newRope.addLineResizeListener();
+            newRope.addDragListener();
+            mainPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());
+        });
+
         // Create a spacer to push the MENU button to the right
-        //!!!!!!!!!This is a space so the menu button can be pushed to the right, its just an empty plane
         Pane spacer = new Pane();
         HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Add RESET button
+        Button resetBT = new Button("RESET");
+        resetBT.getStyleClass().add("menu-button"); // Apply CSS class
+        resetBT.setOnMouseClicked(event -> mainPane.getChildren().clear());
+
         // Add buttons to the bottom bar
-        bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton, spacer, menuBT);
+        bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton, ropeButton, spacer, menuBT, resetBT);
 
         // Root layout with main pane and bottom bar
-        VBox root = new VBox(mainPane, bottomBar);
-        mainPane.getChildren().add(paneHandle);
-
-        // Animation timer to simulate gravity and collisions
-        gravityTimer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if (!dragging) {
-                    for (Node shape : mainPane.getChildren()) {
-                        if (shape instanceof Group) {
-                            // Handle gravity and collisions for groups
-                        }
-                    }
-                }
-            }
-        };
-        //gravityTimer.start();
-
-        // Enable dragging and removal for shapes
+        VBox root = new VBox();
+        VBox.setVgrow(mainPane, Priority.ALWAYS);
+        root.getChildren().addAll(mainPane, bottomBar);
 
         // Set up the stage
         Scene scene = new Scene(root, 600, 400);
         scene.getStylesheets().add("MainMenuStyleSheet.css");
-        primaryStage.setTitle("Draggable Shapes with Creation and Removal");
+        primaryStage.setTitle("Sandbox");
         primaryStage.setScene(scene);
         primaryStage.show();
-
-
     }
 
     // Helper method to enable dragging and removal for shapes
-    private void enableDraggingAndRemoval(javafx.scene.Node shape) {
+    private void enableDraggingAndRemoval(Node shape) {
         shape.setOnMousePressed(event -> {
             dragging = true;
             shape.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
@@ -128,30 +117,14 @@ public class DraggableShapesApp extends Application {
         shape.setOnMouseDragged(event -> {
             double[] offset = (double[]) shape.getUserData();
             if (shape instanceof Group) {
-                Group group = (Group) shape;
-                for (Node node : group.getChildren()) {
-                    if (node instanceof Circle) {
-                        Circle circle = (Circle) node;
-                        circle.setCenterX(circle.getCenterX() + (event.getSceneX() - offset[0]));
-                        circle.setCenterY(circle.getCenterY() + (event.getSceneY() - offset[1]));
-                    }
-                }
+                // Dragging logic for Group
             } else if (shape instanceof Rectangle) {
-                Rectangle rect = (Rectangle) shape;
-                rect.setX(rect.getX() + (event.getSceneX() - offset[0]));
-                rect.setY(rect.getY() + (event.getSceneY() - offset[1]));
+                // Dragging logic for Rectangle
             }
             shape.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
         });
 
         shape.setOnMouseReleased(event -> dragging = false);
-
-        shape.setOnMouseClicked(event -> {
-            if (event.getButton() == MouseButton.SECONDARY) { // Right-click
-                Pane parent = (Pane) shape.getParent();
-                parent.getChildren().remove(shape);
-            }
-        });
     }
 
     // Helper method to create a rectangle button
@@ -174,27 +147,6 @@ public class DraggableShapesApp extends Application {
         line.setStroke(color);
         line.setStrokeWidth(strokeWidth);
         return line;
-    }
-
-    // Method to create a handle for resizing
-    private Circle createHandle(double x, double y) {
-        Circle handle = new Circle(x, y, HANDLE_RADIUS);
-        handle.setFill(Color.RED);
-        return handle;
-    }
-
-    // Method to add resize listener to the Pane
-    private void addPaneResizeListener(Pane pane, Circle handle) {
-        handle.setOnMouseDragged(event -> {
-            double offsetX = event.getX() - handle.getCenterX();
-            double offsetY = event.getY() - handle.getCenterY();
-
-            pane.setPrefWidth(pane.getPrefWidth() + offsetX);
-            pane.setPrefHeight(pane.getPrefHeight() + offsetY);
-
-            handle.setCenterX(event.getX());
-            handle.setCenterY(event.getY());
-        });
     }
 
     public static void main(String[] args) {

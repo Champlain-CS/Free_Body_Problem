@@ -1,6 +1,7 @@
 package com.example.free_body_problem;
 
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
@@ -19,5 +20,25 @@ public class Pulley {
 
     public Group getCircleGroup() {
         return circleGroup;
+    }
+
+    public void addDragListener() {
+        circleGroup.setOnMousePressed(event -> {
+            circleGroup.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+        });
+
+        circleGroup.setOnMouseDragged(event -> {
+            double[] offset = (double[]) circleGroup.getUserData();
+            for (Node node : circleGroup.getChildren()) {
+                Circle circle = (Circle) node;
+                circle.setCenterX(circle.getCenterX() + (event.getSceneX() - offset[0]));
+                circle.setCenterY(circle.getCenterY() + (event.getSceneY() - offset[1]));
+            }
+            circleGroup.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+        });
+
+        circleGroup.setOnMouseReleased(event -> {
+            // Handle mouse release if needed
+        });
     }
 }

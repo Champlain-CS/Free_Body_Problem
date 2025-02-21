@@ -31,7 +31,7 @@ public class Box {
     }
 
     private Circle createHandle(double x, double y) {
-        Circle handle = new Circle(x, y, DraggableShapesApp.HANDLE_RADIUS);
+        Circle handle = new Circle(x, y, Sandbox.HANDLE_RADIUS);
         handle.setFill(Color.RED);
         return handle;
     }
@@ -43,13 +43,52 @@ public class Box {
 
         rectangle.setOnMouseDragged(event -> {
             double[] offset = (double[]) rectangle.getUserData();
-            rectangle.setX(rectangle.getX() + (event.getSceneX() - offset[0]));
-            rectangle.setY(rectangle.getY() + (event.getSceneY() - offset[1]));
+            double offsetX = event.getSceneX() - offset[0];
+            double offsetY = event.getSceneY() - offset[1];
+
+            rectangle.setX(rectangle.getX() + offsetX);
+            rectangle.setY(rectangle.getY() + offsetY);
+
+            resizeHandle.setCenterX(resizeHandle.getCenterX() + offsetX);
+            resizeHandle.setCenterY(resizeHandle.getCenterY() + offsetY);
+            rotateHandle.setCenterX(rotateHandle.getCenterX() + offsetX);
+            rotateHandle.setCenterY(rotateHandle.getCenterY() + offsetY);
+
             rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
         });
 
-        rectangle.setOnMouseReleased(event -> {
-            // Handle mouse release if needed
+        resizeHandle.setOnMousePressed(event -> {
+            resizeHandle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+        });
+
+        resizeHandle.setOnMouseDragged(event -> {
+            double[] offset = (double[]) resizeHandle.getUserData();
+            double offsetX = event.getSceneX() - offset[0];
+            double offsetY = event.getSceneY() - offset[1];
+
+            rectangle.setWidth(rectangle.getWidth() + offsetX);
+            rectangle.setHeight(rectangle.getHeight() + offsetY);
+
+            resizeHandle.setCenterX(event.getSceneX());
+            resizeHandle.setCenterY(event.getSceneY());
+
+            resizeHandle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+        });
+
+        rectangle.xProperty().addListener((obs, oldVal, newVal) -> {
+            resizeHandle.setCenterX(newVal.doubleValue() + rectangle.getWidth());
+        });
+
+        rectangle.yProperty().addListener((obs, oldVal, newVal) -> {
+            resizeHandle.setCenterY(newVal.doubleValue() + rectangle.getHeight());
+        });
+
+        rectangle.widthProperty().addListener((obs, oldVal, newVal) -> {
+            resizeHandle.setCenterX(rectangle.getX() + newVal.doubleValue());
+        });
+
+        rectangle.heightProperty().addListener((obs, oldVal, newVal) -> {
+            resizeHandle.setCenterY(rectangle.getY() + newVal.doubleValue());
         });
     }
 
@@ -77,7 +116,7 @@ public class Box {
         });
 
         rectangle.heightProperty().addListener((obs, oldVal, newVal) -> {
-            rotateHandle.setCenterY(rectangle.getY() + rectangle.getHeight() / 2);
+            rotateHandle.setCenterY(rectangle.getY() + newVal.doubleValue());
         });
 
         rectangle.rotateProperty().addListener((obs, oldVal, newVal) -> {

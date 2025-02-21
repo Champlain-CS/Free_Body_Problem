@@ -57,7 +57,7 @@ public class GUI extends Application {
         startBT.setOnMouseEntered(e -> startBT.getStyleClass().add("buttonHover"));
        //Run DraggableShapesApp on click
         startBT.setOnMouseClicked(e -> {
-            DraggableShapesApp app = new DraggableShapesApp();
+            Sandbox app = new Sandbox();
             app.start(new Stage());
             primaryStage.close();
         });

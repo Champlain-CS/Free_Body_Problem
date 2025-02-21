@@ -26,6 +26,7 @@
 .editor-pane {
     -fx-spacing: 50px;
     -fx-border-color: black;
+    -fx-background-color: white;
 }
 .editor-label {
     -fx-background-color: linear-gradient(to bottom, #4ca0d5, #4c7cd5);

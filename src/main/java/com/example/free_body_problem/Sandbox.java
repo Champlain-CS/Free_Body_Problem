@@ -23,10 +23,12 @@ public class Sandbox extends Application {
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
     private boolean dragging = false; // Flag to indicate if a shape is being dragged
 
+    TextField gravityField;
+
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setMaximized(true);
-        primaryStage.setResizable(false);
+        //primaryStage.setResizable(false);
 
         // Root pane
         BorderPane sandBoxRoot = new BorderPane();
@@ -56,7 +58,10 @@ public class Sandbox extends Application {
         // Add RESET button
         Button resetBT = new Button("RESET");
         resetBT.getStyleClass().add("menu-button"); // Apply CSS class
-        resetBT.setOnMouseClicked(event -> sandBoxRoot.getChildren().clear());
+        resetBT.setOnMouseClicked(event -> {
+            sandBoxPane.getChildren().clear();
+            gravityField.setText("9.8");
+        });
 
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(100, 30, Color.WHITE);
@@ -69,14 +74,30 @@ public class Sandbox extends Application {
             Box newBox = new Box(100, 50, 150, 100, Color.TRANSPARENT);
             sandBoxPane.getChildren().add(newBox.getRectangle());
             newBox.addDragListener();
-            newBox.addRotateListener();
+            //newBox.addRotateListener();
             sandBoxPane.getChildren().addAll(newBox.getResizeHandle(), newBox.getRotateHandle());
+        });
+        rectangleButton.setOnMouseEntered(e -> {
+            rectangleButton.setScaleX(1.1);
+            rectangleButton.setScaleY(1.1);
+        });
+        rectangleButton.setOnMouseExited(e -> {
+            rectangleButton.setScaleX(1.0);
+            rectangleButton.setScaleY(1.0);
         });
 
         circleButton.setOnMouseClicked(event -> {
             Pulley newPulley = new Pulley(100, 50, 25, 10, Color.GRAY, Color.BLACK);
             sandBoxPane.getChildren().add(newPulley.getCircleGroup());
             newPulley.addDragListener();
+        });
+        circleButton.setOnMouseEntered(e -> {
+            circleButton.setScaleX(1.1);
+            circleButton.setScaleY(1.1);
+        });
+        circleButton.setOnMouseExited(e -> {
+            circleButton.setScaleX(1.0);
+            circleButton.setScaleY(1.0);
         });
 
         lineButton.setOnMouseClicked(event -> {
@@ -86,6 +107,14 @@ public class Sandbox extends Application {
             newPlane.addDragListener();
             sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
         });
+        lineButton.setOnMouseEntered(e -> {
+            lineButton.setScaleX(1.1);
+            lineButton.setScaleY(1.1);
+        });
+        lineButton.setOnMouseExited(e -> {
+            lineButton.setScaleX(1.0);
+            lineButton.setScaleY(1.0);
+        });
 
         ropeButton.setOnMouseClicked(event -> {
             Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN);
@@ -93,6 +122,14 @@ public class Sandbox extends Application {
             newRope.addLineResizeListener();
             newRope.addDragListener();
             sandBoxPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());
+        });
+        ropeButton.setOnMouseEntered(e -> {
+            ropeButton.setScaleX(1.1);
+            ropeButton.setScaleY(1.1);
+        });
+        ropeButton.setOnMouseExited(e -> {
+            ropeButton.setScaleX(1.0);
+            ropeButton.setScaleY(1.0);
         });
 
         // Create a spacer to push the MENU button to the right
@@ -102,10 +139,7 @@ public class Sandbox extends Application {
         // Add buttons to the bottom bar
         bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton, ropeButton, spacer, menuBT, resetBT);
 
-        // Root layout with main pane and bottom bar
-//        VBox root = new VBox();
-//        VBox.setVgrow(sandBoxPane, Priority.ALWAYS);
-//        root.getChildren().addAll(sandBoxPane, bottomBar);
+
 
         // Pane for world settings
         VBox editorPane = new VBox();
@@ -119,7 +153,7 @@ public class Sandbox extends Application {
         gravityBox.getStyleClass().add("editor-attribute-box");
         Label gravityLabel = new Label("Gravity:");
         gravityLabel.getStyleClass().add("editor-attribute-label");
-        TextField gravityField = new TextField();
+        gravityField = new TextField();
         gravityField.getStyleClass().add("editor-attribute-field");
         gravityField.setText("9.8");
         gravityBox.getChildren().addAll(gravityLabel, gravityField);
@@ -134,6 +168,7 @@ public class Sandbox extends Application {
         coefficientBox.getChildren().addAll(coefficientLabel, coefficientField);
 
         editorPane.getChildren().addAll(editorLabel, gravityBox, coefficientBox);
+        editorPane.toFront();
 
 
 

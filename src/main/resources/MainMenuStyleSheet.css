@@ -21,17 +21,6 @@
     -fx-font-size: 22px;
 }
 
-.menu-button {
-    -fx-background-color: linear-gradient(to bottom, #ff8c00, #ff4500);
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-padding: 5px 15px;
-    -fx-background-radius: 8px;
-    -fx-border-radius: 8px;
-    -fx-border-color: black;
-    -fx-border-width: 2px;
-}
 
 .titleStyle {
     -fx-font-weight: bold;

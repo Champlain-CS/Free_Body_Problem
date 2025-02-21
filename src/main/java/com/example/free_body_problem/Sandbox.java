@@ -7,10 +7,9 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -24,17 +23,24 @@ public class Sandbox extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        primaryStage.setMaximized(true);
+        primaryStage.setResizable(false);
+
+        // Root pane
+        BorderPane sandBoxRoot = new BorderPane();
+        sandBoxRoot.setStyle("-fx-border-color: darkgray");
+
         // Pane for draggable shapes
-        Pane mainPane = new Pane();
-        mainPane.setPrefSize(600, 350);
+        Pane sandBoxPane = new Pane();
+        sandBoxPane.setPrefSize(600, 350);
+        sandBoxRoot.setCenter(sandBoxPane);
 
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
-        bottomBar.setPrefHeight(50);
-        bottomBar.setStyle("-fx-background-color: lightgray;");
-        bottomBar.setSpacing(10);
-        bottomBar.setAlignment(Pos.CENTER); // Center the buttons
-        bottomBar.setPadding(new Insets(0, 20, 0, 20)); // Add padding to the left and right
+        bottomBar.getStyleClass().add("bottom-bar");
+
+        sandBoxRoot.setBottom(bottomBar);
+
 
         // Back to Menu Button
         Button menuBT = new Button("MENU");
@@ -48,7 +54,7 @@ public class Sandbox extends Application {
         // Add RESET button
         Button resetBT = new Button("RESET");
         resetBT.getStyleClass().add("menu-button"); // Apply CSS class
-        resetBT.setOnMouseClicked(event -> mainPane.getChildren().clear());
+        resetBT.setOnMouseClicked(event -> sandBoxPane.getChildren().clear());
 
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(100, 30, Color.WHITE);
@@ -59,32 +65,32 @@ public class Sandbox extends Application {
         // Add click handlers for each button
         rectangleButton.setOnMouseClicked(event -> {
             Box newBox = new Box(100, 50, 150, 100, Color.TRANSPARENT);
-            mainPane.getChildren().add(newBox.getRectangle());
+            sandBoxPane.getChildren().add(newBox.getRectangle());
             newBox.addDragListener();
             newBox.addRotateListener();
-            mainPane.getChildren().addAll(newBox.getResizeHandle(), newBox.getRotateHandle());
+            sandBoxPane.getChildren().addAll(newBox.getResizeHandle(), newBox.getRotateHandle());
         });
 
         circleButton.setOnMouseClicked(event -> {
             Pulley newPulley = new Pulley(100, 50, 25, 10, Color.GRAY, Color.BLACK);
-            mainPane.getChildren().add(newPulley.getCircleGroup());
+            sandBoxPane.getChildren().add(newPulley.getCircleGroup());
             newPulley.addDragListener();
         });
 
         lineButton.setOnMouseClicked(event -> {
             Plane newPlane = new Plane(100, 50, 200, 50, Color.BLACK);
-            mainPane.getChildren().add(newPlane.getLine());
+            sandBoxPane.getChildren().add(newPlane.getLine());
             newPlane.addLineResizeListener();
             newPlane.addDragListener();
-            mainPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
+            sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
         });
 
         ropeButton.setOnMouseClicked(event -> {
             Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN);
-            mainPane.getChildren().add(newRope.getLine());
+            sandBoxPane.getChildren().add(newRope.getLine());
             newRope.addLineResizeListener();
             newRope.addDragListener();
-            mainPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());
+            sandBoxPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());
         });
 
         // Create a spacer to push the MENU button to the right
@@ -96,13 +102,43 @@ public class Sandbox extends Application {
         bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton, ropeButton, spacer, menuBT, resetBT);
 
         // Root layout with main pane and bottom bar
-        VBox root = new VBox();
-        VBox.setVgrow(mainPane, Priority.ALWAYS);
-        root.getChildren().addAll(mainPane, bottomBar);
+//        VBox root = new VBox();
+//        VBox.setVgrow(sandBoxPane, Priority.ALWAYS);
+//        root.getChildren().addAll(sandBoxPane, bottomBar);
+
+        // Pane for world settings
+        VBox editorPane = new VBox();
+        editorPane.getStyleClass().add("editor-pane");
+        sandBoxRoot.setLeft(editorPane);
+
+        Label editorLabel = new Label("Sandbox Editor");
+        editorLabel.getStyleClass().add("editor-label");
+
+        HBox gravityBox = new HBox();
+        gravityBox.getStyleClass().add("editor-attribute-box");
+        Label gravityLabel = new Label("Gravity:");
+        gravityLabel.getStyleClass().add("editor-attribute-label");
+        TextField gravityField = new TextField();
+        gravityField.getStyleClass().add("editor-attribute-field");
+        gravityField.setText("9.8");
+        gravityBox.getChildren().addAll(gravityLabel, gravityField);
+
+        HBox coefficientBox = new HBox();
+        coefficientBox.getStyleClass().add("editor-attribute-box");
+        Label coefficientLabel = new Label("Coefficient of Friction:");
+        coefficientLabel.getStyleClass().add("editor-attribute-label");
+        TextField coefficientField = new TextField();
+        coefficientField.getStyleClass().add("editor-attribute-field");
+        coefficientField.setText("0.4");
+        coefficientBox.getChildren().addAll(coefficientLabel, coefficientField);
+
+        editorPane.getChildren().addAll(editorLabel, gravityBox, coefficientBox);
+
+
 
         // Set up the stage
-        Scene scene = new Scene(root, 600, 400);
-        scene.getStylesheets().add("MainMenuStyleSheet.css");
+        Scene scene = new Scene(sandBoxRoot, 600, 400);
+        scene.getStylesheets().add("SandboxStyleSheet.css");
         primaryStage.setTitle("Sandbox");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -148,9 +184,5 @@ public class Sandbox extends Application {
         line.setStroke(color);
         line.setStrokeWidth(strokeWidth);
         return line;
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

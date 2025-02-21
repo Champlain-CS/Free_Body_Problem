@@ -1,0 +1,61 @@
+.bottom-bar {
+    -fx-pref-height: 100px;
+    -fx-background-color: lightgray;
+    -fx-spacing: 20px;
+    -fx-alignment: center;
+    -fx-padding: 0 20px 0 20px;
+}
+
+.menu-button {
+    /*-fx-background-color: linear-gradient(to bottom, #ff8c00, #ff4500);*/
+    -fx-background-color: linear-gradient(to bottom, #4ca0d5, #4c7cd5);
+    -fx-text-fill: #abe2ff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 5px 15px;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-border-color: darkgray;
+    -fx-border-width: 2px;
+}
+.menu-button:hover {
+    -fx-background-color: linear-gradient(to top, #4ca0d5, #4c7cd5);
+}
+
+
+.editor-pane {
+    -fx-spacing: 50px;
+    -fx-border-color: black;
+}
+.editor-label {
+    -fx-background-color: linear-gradient(to bottom, #4ca0d5, #4c7cd5);
+    -fx-border-color: black;
+    -fx-border-width: 2px;
+    -fx-padding: 5px 10px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-family: "Arial";
+    -fx-font-size: 14pt;
+    -fx-pref-width: 270px;
+    -fx-pref-height: 50px;
+    -fx-alignment: center;
+}
+.editor-attribute-box {
+    -fx-background-color: lightgray;
+    -fx-padding: 6px;
+    -fx-alignment: center;
+    -fx-spacing: 20px;
+}
+.editor-attribute-label {
+    -fx-font-weight: bold;
+    -fx-font-family: "Arial";
+    -fx-font-size: 12pt;
+}
+.editor-attribute-field {
+    -fx-background-color: linear-gradient(to bottom, #4ca0d5, #4c7cd5);
+    -fx-border-color: darkgray;
+    -fx-border-width: 2px;
+    -fx-pref-width: 50;
+}
+
+

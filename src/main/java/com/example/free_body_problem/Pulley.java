@@ -10,10 +10,10 @@ public class Pulley {
 
     public Pulley(double x, double y, double outerRadius, double innerRadius, Color outerColor, Color innerColor) {
         Circle outerCircle = new Circle(x, y, outerRadius, outerColor);
-        outerCircle.setStroke(Color.BLACK);
+        outerCircle.setStroke(null);
 
         Circle innerCircle = new Circle(x, y, innerRadius, innerColor);
-        innerCircle.setStroke(Color.BLACK);
+        innerCircle.setStroke(null);
 
         circleGroup = new Group(outerCircle, innerCircle);
     }
@@ -34,6 +34,7 @@ public class Pulley {
                 circle.setCenterX(circle.getCenterX() + (event.getSceneX() - offset[0]));
                 circle.setCenterY(circle.getCenterY() + (event.getSceneY() - offset[1]));
             }
+
             circleGroup.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
         });
 

@@ -9,8 +9,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -28,7 +29,6 @@ public class Sandbox extends Application {
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setMaximized(true);
-        //primaryStage.setResizable(false);
 
         // Root pane
         BorderPane sandBoxRoot = new BorderPane();
@@ -44,7 +44,6 @@ public class Sandbox extends Application {
         bottomBar.getStyleClass().add("bottom-bar");
 
         sandBoxRoot.setBottom(bottomBar);
-
 
         // Back to Menu Button
         Button menuBT = new Button("MENU");
@@ -65,41 +64,44 @@ public class Sandbox extends Application {
 
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(100, 30, Color.WHITE);
-        Circle circleButton = createButtonCircle(15, Color.GRAY);
+        Circle circleButton = createButtonCircle(15, Color.BLACK);
+        circleButton.setStroke(Color.GRAY);
+        circleButton.setStrokeWidth(10); // Adjust the stroke width to create the inner radius effect
         Line lineButton = createButtonLine(50, 10, Color.BLACK);
         Line ropeButton = createButtonLine(50, 10, Color.BROWN);
 
-        // Add click handlers for each button
-        rectangleButton.setOnMouseClicked(event -> {
-            Box newBox = new Box(100, 50, 150, 100, Color.TRANSPARENT);
-            sandBoxPane.getChildren().add(newBox.getRectangle());
-            newBox.addDragListener();
-            //newBox.addRotateListener();
-            sandBoxPane.getChildren().addAll(newBox.getResizeHandle(), newBox.getRotateHandle());
-        });
+        // Add drag-and-drop handlers for each button
+        addDragHandlers(rectangleButton, sandBoxPane, "rectangle");
+        addDragHandlers(circleButton, sandBoxPane, "circle");
+        addDragHandlers(lineButton, sandBoxPane, "line");
+        addDragHandlers(ropeButton, sandBoxPane, "rope");
+
+        // Add mouse event handlers for rectangleButton
         rectangleButton.setOnMouseEntered(e -> {
-            rectangleButton.setScaleX(1.1);
-            rectangleButton.setScaleY(1.1);
+            rectangleButton.setScaleX(1.2);
+            rectangleButton.setScaleY(1.2);
         });
         rectangleButton.setOnMouseExited(e -> {
             rectangleButton.setScaleX(1.0);
             rectangleButton.setScaleY(1.0);
         });
 
+        // Add mouse event handlers for circleButton
         circleButton.setOnMouseClicked(event -> {
             Pulley newPulley = new Pulley(100, 50, 25, 10, Color.GRAY, Color.BLACK);
             sandBoxPane.getChildren().add(newPulley.getCircleGroup());
             newPulley.addDragListener();
         });
         circleButton.setOnMouseEntered(e -> {
-            circleButton.setScaleX(1.1);
-            circleButton.setScaleY(1.1);
+            circleButton.setScaleX(1.2);
+            circleButton.setScaleY(1.2);
         });
         circleButton.setOnMouseExited(e -> {
             circleButton.setScaleX(1.0);
             circleButton.setScaleY(1.0);
         });
 
+        // Add mouse event handlers for lineButton
         lineButton.setOnMouseClicked(event -> {
             Plane newPlane = new Plane(100, 50, 200, 50, Color.BLACK);
             sandBoxPane.getChildren().add(newPlane.getLine());
@@ -108,14 +110,15 @@ public class Sandbox extends Application {
             sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
         });
         lineButton.setOnMouseEntered(e -> {
-            lineButton.setScaleX(1.1);
-            lineButton.setScaleY(1.1);
+            lineButton.setScaleX(1.2);
+            lineButton.setScaleY(1.2);
         });
         lineButton.setOnMouseExited(e -> {
             lineButton.setScaleX(1.0);
             lineButton.setScaleY(1.0);
         });
 
+        // Add mouse event handlers for ropeButton
         ropeButton.setOnMouseClicked(event -> {
             Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN);
             sandBoxPane.getChildren().add(newRope.getLine());
@@ -124,8 +127,8 @@ public class Sandbox extends Application {
             sandBoxPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());
         });
         ropeButton.setOnMouseEntered(e -> {
-            ropeButton.setScaleX(1.1);
-            ropeButton.setScaleY(1.1);
+            ropeButton.setScaleX(1.2);
+            ropeButton.setScaleY(1.2);
         });
         ropeButton.setOnMouseExited(e -> {
             ropeButton.setScaleX(1.0);
@@ -138,8 +141,6 @@ public class Sandbox extends Application {
 
         // Add buttons to the bottom bar
         bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton, ropeButton, spacer, menuBT, resetBT);
-
-
 
         // Pane for world settings
         VBox editorPane = new VBox();
@@ -170,14 +171,82 @@ public class Sandbox extends Application {
         editorPane.getChildren().addAll(editorLabel, gravityBox, coefficientBox);
         editorPane.toFront();
 
-
-
         // Set up the stage
         Scene scene = new Scene(sandBoxRoot, 600, 400);
         scene.getStylesheets().add("SandboxStyleSheet.css");
         primaryStage.setTitle("Sandbox");
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void addDragHandlers(Node button, Pane sandBoxPane, String shapeType) {
+        button.setOnDragDetected(event -> {
+            Dragboard db = button.startDragAndDrop(TransferMode.ANY);
+            ClipboardContent content = new ClipboardContent();
+            content.putString(shapeType);
+            db.setContent(content);
+
+            // Create a snapshot of the node and set it as the drag view
+            if (button instanceof Rectangle) {
+                Rectangle rect = (Rectangle) button;
+                db.setDragView(rect.snapshot(null, null));
+            } else if (button instanceof Circle) {
+                Circle circle = (Circle) button;
+                db.setDragView(circle.snapshot(null, null));
+            } else if (button instanceof Line) {
+                Line line = (Line) button;
+                db.setDragView(line.snapshot(null, null));
+            }
+
+            event.consume();
+        });
+
+        sandBoxPane.setOnDragOver(event -> {
+            if (event.getGestureSource() != sandBoxPane && event.getDragboard().hasString()) {
+                event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+            }
+            event.consume();
+        });
+
+        sandBoxPane.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasString()) {
+                String shape = db.getString();
+                switch (shape) {
+                    case "rectangle":
+                        double rectWidth = 150;
+                        double rectHeight = 100;
+                        Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE);
+                        sandBoxPane.getChildren().add(newBox.getRectangle());
+                        newBox.addDragListener();
+                        sandBoxPane.getChildren().addAll(newBox.getResizeHandle());
+                        break;
+                    case "circle":
+                        Pulley newPulley = new Pulley(event.getX(), event.getY(), 25, 10, Color.GRAY, Color.BLACK);
+                        sandBoxPane.getChildren().add(newPulley.getCircleGroup());
+                        newPulley.addDragListener();
+                        break;
+                    case "line":
+                        Plane newPlane = new Plane(event.getX(), event.getY(), event.getX() + 100, event.getY(), Color.BLACK);
+                        sandBoxPane.getChildren().add(newPlane.getLine());
+                        newPlane.addLineResizeListener();
+                        newPlane.addDragListener();
+                        sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
+                        break;
+                    case "rope":
+                        Rope newRope = new Rope(event.getX(), event.getY(), event.getX() + 100, event.getY(), Color.BROWN);
+                        sandBoxPane.getChildren().add(newRope.getLine());
+                        newRope.addLineResizeListener();
+                        newRope.addDragListener();
+                        sandBoxPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());
+                        break;
+                }
+                success = true;
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
     }
 
     // Helper method to enable dragging and removal for shapes

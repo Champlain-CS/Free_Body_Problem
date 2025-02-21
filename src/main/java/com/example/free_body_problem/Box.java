@@ -91,8 +91,8 @@ public class Box {
             rectangle.setWidth(rectangle.getWidth() + offsetX);
             rectangle.setHeight(rectangle.getHeight() + offsetY);
 
-            resizeHandle.setCenterX(event.getSceneX());
-            resizeHandle.setCenterY(event.getSceneY());
+            resizeHandle.setCenterX(rectangle.getX() + rectangle.getWidth());
+            resizeHandle.setCenterY(rectangle.getY() + rectangle.getHeight());
 
             textField.setLayoutX(rectangle.getX() + rectangle.getWidth() / 2 - textField.getPrefWidth() / 2);
             textField.setLayoutY(rectangle.getY() + rectangle.getHeight() / 2 - textField.getPrefHeight() / 2);

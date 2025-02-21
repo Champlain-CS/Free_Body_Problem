@@ -9,6 +9,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -54,7 +56,7 @@ public class Sandbox extends Application {
         // Add RESET button
         Button resetBT = new Button("RESET");
         resetBT.getStyleClass().add("menu-button"); // Apply CSS class
-        resetBT.setOnMouseClicked(event -> sandBoxPane.getChildren().clear());
+        resetBT.setOnMouseClicked(event -> mainPane.getChildren().clear());
 
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(100, 30, Color.WHITE);
@@ -96,7 +98,6 @@ public class Sandbox extends Application {
         // Create a spacer to push the MENU button to the right
         Pane spacer = new Pane();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-
 
         // Add buttons to the bottom bar
         bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton, ropeButton, spacer, menuBT, resetBT);
@@ -184,5 +185,9 @@ public class Sandbox extends Application {
         line.setStroke(color);
         line.setStrokeWidth(strokeWidth);
         return line;
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }

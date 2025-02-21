@@ -7,6 +7,8 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
@@ -26,15 +28,40 @@ public class Sandbox extends Application {
     public void start(Stage primaryStage) {
         // Pane for draggable shapes
         Pane mainPane = new Pane();
-        mainPane.setPrefSize(600, 350);
+        mainPane.setPrefSize(500, 350);
 
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
         bottomBar.setPrefHeight(50);
-        bottomBar.setStyle("-fx-background-color: lightgray;");
+        bottomBar.setStyle("-fx-background-color: #a6caec;");
         bottomBar.setSpacing(10);
         bottomBar.setAlignment(Pos.CENTER); // Center the buttons
         bottomBar.setPadding(new Insets(0, 20, 0, 20)); // Add padding to the left and right
+
+        // Left bar for additional buttons
+        VBox leftBar = new VBox();
+        leftBar.setPrefWidth(150);
+        leftBar.setStyle("-fx-background-color: lightgray;");
+        leftBar.setSpacing(10);
+        leftBar.setAlignment(Pos.TOP_CENTER);
+        leftBar.setPadding(new Insets(20, 0, 20, 0)); // Add padding to the top and bottom
+
+        // Gravity label and text field
+        Label gravityLabel = new Label("Gravity:");
+        TextField gravityField = new TextField();
+        gravityField.setPrefWidth(50); // Set preferred width
+        HBox gravityBox = new HBox(5, gravityLabel, gravityField);
+        gravityBox.setAlignment(Pos.CENTER);
+
+        // Friction label and text field
+        Label frictionLabel = new Label("Friction:");
+        TextField frictionField = new TextField();
+        frictionField.setPrefWidth(50); // Set preferred width
+        HBox frictionBox = new HBox(5, frictionLabel, frictionField);
+        frictionBox.setAlignment(Pos.CENTER);
+
+        // Add gravity and friction boxes to the left bar
+        leftBar.getChildren().addAll(gravityBox, frictionBox);
 
         // Back to Menu Button
         Button menuBT = new Button("MENU");
@@ -60,9 +87,10 @@ public class Sandbox extends Application {
         rectangleButton.setOnMouseClicked(event -> {
             Box newBox = new Box(100, 50, 150, 100, Color.TRANSPARENT);
             mainPane.getChildren().add(newBox.getRectangle());
+            mainPane.getChildren().add(newBox.getTextField());
             newBox.addDragListener();
-            newBox.addRotateListener();
-            mainPane.getChildren().addAll(newBox.getResizeHandle(), newBox.getRotateHandle());
+            //newBox.addRotateListener();
+            mainPane.getChildren().addAll(newBox.getResizeHandle());
         });
 
         circleButton.setOnMouseClicked(event -> {
@@ -91,17 +119,20 @@ public class Sandbox extends Application {
         Pane spacer = new Pane();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-
         // Add buttons to the bottom bar
         bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton, ropeButton, spacer, menuBT, resetBT);
 
-        // Root layout with main pane and bottom bar
-        VBox root = new VBox();
+        // Root layout with main pane, left bar, and bottom bar
+        HBox root = new HBox();
         VBox.setVgrow(mainPane, Priority.ALWAYS);
-        root.getChildren().addAll(mainPane, bottomBar);
+        root.getChildren().addAll(leftBar, mainPane);
+
+        VBox mainLayout = new VBox();
+        VBox.setVgrow(root, Priority.ALWAYS);
+        mainLayout.getChildren().addAll(root, bottomBar);
 
         // Set up the stage
-        Scene scene = new Scene(root, 600, 400);
+        Scene scene = new Scene(mainLayout, 600, 400);
         scene.getStylesheets().add("MainMenuStyleSheet.css");
         primaryStage.setTitle("Sandbox");
         primaryStage.setScene(scene);

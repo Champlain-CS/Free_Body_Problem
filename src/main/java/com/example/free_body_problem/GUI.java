@@ -18,6 +18,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+
 
 public class GUI extends Application {
     VBox mainMenuRoot = new VBox();
@@ -53,6 +55,12 @@ public class GUI extends Application {
         Button startBT = new Button("START");
         startBT.getStyleClass().add("buttonStyle");
         startBT.setOnMouseEntered(e -> startBT.getStyleClass().add("buttonHover"));
+       //Run DraggableShapesApp on click
+        startBT.setOnMouseClicked(e -> {
+            DraggableShapesApp app = new DraggableShapesApp();
+            app.start(new Stage());
+            primaryStage.close();
+        });
 
         Button optionsBT = new Button("OPTIONS");
         optionsBT.getStyleClass().add("buttonStyle");

@@ -5,9 +5,11 @@ import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -37,6 +39,21 @@ public class DraggableShapesApp extends Application {
         bottomBar.setStyle("-fx-background-color: lightgray;");
         bottomBar.setSpacing(10);
 
+// Back to Menu Button
+        Button menuBT = new Button("MENU");
+        menuBT.getStyleClass().add("menu-button"); // Apply CSS class
+        menuBT.setOnMouseClicked(e -> {
+            GUI app = new GUI();
+            app.start(new Stage());
+            primaryStage.close();
+        });
+
+// Load CSS into the Scene
+
+
+
+
+
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(100, 30, Color.WHITE);
         Circle circleButton = createButtonCircle(15, Color.GRAY);
@@ -63,8 +80,12 @@ public class DraggableShapesApp extends Application {
             mainPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
         });
 
+        // Create a spacer to push the MENU button to the right
+        //!!!!!!!!!This is a space so the menu button can be pushed to the right, its just an empty plane
+        Pane spacer = new Pane();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
         // Add buttons to the bottom bar
-        bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton);
+        bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton, spacer, menuBT);
 
         // Root layout with main pane and bottom bar
         VBox root = new VBox(mainPane, bottomBar);
@@ -89,9 +110,12 @@ public class DraggableShapesApp extends Application {
 
         // Set up the stage
         Scene scene = new Scene(root, 600, 400);
+        scene.getStylesheets().add("MainMenuStyleSheet.css");
         primaryStage.setTitle("Draggable Shapes with Creation and Removal");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+
     }
 
     // Helper method to enable dragging and removal for shapes

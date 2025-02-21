@@ -170,8 +170,20 @@ public class Sandbox extends Application {
         Pane spacer = new Pane();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Add buttons to the bottom bar
-        bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton, ropeButton, spacer, menuBT, resetBT);
+// Grouping the shape buttons
+        HBox shapeButtons = new HBox(20, rectangleButton, circleButton, lineButton, ropeButton);
+        shapeButtons.setAlignment(Pos.CENTER);
+
+// Create spacers for centering
+        Region leftSpacer = new Region();
+        Region rightSpacer = new Region();
+        HBox.setHgrow(leftSpacer, Priority.ALWAYS);
+        leftSpacer.setMinWidth(150);
+        HBox.setHgrow(rightSpacer, Priority.ALWAYS);
+
+// Add elements to the bottom bar
+        bottomBar.getChildren().addAll(leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT);
+
 
         // Pane for world settings
         VBox editorPane = new VBox();

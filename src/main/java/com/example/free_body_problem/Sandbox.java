@@ -45,6 +45,11 @@ public class Sandbox extends Application {
             primaryStage.close();
         });
 
+        // Add RESET button
+        Button resetBT = new Button("RESET");
+        resetBT.getStyleClass().add("menu-button"); // Apply CSS class
+        resetBT.setOnMouseClicked(event -> mainPane.getChildren().clear());
+
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(100, 30, Color.WHITE);
         Circle circleButton = createButtonCircle(15, Color.GRAY);
@@ -86,10 +91,6 @@ public class Sandbox extends Application {
         Pane spacer = new Pane();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Add RESET button
-        Button resetBT = new Button("RESET");
-        resetBT.getStyleClass().add("menu-button"); // Apply CSS class
-        resetBT.setOnMouseClicked(event -> mainPane.getChildren().clear());
 
         // Add buttons to the bottom bar
         bottomBar.getChildren().addAll(rectangleButton, circleButton, lineButton, ropeButton, spacer, menuBT, resetBT);

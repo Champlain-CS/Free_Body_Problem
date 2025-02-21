@@ -56,7 +56,7 @@ public class Sandbox extends Application {
         // Add RESET button
         Button resetBT = new Button("RESET");
         resetBT.getStyleClass().add("menu-button"); // Apply CSS class
-        resetBT.setOnMouseClicked(event -> mainPane.getChildren().clear());
+        resetBT.setOnMouseClicked(event -> sandBoxRoot.getChildren().clear());
 
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(100, 30, Color.WHITE);

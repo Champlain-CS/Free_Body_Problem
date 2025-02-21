@@ -228,14 +228,16 @@ public class Sandbox extends Application {
                         newPulley.addDragListener();
                         break;
                     case "line":
-                        Plane newPlane = new Plane(event.getX(), event.getY(), event.getX() + 100, event.getY(), Color.BLACK);
+                        double lineLength = 100;
+                        Plane newPlane = new Plane(event.getX() - lineLength / 2, event.getY(), event.getX() + lineLength / 2, event.getY(), Color.BLACK);
                         sandBoxPane.getChildren().add(newPlane.getLine());
                         newPlane.addLineResizeListener();
                         newPlane.addDragListener();
                         sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
                         break;
                     case "rope":
-                        Rope newRope = new Rope(event.getX(), event.getY(), event.getX() + 100, event.getY(), Color.BROWN);
+                        double ropeLength = 100;
+                        Rope newRope = new Rope(event.getX() - ropeLength / 2, event.getY(), event.getX() + ropeLength / 2, event.getY(), Color.BROWN);
                         sandBoxPane.getChildren().add(newRope.getLine());
                         newRope.addLineResizeListener();
                         newRope.addDragListener();

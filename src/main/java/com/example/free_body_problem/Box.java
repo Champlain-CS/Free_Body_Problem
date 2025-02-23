@@ -4,6 +4,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Line; // Add this import
+import javafx.scene.Node;
 import javafx.geometry.Pos;
 
 public class Box {
@@ -75,6 +77,14 @@ public class Box {
             textField.setLayoutY(rectangle.getY() + rectangle.getHeight() / 2 - textField.getPrefHeight() / 2);
 
             rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+
+            // Check for snapping to planes
+            for (Node node : rectangle.getParent().getChildrenUnmodifiable()) {
+                if (node instanceof Line) {
+                    Line plane = (Line) node;
+                    Snapping.snapBoxToPlane(rectangle, plane);
+                }
+            }
         });
     }
 

@@ -51,22 +51,20 @@ public class Sandbox extends Application {
         rightBar.setSpacing(40);
 
         // Add images to the right bar
-        ImageView imageView1 = new ImageView(new Image("file:/Users/sl4k/IdeaProjects/Free_Body_Problem/src/main/Info%20Display.png"));
-        ImageView imageView2 = new ImageView(new Image("file:/Users/sl4k/IdeaProjects/Free_Body_Problem/src/main/Vector%20Display.png"));
-        imageView1.setFitWidth(50);
-        imageView1.setFitHeight(50);
-        imageView1.setPreserveRatio(true);
-        imageView1.setScaleX(2);
-        imageView1.setScaleY(2);
-        imageView1.setPickOnBounds(true);
+        ImageView infoDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/infoDisplay.png")));
+        ImageView vectorDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+        infoDisplayView.setFitWidth(30);
+        infoDisplayView.setPreserveRatio(true);
+        infoDisplayView.setScaleX(2);
+        infoDisplayView.setScaleY(2);
+        infoDisplayView.setPickOnBounds(true);
 
-        imageView2.setFitWidth(50);
-        imageView2.setFitHeight(50);
-        imageView2.setPreserveRatio(true);
-        imageView2.setScaleX(2);
-        imageView2.setScaleY(2);
-        imageView2.setPickOnBounds(true);
-        rightBar.getChildren().addAll(imageView1, imageView2);
+        vectorDisplayView.setFitWidth(30);
+        vectorDisplayView.setPreserveRatio(true);
+        vectorDisplayView.setScaleX(2);
+        vectorDisplayView.setScaleY(2);
+        vectorDisplayView.setPickOnBounds(true);
+        //rightBar.getChildren().addAll(infoDisplayView, vectorDisplayView);
 
         sandBoxRoot.setRight(rightBar);
 
@@ -94,7 +92,7 @@ public class Sandbox extends Application {
         });
 
         // Create buttons for each shape
-        Rectangle rectangleButton = createButtonRectangle(100, 30, Color.WHITE);
+        Rectangle rectangleButton = createButtonRectangle(50, 50, Color.WHITE);
         Circle circleButton = createButtonCircle(15, Color.BLACK);
         circleButton.setStroke(Color.GRAY);
         circleButton.setStrokeWidth(10); // Adjust the stroke width to create the inner radius effect
@@ -170,18 +168,18 @@ public class Sandbox extends Application {
         Pane spacer = new Pane();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-// Grouping the shape buttons
+        // Grouping the shape buttons
         HBox shapeButtons = new HBox(20, rectangleButton, circleButton, lineButton, ropeButton);
         shapeButtons.setAlignment(Pos.CENTER);
 
-// Create spacers for centering
+        // Create spacers for centering
         Region leftSpacer = new Region();
         Region rightSpacer = new Region();
         HBox.setHgrow(leftSpacer, Priority.ALWAYS);
         leftSpacer.setMinWidth(175);
         HBox.setHgrow(rightSpacer, Priority.ALWAYS);
 
-// Add elements to the bottom bar
+        // Add elements to the bottom bar
         bottomBar.getChildren().addAll(leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT);
 
 
@@ -211,7 +209,13 @@ public class Sandbox extends Application {
         coefficientField.setText("0.4");
         coefficientBox.getChildren().addAll(coefficientLabel, coefficientField);
 
-        editorPane.getChildren().addAll(editorLabel, gravityBox, coefficientBox);
+        HBox vectorDisplayBox = new HBox();
+        vectorDisplayBox.getStyleClass().add("larger-editor-attribute-box");
+        Label vectorDisplayLabel = new Label("Display Vectors: ");
+        vectorDisplayLabel.getStyleClass().add("editor-attribute-label");
+        vectorDisplayBox.getChildren().addAll(vectorDisplayLabel, vectorDisplayView);
+
+        editorPane.getChildren().addAll(editorLabel, gravityBox, coefficientBox, vectorDisplayBox);
         editorPane.toFront();
 
         // Set up the stage
@@ -222,7 +226,7 @@ public class Sandbox extends Application {
         primaryStage.show();
 
         // Add event handler to imageView1 to create a large rectangle
-        imageView1.setOnMouseClicked(event -> {
+        infoDisplayView.setOnMouseClicked(event -> {
             if (helpBox == null) {
                 helpBox = new Rectangle(900, 500, Color.LIGHTBLUE);
                 helpBox.setStroke(Color.BLACK);
@@ -376,3 +380,11 @@ public class Sandbox extends Application {
         launch(args);
     }
 }
+
+/* Justin To do
+- Bring back ? image
+- Image attributes to CSS
+- Images grow on hover
+- ? image click off
+- vectorDisplay change color on enabled/disabled
+ */

@@ -47,6 +47,14 @@
     -fx-alignment: center;
     -fx-spacing: 20px;
 }
+.larger-editor-attribute-box {
+    -fx-background-color: lightgray;
+    -fx-padding: 6px;
+    -fx-alignment: center;
+    -fx-spacing: 20px;
+    -fx-pref-height: 50px;
+}
+
 .editor-attribute-label {
     -fx-font-weight: bold;
     -fx-font-family: "Arial";
@@ -57,6 +65,8 @@
     -fx-border-color: darkgray;
     -fx-border-width: 2px;
     -fx-pref-width: 50;
+    -fx-text-fill: white;
+    -fx-alignment: center;
 }
 
 

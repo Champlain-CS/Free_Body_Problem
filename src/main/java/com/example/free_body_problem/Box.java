@@ -4,23 +4,23 @@ import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Line; // Add this import
-import javafx.scene.Node;
+import javafx.scene.layout.Pane;
 import javafx.geometry.Pos;
 
 public class Box {
     private Rectangle rectangle;
     private Circle resizeHandle;
-    private Circle rotateHandle;
     private TextField textField;
+    private Pane parentContainer;
 
-    public Box(double x, double y, double width, double height, Color color) {
+    public Box(double x, double y, double width, double height, Color color, Pane parentContainer) {
+        this.parentContainer = parentContainer;
+
         rectangle = new Rectangle(x, y, width, height);
         rectangle.setFill(color);
         rectangle.setStroke(Color.BLACK);
 
         resizeHandle = createHandle(x + width, y + height);
-        rotateHandle = createHandle(x + width, y + height / 2);
 
         textField = new TextField();
         textField.setAlignment(Pos.CENTER);
@@ -28,9 +28,10 @@ public class Box {
         textField.setLayoutX(x + width / 2 - textField.getPrefWidth() / 2);
         textField.setLayoutY(y + height / 2 - textField.getPrefHeight() / 2);
 
+        parentContainer.getChildren().addAll(rectangle, textField, resizeHandle);
+
         addDragListener();
         addResizeListener();
-        addRotateListener();
     }
 
     public Rectangle getRectangle() {
@@ -39,10 +40,6 @@ public class Box {
 
     public Circle getResizeHandle() {
         return resizeHandle;
-    }
-
-    public Circle getRotateHandle() {
-        return rotateHandle;
     }
 
     public TextField getTextField() {
@@ -70,21 +67,11 @@ public class Box {
 
             resizeHandle.setCenterX(resizeHandle.getCenterX() + offsetX);
             resizeHandle.setCenterY(resizeHandle.getCenterY() + offsetY);
-            rotateHandle.setCenterX(rotateHandle.getCenterX() + offsetX);
-            rotateHandle.setCenterY(rotateHandle.getCenterY() + offsetY);
 
             textField.setLayoutX(rectangle.getX() + rectangle.getWidth() / 2 - textField.getPrefWidth() / 2);
             textField.setLayoutY(rectangle.getY() + rectangle.getHeight() / 2 - textField.getPrefHeight() / 2);
 
             rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
-
-            // Check for snapping to planes
-            for (Node node : rectangle.getParent().getChildrenUnmodifiable()) {
-                if (node instanceof Line) {
-                    Line plane = (Line) node;
-                    Snapping.snapBoxToPlane(rectangle, plane);
-                }
-            }
         });
     }
 
@@ -128,44 +115,6 @@ public class Box {
         rectangle.heightProperty().addListener((obs, oldVal, newVal) -> {
             resizeHandle.setCenterY(rectangle.getY() + newVal.doubleValue());
             textField.setLayoutY(rectangle.getY() + newVal.doubleValue() / 2 - textField.getPrefHeight() / 2);
-        });
-    }
-
-    public void addRotateListener() {
-        rotateHandle.setFill(Color.BLUE);
-        rotateHandle.setOnMouseDragged(event -> {
-            double centerX = rectangle.getX() + rectangle.getWidth() / 2;
-            double centerY = rectangle.getY() + rectangle.getHeight() / 2;
-            double angle = Math.toDegrees(Math.atan2(event.getY() - centerY, event.getX() - centerX));
-            rectangle.setRotate(angle);
-            rotateHandle.setCenterX(event.getX());
-            rotateHandle.setCenterY(event.getY());
-        });
-
-        rectangle.xProperty().addListener((obs, oldVal, newVal) -> {
-            rotateHandle.setCenterX(newVal.doubleValue() + rectangle.getWidth());
-        });
-
-        rectangle.yProperty().addListener((obs, oldVal, newVal) -> {
-            rotateHandle.setCenterY(newVal.doubleValue() + rectangle.getHeight() / 2);
-        });
-
-        rectangle.widthProperty().addListener((obs, oldVal, newVal) -> {
-            rotateHandle.setCenterX(rectangle.getX() + newVal.doubleValue());
-        });
-
-        rectangle.heightProperty().addListener((obs, oldVal, newVal) -> {
-            rotateHandle.setCenterY(rectangle.getY() + newVal.doubleValue());
-        });
-
-        rectangle.rotateProperty().addListener((obs, oldVal, newVal) -> {
-            double centerX = rectangle.getX() + rectangle.getWidth() / 2;
-            double centerY = rectangle.getY() + rectangle.getHeight() / 2;
-            double angle = Math.toRadians(newVal.doubleValue());
-            double handleX = centerX + (rectangle.getWidth() / 2) * Math.cos(angle);
-            double handleY = centerY + (rectangle.getWidth() / 2) * Math.sin(angle);
-            rotateHandle.setCenterX(handleX);
-            rotateHandle.setCenterY(handleY);
         });
     }
 }

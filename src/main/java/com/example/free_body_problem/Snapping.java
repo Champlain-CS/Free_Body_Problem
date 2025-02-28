@@ -11,11 +11,14 @@ public class Snapping {
         double boxBottomY = box.getY() + box.getHeight();
 
         // Get the y-coordinates of the plane's start and end points
+        double planeStartX = plane.getStartX();
         double planeStartY = plane.getStartY();
+        double planeEndX = plane.getEndX();
         double planeEndY = plane.getEndY();
 
+        System.out.println(planeStartY);
         // Check if the box's bottom edge is within ±10 pixels of the plane's y-coordinates
-        if (Math.abs(boxBottomY - planeStartY) <= 10 || Math.abs(boxBottomY - planeEndY) <= 10) {
+        if (Math.abs(boxBottomY - planeStartY) <= 20 || Math.abs(boxBottomY - planeEndY) <= 20) {
             // Calculate the angle of the plane
             double deltaX = plane.getEndX() - plane.getStartX();
             double deltaY = plane.getEndY() - plane.getStartY();
@@ -24,12 +27,13 @@ public class Snapping {
             if (Math.abs(deltaY) < 0.001) { // Use a small epsilon to account for floating-point inaccuracies
                 // For horizontal planes, simply align the box's bottom edge with the plane's y-coordinate
                 box.setY(planeStartY - box.getHeight()-4);
-                box.setRotate(0); // No rotation needed for horizontal planes
+                //box.setRotate(0); // No rotation needed for horizontal planes
                 return;
             }
 
             // Calculate the angle of the plane
             double angle = Math.atan2(deltaY, deltaX);
+            System.out.println("Angle: " + Math.toDegrees(angle));
 
             // Calculate the new position of the box to align with the plane
             double newX = plane.getStartX() + (boxBottomY - planeStartY) * (deltaX / deltaY);

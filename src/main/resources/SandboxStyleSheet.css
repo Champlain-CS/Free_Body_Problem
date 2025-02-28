@@ -69,4 +69,13 @@
     -fx-alignment: center;
 }
 
+.help-text-area {
+    -fx-min-width: 850;
+    -fx-max-width: 300;
+    -fx-min-height: 300;
+    -fx-max-height: 300;
+    -fx-control-inner-background: lightblue;
+    -fx-border-color: lightblue;
+    -fx-background-color: lightblue;
+}
 

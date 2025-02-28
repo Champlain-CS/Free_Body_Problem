@@ -1,0 +1,4 @@
+- Drag objects from the bottom panel to add them to the sandbox.
+- Angle planes by dragging either end.
+- Connect objects through a pulley by using a rope.
+- Manually change any block’s mass to your desired value

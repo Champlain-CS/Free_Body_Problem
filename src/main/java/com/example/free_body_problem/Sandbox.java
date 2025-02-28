@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -20,14 +21,21 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import javafx.scene.text.Text;
+
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Scanner;
 
 public class Sandbox extends Application {
 
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
     private boolean dragging = false; // Flag to indicate if a shape is being dragged
-    private Rectangle helpBox; // Reference to the large rectangle
+    private HBox helpBox;
 
     TextField gravityField;
 
@@ -44,29 +52,13 @@ public class Sandbox extends Application {
         sandBoxPane.setPrefSize(600, 350);
         sandBoxRoot.setCenter(sandBoxPane);
 
-        // Right bar for images
-        VBox rightBar = new VBox();
-        rightBar.setAlignment(Pos.TOP_RIGHT);
-        rightBar.setPadding(new Insets(20));
-        rightBar.setSpacing(40);
 
-        // Add images to the right bar
         ImageView infoDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/infoDisplay.png")));
-        ImageView vectorDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
-        infoDisplayView.setFitWidth(30);
         infoDisplayView.setPreserveRatio(true);
-        infoDisplayView.setScaleX(2);
-        infoDisplayView.setScaleY(2);
+        infoDisplayView.setFitHeight(50);
         infoDisplayView.setPickOnBounds(true);
+        sandBoxRoot.setRight(infoDisplayView);
 
-        vectorDisplayView.setFitWidth(30);
-        vectorDisplayView.setPreserveRatio(true);
-        vectorDisplayView.setScaleX(2);
-        vectorDisplayView.setScaleY(2);
-        vectorDisplayView.setPickOnBounds(true);
-        //rightBar.getChildren().addAll(infoDisplayView, vectorDisplayView);
-
-        sandBoxRoot.setRight(rightBar);
 
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
@@ -213,6 +205,10 @@ public class Sandbox extends Application {
         vectorDisplayBox.getStyleClass().add("larger-editor-attribute-box");
         Label vectorDisplayLabel = new Label("Display Vectors: ");
         vectorDisplayLabel.getStyleClass().add("editor-attribute-label");
+        ImageView vectorDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+        vectorDisplayView.setPreserveRatio(true);
+        vectorDisplayView.setFitHeight(50);
+        vectorDisplayView.setPickOnBounds(true);
         vectorDisplayBox.getChildren().addAll(vectorDisplayLabel, vectorDisplayView);
 
         editorPane.getChildren().addAll(editorLabel, gravityBox, coefficientBox, vectorDisplayBox);
@@ -225,31 +221,16 @@ public class Sandbox extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        // Add event handler to imageView1 to create a large rectangle
+
+
+
         infoDisplayView.setOnMouseClicked(event -> {
             if (helpBox == null) {
-                helpBox = new Rectangle(900, 500, Color.LIGHTBLUE);
-                helpBox.setStroke(Color.BLACK);
-                helpBox.setX((sandBoxPane.getWidth() - helpBox.getWidth()) / 2);
-                helpBox.setY((sandBoxPane.getHeight() - helpBox.getHeight()) / 2);
-                sandBoxPane.getChildren().add(helpBox);
-
-                // Create and add text inside the helpBox
-                Text helpText = new Text("Help Information");
-                helpText.setFill(Color.BLACK);
-                helpText.setStyle("-fx-font-size: 24px;");
-                helpText.setX(helpBox.getX() + 20);
-                helpText.setY(helpBox.getY() + 40);
-                sandBoxPane.getChildren().add(helpText);
-
-                // Add event handler to remove the large rectangle and text when Escape is pressed
-                scene.setOnKeyPressed(keyEvent -> {
-                    if (keyEvent.getCode() == KeyCode.ESCAPE && helpBox != null) {
-                        sandBoxPane.getChildren().remove(helpBox);
-                        sandBoxPane.getChildren().remove(helpText);
-                        helpBox = null;
-                    }
-                });
+                helpBox = createHelpDialogue(); // Create the help box
+                sandBoxPane.getChildren().add(helpBox); // Add it to the pane
+            } else {
+                sandBoxPane.getChildren().remove(helpBox); // Remove it from the pane
+                helpBox = null; // Reset the helpBox variable to null
             }
         });
 
@@ -379,12 +360,54 @@ public class Sandbox extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
+    public static HBox createHelpDialogue() {
+        HBox helpBox = new HBox();
+        Rectangle background = new Rectangle();
+        background.setWidth(900);
+        background.setHeight(400);
+        background.setFill(Color.LIGHTBLUE);
+        background.setStroke(Color.BLACK);
+        background.setTranslateX(50);
+        background.setTranslateY(50);
+
+        Label title = new Label("Help Information");
+        title.setFont(Font.font("Arial", 25));
+        title.setTranslateX(-820);
+        title.setTranslateY(70);
+        title.setMinWidth(300);
+
+
+        TextArea textArea = new TextArea();
+        textArea.setTranslateX(-1125);
+        textArea.setTranslateY(110);
+        textArea.getStyleClass().add("help-text-area");
+        textArea.setEditable(false);
+
+
+        InputStream inputStream = Sandbox.class.getClassLoader().getResourceAsStream("helpText.txt");
+        if (inputStream != null) {
+            try {
+                // Read the file content
+                Scanner scanner = new Scanner(inputStream);
+                StringBuilder content = new StringBuilder();
+                while (scanner.hasNextLine()) {
+                    content.append(scanner.nextLine()).append("\n");
+                }
+                scanner.close();
+
+                // Set the content to the TextArea
+                textArea.setText(content.toString());
+            } catch (Exception e) {
+                textArea.setText("File not found!");
+            }
+        }
+
+        helpBox.getChildren().addAll(background, title, textArea);
+        return helpBox;
+    }
 }
 
 /* Justin To do
-- Bring back ? image
-- Image attributes to CSS
-- Images grow on hover
-- ? image click off
 - vectorDisplay change color on enabled/disabled
  */

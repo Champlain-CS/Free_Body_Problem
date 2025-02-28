@@ -18,8 +18,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
 
 public class GUI extends Application {
     VBox mainMenuRoot = new VBox();

@@ -130,7 +130,7 @@ public class Sandbox extends Application {
             circleButton.setScaleY(1.0);
         });
 
-        // Add mouse event handlers for lineButton
+        // Add mouse event rs for lineButton
         lineButton.setOnMouseClicked(event -> {
             Plane newPlane = new Plane(100, 50, 200, 50, Color.BLACK);
             sandBoxPane.getChildren().add(newPlane.getLine());
@@ -300,7 +300,7 @@ public class Sandbox extends Application {
                     case "rectangle":
                         double rectWidth = 150;
                         double rectHeight = 100;
-                        Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE);
+                        Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE, sandBoxPane);
                         sandBoxPane.getChildren().add(newBox.getRectangle());
                         newBox.addDragListener();
                         sandBoxPane.getChildren().addAll(newBox.getResizeHandle());

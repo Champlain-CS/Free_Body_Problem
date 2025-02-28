@@ -15,17 +15,19 @@ public class VectorDisplay extends Pane {
     private double length;
     private final Text forceName;
     private double endX, endY;
+    private Color color;
 
 
     public VectorDisplay(double startX, double startY, double length, double angle, String name, Color color) {
         this.length = length;
+        this.color = color;
 
         // Line for arrow shaft
         line = new Line(startX, startY, startX + length, startY);
         line.setStroke(color);
         line.setStrokeWidth(5);
 
-        // VectorDisplay head (Triangle)
+        // Arrow head (Triangle)
         arrowhead = new Polygon();
         arrowhead.setFill(color);
         arrowhead.setStroke(color);

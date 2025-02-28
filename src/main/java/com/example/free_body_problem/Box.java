@@ -1,8 +1,10 @@
 package com.example.free_body_problem;
 
+import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.layout.Pane;
 import javafx.geometry.Pos;
@@ -10,6 +12,7 @@ import javafx.geometry.Pos;
 public class Box {
     private Rectangle rectangle;
     private Circle resizeHandle;
+    private Circle rotateHandle;
     private TextField textField;
     private Pane parentContainer;
 
@@ -21,6 +24,9 @@ public class Box {
         rectangle.setStroke(Color.BLACK);
 
         resizeHandle = createHandle(x + width, y + height);
+
+        // Position the rotate handle at the top-right corner of the box
+        rotateHandle = createHandle(x + width, y + height / 2);
 
         textField = new TextField();
         textField.setAlignment(Pos.CENTER);
@@ -40,6 +46,10 @@ public class Box {
 
     public Circle getResizeHandle() {
         return resizeHandle;
+    }
+
+    public Circle getRotateHandle() {
+        return rotateHandle;
     }
 
     public TextField getTextField() {
@@ -72,6 +82,20 @@ public class Box {
             textField.setLayoutY(rectangle.getY() + rectangle.getHeight() / 2 - textField.getPrefHeight() / 2);
 
             rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+
+            updateHandlePositions();
+
+            rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+
+            // Check for snapping to planes
+            for (Node node : rectangle.getParent().getChildrenUnmodifiable()) {
+                if (node instanceof Line) {
+                    Line plane = (Line) node;
+                    Snapping.snapBoxToPlane(rectangle, plane);
+                    // Update handle positions after snapping
+                    updateHandlePositions();
+                }
+            }
         });
     }
 
@@ -94,27 +118,49 @@ public class Box {
             textField.setLayoutX(rectangle.getX() + rectangle.getWidth() / 2 - textField.getPrefWidth() / 2);
             textField.setLayoutY(rectangle.getY() + rectangle.getHeight() / 2 - textField.getPrefHeight() / 2);
 
+            updateHandlePositions();
             resizeHandle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
         });
 
-        rectangle.xProperty().addListener((obs, oldVal, newVal) -> {
-            resizeHandle.setCenterX(newVal.doubleValue() + rectangle.getWidth());
-            textField.setLayoutX(newVal.doubleValue() + rectangle.getWidth() / 2 - textField.getPrefWidth() / 2);
-        });
 
-        rectangle.yProperty().addListener((obs, oldVal, newVal) -> {
-            resizeHandle.setCenterY(newVal.doubleValue() + rectangle.getHeight());
-            textField.setLayoutY(newVal.doubleValue() + rectangle.getHeight() / 2 - textField.getPrefHeight() / 2);
-        });
+        rectangle.xProperty().addListener((obs, oldVal, newVal) -> updateHandlePositions());
+        rectangle.yProperty().addListener((obs, oldVal, newVal) -> updateHandlePositions());
+        rectangle.widthProperty().addListener((obs, oldVal, newVal) -> updateHandlePositions());
+        rectangle.heightProperty().addListener((obs, oldVal, newVal) -> updateHandlePositions());
+        rectangle.rotateProperty().addListener((obs, oldVal, newVal) -> updateHandlePositions());
+    }
+    private void updateHandlePositions() {
+        double angle = Math.toRadians(rectangle.getRotate()); // Get the rotation angle in radians
+        double cos = Math.cos(angle);
+        double sin = Math.sin(angle);
 
-        rectangle.widthProperty().addListener((obs, oldVal, newVal) -> {
-            resizeHandle.setCenterX(rectangle.getX() + newVal.doubleValue());
-            textField.setLayoutX(rectangle.getX() + newVal.doubleValue() / 2 - textField.getPrefWidth() / 2);
-        });
+        // Calculate the bottom-right corner of the box relative to its center
+        double centerX = rectangle.getX() + rectangle.getWidth() / 2;
+        double centerY = rectangle.getY() + rectangle.getHeight() / 2;
+        double cornerX = rectangle.getWidth() / 2;
+        double cornerY = rectangle.getHeight() / 2;
 
-        rectangle.heightProperty().addListener((obs, oldVal, newVal) -> {
-            resizeHandle.setCenterY(rectangle.getY() + newVal.doubleValue());
-            textField.setLayoutY(rectangle.getY() + newVal.doubleValue() / 2 - textField.getPrefHeight() / 2);
-        });
+        // Rotate the corner point around the center
+        double rotatedCornerX = centerX + cornerX * cos - cornerY * sin;
+        double rotatedCornerY = centerY + cornerX * sin + cornerY * cos;
+
+        // Update the resize handle's position to stay at the rotated bottom-right corner
+        resizeHandle.setCenterX(rotatedCornerX);
+        resizeHandle.setCenterY(rotatedCornerY);
+
+        // Calculate the top-right corner of the box relative to its center
+        cornerY = -rectangle.getHeight() / 2;
+
+        // Rotate the corner point around the center
+        double rotatedTopCornerX = centerX + cornerX * cos - cornerY * sin;
+        double rotatedTopCornerY = centerY + cornerX * sin + cornerY * cos;
+
+        // Update the rotate handle's position to stay at the rotated top-right corner
+        rotateHandle.setCenterX(rotatedTopCornerX);
+        rotateHandle.setCenterY(rotatedTopCornerY);
+
+        // Update the text field's position to stay centered
+        textField.setLayoutX(centerX - textField.getPrefWidth() / 2);
+        textField.setLayoutY(centerY - textField.getPrefHeight() / 2);
     }
 }

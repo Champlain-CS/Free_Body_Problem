@@ -5,46 +5,101 @@ import javafx.scene.shape.Line;
 
 public class Snapping {
 
-    // Method to check if a box should snap to a plane and adjust its position accordingly
-    public static void snapBoxToPlane(Rectangle box, Line plane) {
-        // Get the y-coordinates of the box's bottom edge
-        double boxBottomY = box.getY() + box.getHeight();
+    // Snapping threshold in pixels
+    private static final double SNAP_THRESHOLD = 20;
 
-        // Get the y-coordinates of the plane's start and end points
+    public static void snapBoxToPlane(Rectangle box, Line plane) {
+        // Get the box's current position and dimensions
+        double boxWidth = box.getWidth();
+        double boxHeight = box.getHeight();
+        double boxCenterX = box.getX() + boxWidth / 2;
+        double boxBottomY = box.getY() + boxHeight;
+
+        // Get the plane's start and end coordinates
         double planeStartX = plane.getStartX();
         double planeStartY = plane.getStartY();
         double planeEndX = plane.getEndX();
         double planeEndY = plane.getEndY();
 
-        System.out.println(planeStartY);
-        // Check if the box's bottom edge is within ±10 pixels of the plane's y-coordinates
-        if (Math.abs(boxBottomY - planeStartY) <= 20 || Math.abs(boxBottomY - planeEndY) <= 20) {
-            // Calculate the angle of the plane
-            double deltaX = plane.getEndX() - plane.getStartX();
-            double deltaY = plane.getEndY() - plane.getStartY();
+        // Find the closest point on the plane to the box's bottom center
+        double[] closestPoint = findClosestPointOnLine(
+                boxCenterX, boxBottomY,
+                planeStartX, planeStartY,
+                planeEndX, planeEndY
+        );
 
-            // Handle horizontal planes (deltaY == 0)
-            if (Math.abs(deltaY) < 0.001) { // Use a small epsilon to account for floating-point inaccuracies
-                // For horizontal planes, simply align the box's bottom edge with the plane's y-coordinate
-                box.setY(planeStartY - box.getHeight()-4);
-                //box.setRotate(0); // No rotation needed for horizontal planes
-                return;
+        // Calculate the distance between the box's bottom center and the closest point
+        double distance = Math.hypot(boxCenterX - closestPoint[0], boxBottomY - closestPoint[1]);
+
+        // Check if the box is within the snapping threshold
+        if (distance <= SNAP_THRESHOLD) {
+            // Calculate plane angle
+            double deltaX = planeEndX - planeStartX;
+            double deltaY = planeEndY - planeStartY;
+            double angle = Math.toDegrees(Math.atan2(deltaY, deltaX));
+
+            // Normalize angle to be between -180 and 180 degrees
+            while (angle > 180) angle -= 360;
+            while (angle < -180) angle += 360;
+
+            // Calculate the normal vector to determine the "top" side
+            double normalX = -deltaY;
+            double normalY = deltaX;
+
+            // Normalize the normal vector
+            double normalLength = Math.hypot(normalX, normalY);
+            normalX /= normalLength;
+            normalY /= normalLength;
+
+            // Ensure the normal points "upward" (in JavaFX, negative Y is up)
+            if (normalY > 0) {
+                normalX = -normalX;
+                normalY = -normalY;
+                // Flip the angle accordingly
+                angle = (angle > 0) ? angle - 180 : angle + 180;
             }
 
-            // Calculate the angle of the plane
-            double angle = Math.atan2(deltaY, deltaX);
-            System.out.println("Angle: " + Math.toDegrees(angle));
+            // Calculate exact offset for flush contact at any angle
+            double halfWidth = boxWidth / 2;
+            double angleRadians = Math.toRadians(angle);
+            double offsetY = halfWidth * Math.abs(Math.sin(angleRadians));
 
-            // Calculate the new position of the box to align with the plane
-            double newX = plane.getStartX() + (boxBottomY - planeStartY) * (deltaX / deltaY);
-            double newY = planeStartY - box.getHeight();
+            // Position box so it's centered on the closest point and flush with the plane
+            box.setX(closestPoint[0] - halfWidth);
+            box.setY(closestPoint[1] - boxHeight - offsetY);
 
-            // Set the new position of the box
-            box.setX(newX);
-            box.setY(newY);
+            // Apply rotation
+            box.setRotate(angle);
 
-            // Rotate the box to match the plane's angle
-            box.setRotate(Math.toDegrees(angle));
+            System.out.println("Closest point: " + closestPoint[0] + ", " + closestPoint[1]);
+            System.out.println("Box position: " + box.getX() + ", " + box.getY());
+            System.out.println("Applied angle: " + angle + ", Offset: " + offsetY);
         }
+    }
+
+    // Helper method to find the closest point on a line segment to a given point
+    private static double[] findClosestPointOnLine(
+            double px, double py,
+            double x1, double y1,
+            double x2, double y2) {
+
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        double len2 = dx * dx + dy * dy;  // squared length of line segment
+
+        // If line segment is just a point, return that point
+        if (len2 == 0) return new double[] {x1, y1};
+
+        // Calculate projection of point onto line
+        double t = ((px - x1) * dx + (py - y1) * dy) / len2;
+
+        // Constrain t to lie within the line segment
+        t = Math.max(0, Math.min(1, t));
+
+        // Calculate the closest point
+        double closestX = x1 + t * dx;
+        double closestY = y1 + t * dy;
+
+        return new double[] {closestX, closestY};
     }
 }

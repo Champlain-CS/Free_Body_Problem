@@ -9,88 +9,45 @@ public class Snapping {
     private static final double SNAP_THRESHOLD = 20;
 
     public static void snapBoxToPlane(Rectangle box, Line plane) {
-        // Get the box's current position and dimensions
-        double boxWidth = box.getWidth();
-        double boxHeight = box.getHeight();
-        double boxCenterX = box.getX() + boxWidth / 2;
-        double boxBottomY = box.getY() + boxHeight;
-
-        // Get the plane's start and end coordinates
-        double planeStartX = plane.getStartX();
-        double planeStartY = plane.getStartY();
-        double planeEndX = plane.getEndX();
-        double planeEndY = plane.getEndY();
+        // Get the box's bottom center position
+        double boxCenterX = box.getX() + box.getWidth() / 2;
+        double boxBottomY = box.getY() + box.getHeight();
 
         // Find the closest point on the plane to the box's bottom center
-        double[] closestPoint = findClosestPointOnLine(
-                boxCenterX, boxBottomY,
-                planeStartX, planeStartY,
-                planeEndX, planeEndY
-        );
+        double[] closestPoint = findClosestPointOnLine(boxCenterX, boxBottomY, plane);
 
         // Calculate the distance between the box's bottom center and the closest point
         double distance = Math.hypot(boxCenterX - closestPoint[0], boxBottomY - closestPoint[1]);
 
-        // Check if the box is within the snapping threshold
+        // If the box is close enough to the plane, snap it
         if (distance <= SNAP_THRESHOLD) {
-            // Calculate plane angle
-            double deltaX = planeEndX - planeStartX;
-            double deltaY = planeEndY - planeStartY;
-            double angle = Math.toDegrees(Math.atan2(deltaY, deltaX));
+            // Calculate the angle of the plane
+            double angle = Math.toDegrees(Math.atan2(plane.getEndY() - plane.getStartY(), plane.getEndX() - plane.getStartX()));
 
-            // Normalize angle to be between -180 and 180 degrees
-            while (angle > 180) angle -= 360;
-            while (angle < -180) angle += 360;
+            // Position the box so its bottom center aligns with the closest point on the plane
+            box.setX(closestPoint[0] - box.getWidth() / 2);
+            box.setY(closestPoint[1] - box.getHeight());
 
-            // Calculate the normal vector to determine the "top" side
-            double normalX = -deltaY;
-            double normalY = deltaX;
-
-            // Normalize the normal vector
-            double normalLength = Math.hypot(normalX, normalY);
-            normalX /= normalLength;
-            normalY /= normalLength;
-
-            // Ensure the normal points "upward" (in JavaFX, negative Y is up)
-            if (normalY > 0) {
-                normalX = -normalX;
-                normalY = -normalY;
-                // Flip the angle accordingly
-                angle = (angle > 0) ? angle - 180 : angle + 180;
-            }
-
-            // Calculate exact offset for flush contact at any angle
-            double halfWidth = boxWidth / 2;
-            double angleRadians = Math.toRadians(angle);
-            double offsetY = halfWidth * Math.abs(Math.sin(angleRadians));
-
-            // Position box so it's centered on the closest point and flush with the plane
-            box.setX(closestPoint[0] - halfWidth);
-            box.setY(closestPoint[1] - boxHeight - offsetY);
-
-            // Apply rotation
+            // Rotate the box to match the plane's angle
             box.setRotate(angle);
-
-            System.out.println("Closest point: " + closestPoint[0] + ", " + closestPoint[1]);
-            System.out.println("Box position: " + box.getX() + ", " + box.getY());
-            System.out.println("Applied angle: " + angle + ", Offset: " + offsetY);
         }
     }
 
     // Helper method to find the closest point on a line segment to a given point
-    private static double[] findClosestPointOnLine(
-            double px, double py,
-            double x1, double y1,
-            double x2, double y2) {
+    private static double[] findClosestPointOnLine(double px, double py, Line line) {
+        double x1 = line.getStartX();
+        double y1 = line.getStartY();
+        double x2 = line.getEndX();
+        double y2 = line.getEndY();
 
         double dx = x2 - x1;
         double dy = y2 - y1;
-        double len2 = dx * dx + dy * dy;  // squared length of line segment
+        double len2 = dx * dx + dy * dy; // Squared length of the line segment
 
-        // If line segment is just a point, return that point
+        // If the line segment is just a point, return that point
         if (len2 == 0) return new double[] {x1, y1};
 
-        // Calculate projection of point onto line
+        // Calculate the projection of the point onto the line
         double t = ((px - x1) * dx + (py - y1) * dy) / len2;
 
         // Constrain t to lie within the line segment

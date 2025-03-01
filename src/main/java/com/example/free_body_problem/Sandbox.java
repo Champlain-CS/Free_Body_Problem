@@ -24,7 +24,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -52,13 +51,11 @@ public class Sandbox extends Application {
         sandBoxPane.setPrefSize(600, 350);
         sandBoxRoot.setCenter(sandBoxPane);
 
-
         ImageView infoDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/infoDisplay.png")));
         infoDisplayView.setPreserveRatio(true);
         infoDisplayView.setFitHeight(50);
         infoDisplayView.setPickOnBounds(true);
         sandBoxRoot.setRight(infoDisplayView);
-
 
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
@@ -122,13 +119,15 @@ public class Sandbox extends Application {
             circleButton.setScaleY(1.0);
         });
 
-        // Add mouse event rs for lineButton
+        // Add mouse event handlers for lineButton
         lineButton.setOnMouseClicked(event -> {
             Plane newPlane = new Plane(100, 50, 200, 50, Color.BLACK);
             sandBoxPane.getChildren().add(newPlane.getLine());
             newPlane.addLineResizeListener();
             newPlane.addDragListener();
             sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
+            newPlane.addKeyListener(); // Ensure this line is present
+            sandBoxPane.requestFocus(); // Ensure the pane is focused
         });
         lineButton.setOnMouseEntered(e -> {
             lineButton.setScaleX(1.2);
@@ -173,7 +172,6 @@ public class Sandbox extends Application {
 
         // Add elements to the bottom bar
         bottomBar.getChildren().addAll(leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT);
-
 
         // Pane for world settings
         VBox editorPane = new VBox();
@@ -220,9 +218,6 @@ public class Sandbox extends Application {
         primaryStage.setTitle("Sandbox");
         primaryStage.setScene(scene);
         primaryStage.show();
-
-
-
 
         infoDisplayView.setOnMouseClicked(event -> {
             if (helpBox == null) {
@@ -298,6 +293,7 @@ public class Sandbox extends Application {
                         newPlane.addLineResizeListener();
                         newPlane.addDragListener();
                         sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
+                        newPlane.addKeyListener(); // Ensure this line is present
                         break;
                     case "rope":
                         double ropeLength = 100;
@@ -377,13 +373,11 @@ public class Sandbox extends Application {
         title.setTranslateY(70);
         title.setMinWidth(300);
 
-
         TextArea textArea = new TextArea();
         textArea.setTranslateX(-1125);
         textArea.setTranslateY(110);
         textArea.getStyleClass().add("help-text-area");
         textArea.setEditable(false);
-
 
         InputStream inputStream = Sandbox.class.getClassLoader().getResourceAsStream("helpText.txt");
         if (inputStream != null) {
@@ -407,7 +401,3 @@ public class Sandbox extends Application {
         return helpBox;
     }
 }
-
-/* Justin To do
-- vectorDisplay change color on enabled/disabled
- */

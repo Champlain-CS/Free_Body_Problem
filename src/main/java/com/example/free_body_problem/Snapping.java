@@ -49,7 +49,7 @@ public class Snapping {
         double distance = Math.hypot(connectingPointX - closestPoint[0], connectingPointY - closestPoint[1]);
 
         // If the box is close enough to the plane, snap it
-        if (distance <= SNAP_THRESHOLD) {
+        if (distance <= SNAP_THRESHOLD && plane.getUserData() instanceof Plane) {
             // Position the box so its connecting point aligns with the closest point on the plane
             // We need to reverse the rotation calculation to find the new center
             double newCenterX = closestPoint[0] - rotatedVectorX;
@@ -94,6 +94,7 @@ public class Snapping {
     public static void snapRopeStart(Node target, Line rope) {
         double px = rope.getStartX();
         double py = rope.getStartY();
+        boolean snapped = false;
 
         if (target instanceof Rectangle) {
             // Handle Rectangle nodes
@@ -114,6 +115,9 @@ public class Snapping {
             if (distance <= SNAP_THRESHOLD) {
                 rope.setStartX(centerX);
                 rope.setStartY(centerY);
+                updateBoxSnappedStatus(rect, rope, true, false);
+
+                snapped = true;
             }
         } else if (target instanceof Group) {
             // Handle Group nodes (Pulley)
@@ -134,17 +138,24 @@ public class Snapping {
                     if (distance <= SNAP_THRESHOLD) {
                         rope.setStartX(centerX);
                         rope.setStartY(centerY);
+                        snapped = true;
                     }
 
                     break; // Only need to check the first circle in the group
                 }
             }
         }
+
+        // Update the Rope object's snapped status if snapping occurred
+        if (snapped) {
+            updateRopeSnappedStatus(rope, true, false);
+        }
     }
 
     public static void snapRopeEnd(Node target, Line rope) {
         double px = rope.getEndX();
         double py = rope.getEndY();
+        boolean snapped = false;
 
         if (target instanceof Rectangle) {
             // Handle Rectangle nodes
@@ -165,6 +176,9 @@ public class Snapping {
             if (distance <= SNAP_THRESHOLD) {
                 rope.setEndX(centerX);
                 rope.setEndY(centerY);
+                updateBoxSnappedStatus(rect, rope, false, true);
+
+                snapped = true;
             }
         } else if (target instanceof Group) {
             // Handle Group nodes (Pulley)
@@ -185,12 +199,59 @@ public class Snapping {
                     if (distance <= SNAP_THRESHOLD) {
                         rope.setEndX(centerX);
                         rope.setEndY(centerY);
+                        snapped = true;
                     }
 
                     break; // Only need to check the first circle in the group
                 }
             }
+        }
 
+        // Update the Rope object's snapped status if snapping occurred
+        if (snapped) {
+            updateRopeSnappedStatus(rope, false, true);
         }
     }
-}
+
+    // Helper method to find and update the Rope object
+    private static void updateRopeSnappedStatus(Line line, boolean startSnapped, boolean endSnapped) {
+        // Check different ways to find the associated Rope object
+
+        // Option 1: Check if the line itself has the Rope object as userData
+        if (line.getUserData() instanceof Rope) {
+            Rope rope = (Rope) line.getUserData();
+            if (startSnapped) rope.setStartSnapped(true);
+            if (endSnapped) rope.setEndSnapped(true);
+            System.out.println("Updated rope status from line userData");
+            return;
+        }
+
+       }
+
+
+       //Same method but for Box object through rectangle and will set end or start snapped and also associate the rope object to the box
+    private static void updateBoxSnappedStatus(Rectangle rectangle, Line line, boolean startSnapped, boolean endSnapped) {
+        // Check different ways to find the associated Rope object
+
+        // Option 1: Check if the box itself has the Rope object as userData
+        if (line.getUserData() instanceof Rope && rectangle.getUserData() instanceof Box) {
+            Box box = (Box) rectangle.getUserData();
+            Rope rope = (Rope) line.getUserData();
+
+            if (startSnapped){
+                box.snappedRope = rope;
+                box.hasRopeStartSnapped = true;
+                box.hasRopeEndSnapped = false;
+            }
+            if (endSnapped){
+                box.snappedRope = rope;
+                box.hasRopeEndSnapped = true;
+                box.hasRopeStartSnapped = false;
+
+            }
+
+
+        }
+
+    }
+    }

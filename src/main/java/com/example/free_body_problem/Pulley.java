@@ -5,8 +5,12 @@ import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-public class Pulley {
-    private Group circleGroup;
+
+public class Pulley extends Node {
+    public Group circleGroup;
+    public boolean hasRopeStartSnapped = false;
+    public boolean hasRopeEndSnapped = false;
+
 
     public Pulley(double x, double y, double outerRadius, double innerRadius, Color outerColor, Color innerColor) {
         Circle outerCircle = new Circle(x, y, outerRadius, outerColor);
@@ -16,6 +20,8 @@ public class Pulley {
         innerCircle.setStroke(null);
 
         circleGroup = new Group(outerCircle, innerCircle);
+        circleGroup.setUserData(this);
+
     }
 
     public Group getCircleGroup() {

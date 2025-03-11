@@ -1,6 +1,7 @@
 package com.example.free_body_problem;
 
 import javafx.scene.Cursor;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
@@ -10,12 +11,18 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.layout.Pane;
 import javafx.geometry.Pos;
 
-public class Box extends Node{
+public class Box extends Group{
     public Rectangle rectangle;
     private Circle resizeHandle;
     private Circle rotateHandle;
     private TextField textField;
     private Pane parentContainer;
+    public Boolean hasRopeStartSnapped = false;
+    public Boolean hasRopeEndSnapped = false;
+    public Rope snappedRope;
+    public Boolean snappedToPlane = false;
+    public Plane snappedPlane;
+
 
     protected VectorDisplay gravityVector;
 
@@ -24,6 +31,11 @@ public class Box extends Node{
         this.parentContainer = parentContainer;
 
         rectangle = new Rectangle(x, y, width, height);
+        rectangle.setUserData(this);
+        Group group = new Group(rectangle);
+        group.setUserData(this);
+        getChildren().add(rectangle);
+
         rectangle.setFill(color);
         rectangle.setStroke(Color.BLACK);
 
@@ -43,6 +55,8 @@ public class Box extends Node{
 
         addDragListener();
         addResizeListener();
+
+
     }
 
     public Rectangle getRectangle() {
@@ -167,6 +181,18 @@ public class Box extends Node{
         // Update the text field's position to stay centered
         textField.setLayoutX(centerX - textField.getPrefWidth() / 2);
         textField.setLayoutY(centerY - textField.getPrefHeight() / 2);
+
+        if (hasRopeStartSnapped){
+            snappedRope.getLine().setStartX(centerX);
+            snappedRope.getLine().setStartY(centerY);
+            hasRopeEndSnapped = false;
+        }
+
+        if (hasRopeEndSnapped){
+            snappedRope.getLine().setEndX(centerX);
+            snappedRope.getLine().setEndY(centerY);
+            hasRopeStartSnapped = false;
+        }
     }
 
 }

@@ -19,6 +19,8 @@ public class Plane {
         line = new Line(startX, startY, endX, endY);
         line.setStroke(color);
         line.setStrokeWidth(8);
+        line.setUserData(this);
+
 
         startHandle = createHandle(startX, startY, Color.RED); // Start handle is red (transform)
         endHandle = createHandle(endX, endY, Color.RED); // End handle is red (transform)

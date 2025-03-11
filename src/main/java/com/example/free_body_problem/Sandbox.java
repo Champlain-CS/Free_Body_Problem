@@ -150,7 +150,7 @@ public class Sandbox extends Application {
 
         // Add mouse event handlers for ropeButton
         ropeButton.setOnMouseClicked(event -> {
-            Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN);
+            Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN, false, false);
             sandBoxPane.getChildren().add(newRope.getLine());
             newRope.addLineResizeListener();
             newRope.addDragListener();
@@ -320,7 +320,7 @@ public class Sandbox extends Application {
                         break;
                     case "rope":
                         double ropeLength = 100;
-                        Rope newRope = new Rope(event.getX() - ropeLength / 2, event.getY(), event.getX() + ropeLength / 2, event.getY(), Color.BROWN);
+                        Rope newRope = new Rope(event.getX() - ropeLength / 2, event.getY(), event.getX() + ropeLength / 2, event.getY(), Color.BROWN, false, false);
                         sandBoxPane.getChildren().add(newRope.getLine());
                         newRope.addLineResizeListener();
                         newRope.addDragListener();

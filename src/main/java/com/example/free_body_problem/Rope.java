@@ -7,19 +7,41 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 
-public class Rope {
+public class Rope extends Group {
     private Line line;
     private Circle startHandle;
     private Circle endHandle;
+    public Boolean startSnapped = false;
+    public Boolean endSnapped = false;
 
-    public Rope(double startX, double startY, double endX, double endY, Color color) {
+    public Rope(double startX, double startY, double endX, double endY, Color color, Boolean startSnapped, Boolean endSnapped) {
         line = new Line(startX, startY, endX, endY);
         line.setStroke(color);
         line.setStrokeWidth(8);
-
         startHandle = createHandle(startX, startY);
         endHandle = createHandle(endX, endY);
+
+        line.setUserData(this);
+        Group group = new Group(line);
+        group.setUserData(this);
+        getChildren().add(line);
+
+
     }
+    //Gettter and setter for start and end snapped
+    public Boolean getStartSnapped() {
+        return startSnapped;
+    }
+    public void setStartSnapped(Boolean startSnapped) {
+        this.startSnapped = startSnapped;
+    }
+    public Boolean getEndSnapped() {
+        return endSnapped;
+    }
+    public void setEndSnapped(Boolean endSnapped) {
+        this.endSnapped = endSnapped;
+    }
+
 
     public Line getLine() {
         return line;
@@ -47,16 +69,11 @@ public class Rope {
             startHandle.setCenterY(event.getY());
 
             for (Node node : line.getParent().getChildrenUnmodifiable()) {
-                if (node instanceof Rectangle) {
-                    Rectangle box = (Rectangle) node;
-                    Snapping.snapRopeStart(box, line);
-                    // Update handle positions after snapping
-                } else if (node instanceof Group) {
-                    Group pivot = (Group) node;
-                    Snapping.snapRopeStart(pivot, line);
-                    // Update handle positions after snapping
-                }
+                Snapping.snapRopeStart(node, line);
+
+                // Update handle positions after snapping
             }
+
         });
 
         endHandle.setOnMouseDragged(event -> {
@@ -66,16 +83,11 @@ public class Rope {
             endHandle.setCenterY(event.getY());
 
             for (Node node : line.getParent().getChildrenUnmodifiable()) {
-                if (node instanceof Rectangle) {
-                    Rectangle box = (Rectangle) node;
-                    Snapping.snapRopeEnd(box, line);
-                    // Update handle positions after snapping
-                } else if (node instanceof Group) {
-                    Group pivot = (Group) node;
-                    Snapping.snapRopeEnd(pivot, line);
-                    // Update handle positions after snapping
-                }
+                Snapping.snapRopeEnd(node, line);
+
+                // Update handle positions after snapping
             }
+
         });
 
         line.startXProperty().addListener((obs, oldVal, newVal) -> {

@@ -1,8 +1,11 @@
 package com.example.free_body_problem;
 
+import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 
 public class Rope {
     private Line line;
@@ -42,6 +45,18 @@ public class Rope {
             line.setStartY(event.getY());
             startHandle.setCenterX(event.getX());
             startHandle.setCenterY(event.getY());
+
+            for (Node node : line.getParent().getChildrenUnmodifiable()) {
+                if (node instanceof Rectangle) {
+                    Rectangle box = (Rectangle) node;
+                    Snapping.snapRopeStart(box, line);
+                    // Update handle positions after snapping
+                } else if (node instanceof Group) {
+                    Group pivot = (Group) node;
+                    Snapping.snapRopeStart(pivot, line);
+                    // Update handle positions after snapping
+                }
+            }
         });
 
         endHandle.setOnMouseDragged(event -> {
@@ -49,6 +64,18 @@ public class Rope {
             line.setEndY(event.getY());
             endHandle.setCenterX(event.getX());
             endHandle.setCenterY(event.getY());
+
+            for (Node node : line.getParent().getChildrenUnmodifiable()) {
+                if (node instanceof Rectangle) {
+                    Rectangle box = (Rectangle) node;
+                    Snapping.snapRopeEnd(box, line);
+                    // Update handle positions after snapping
+                } else if (node instanceof Group) {
+                    Group pivot = (Group) node;
+                    Snapping.snapRopeEnd(pivot, line);
+                    // Update handle positions after snapping
+                }
+            }
         });
 
         line.startXProperty().addListener((obs, oldVal, newVal) -> {

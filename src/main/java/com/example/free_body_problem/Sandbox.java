@@ -40,7 +40,6 @@ public class Sandbox extends Application {
     private boolean dragging = false; // Flag to indicate if a shape is being dragged
     private HBox helpBox;
     private boolean isDisplayingVectors = false;
-    private Pane sandBoxPane; // Add this line
 
     static TextField gravityField;
     public static Pane sandBoxPane;

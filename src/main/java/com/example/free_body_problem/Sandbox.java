@@ -10,6 +10,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -24,10 +26,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Sandbox extends Application {
@@ -35,8 +37,12 @@ public class Sandbox extends Application {
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
     private boolean dragging = false; // Flag to indicate if a shape is being dragged
     private HBox helpBox;
+    private boolean isDisplayingVectors = false;
 
-    TextField gravityField;
+    static TextField gravityField;
+    public static Pane sandBoxPane;
+
+    public ArrayList<Box> boxList = new ArrayList<Box>();
 
     @Override
     public void start(Stage primaryStage) {
@@ -47,7 +53,7 @@ public class Sandbox extends Application {
         sandBoxRoot.setStyle("-fx-border-color: darkgray");
 
         // Pane for draggable shapes
-        Pane sandBoxPane = new Pane();
+        sandBoxPane = new Pane();
         sandBoxPane.setPrefSize(600, 350);
         sandBoxRoot.setCenter(sandBoxPane);
 
@@ -78,6 +84,8 @@ public class Sandbox extends Application {
         resetBT.setOnMouseClicked(event -> {
             sandBoxPane.getChildren().clear();
             gravityField.setText("9.8");
+            boxList.clear();
+            isDisplayingVectors = false;
         });
 
         // Create buttons for each shape
@@ -212,6 +220,7 @@ public class Sandbox extends Application {
         editorPane.getChildren().addAll(editorLabel, gravityBox, coefficientBox, vectorDisplayBox);
         editorPane.toFront();
 
+
         // Set up the stage
         Scene scene = new Scene(sandBoxRoot, 600, 400);
         scene.getStylesheets().add("SandboxStyleSheet.css");
@@ -226,6 +235,22 @@ public class Sandbox extends Application {
             } else {
                 sandBoxPane.getChildren().remove(helpBox); // Remove it from the pane
                 helpBox = null; // Reset the helpBox variable to null
+            }
+        });
+
+
+        vectorDisplayView.setOnMouseClicked(event -> {
+            if(isDisplayingVectors) {
+                isDisplayingVectors = false;
+                for(Node node: sandBoxPane.getChildren()) {
+                    if(node instanceof VectorDisplay) {
+                        sandBoxPane.getChildren().remove(node);
+                    }
+                }
+            }
+            for(Box box: boxList) {
+                updateVectors(box);
+                isDisplayingVectors = true;
             }
         });
 
@@ -277,9 +302,10 @@ public class Sandbox extends Application {
                         double rectWidth = 150;
                         double rectHeight = 100;
                         Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE, sandBoxPane);
+                        boxList.add(newBox);
                         sandBoxPane.getChildren().add(newBox.getRectangle());
                         newBox.addDragListener();
-                        sandBoxPane.getChildren().addAll(newBox.getResizeHandle());
+                        sandBoxPane.getChildren().add(newBox.getResizeHandle());
                         break;
                     case "circle":
                         Pulley newPulley = new Pulley(event.getX(), event.getY(), 25, 10, Color.GRAY, Color.BLACK);
@@ -399,5 +425,11 @@ public class Sandbox extends Application {
 
         helpBox.getChildren().addAll(background, title, textArea);
         return helpBox;
+    }
+
+    public void updateVectors(Box box) {
+        System.out.println("Gravity Vector updated for " + box);
+        VectorMath.calculateGravityVector(box);
+
     }
 }

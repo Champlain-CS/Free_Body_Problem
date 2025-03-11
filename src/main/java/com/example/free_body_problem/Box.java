@@ -1,5 +1,6 @@
 package com.example.free_body_problem;
 
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
@@ -9,12 +10,15 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.layout.Pane;
 import javafx.geometry.Pos;
 
-public class Box {
-    private Rectangle rectangle;
+public class Box extends Node{
+    public Rectangle rectangle;
     private Circle resizeHandle;
     private Circle rotateHandle;
     private TextField textField;
     private Pane parentContainer;
+
+    protected VectorDisplay gravityVector;
+
 
     public Box(double x, double y, double width, double height, Color color, Pane parentContainer) {
         this.parentContainer = parentContainer;
@@ -25,14 +29,15 @@ public class Box {
 
         resizeHandle = createHandle(x + width, y + height);
 
-        // Position the rotate handle at the top-right corner of the box
+        // Position the rotate handle in the top-right corner of the box
         rotateHandle = createHandle(x + width, y + height / 2);
 
         textField = new TextField();
+        textField.setText("5");
         textField.setAlignment(Pos.CENTER);
         textField.setPrefWidth(50); // Set preferred width
         textField.setLayoutX(x + width / 2 - textField.getPrefWidth() / 2);
-        textField.setLayoutY(y + height / 2 - textField.getPrefHeight() / 2);
+        textField.setLayoutY(y + height / 2 - textField.getPrefHeight() / 2 - 0.08*height);
 
         parentContainer.getChildren().addAll(rectangle, textField, resizeHandle);
 
@@ -163,4 +168,5 @@ public class Box {
         textField.setLayoutX(centerX - textField.getPrefWidth() / 2);
         textField.setLayoutY(centerY - textField.getPrefHeight() / 2);
     }
+
 }

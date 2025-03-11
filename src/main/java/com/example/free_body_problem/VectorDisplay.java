@@ -16,6 +16,7 @@ public class VectorDisplay extends Pane {
     private final Text forceName;
     private double endX, endY;
     private Color color;
+    private final double MAX_LENGTH = 5;
 
 
     public VectorDisplay(double startX, double startY, double length, double angle, String name, Color color) {

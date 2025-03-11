@@ -1,7 +1,6 @@
 package com.example.free_body_problem;
 
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -13,7 +12,10 @@ public class Plane {
     private static final double SNAP_ANGLE_THRESHOLD = 5;
     private boolean isTransformMode = true;
 
-    public Plane(double startX, double startY, double endX, double endY, Color color) {
+    private Sandbox sandbox;
+
+    public Plane(double startX, double startY, double endX, double endY, Color color, Sandbox sandbox) {
+        this.sandbox = sandbox;
         line = new Line(startX, startY, endX, endY);
         line.setStroke(color);
         line.setStrokeWidth(8);
@@ -134,15 +136,33 @@ public class Plane {
     }
 
     public void addKeyListener() {
-        System.out.println("addKeyListener called");
         line.getScene().setOnKeyPressed(event -> {
-            System.out.println("Key pressed: " + event.getCode());
             if (event.getCode() == KeyCode.R) {
-                isTransformMode = !isTransformMode;
-                updateHandleColors();
-                System.out.println("Transform mode toggled: " + isTransformMode);
+                Sandbox sandbox = this.sandbox;
+                boolean allSameMode = sandbox.areAllPlanesInSameMode();
+                boolean newMode = !isTransformMode;
+                if (!allSameMode) {
+                    newMode = !newMode;
+                }
+                for (Plane plane : sandbox.getPlanes()) {
+                    plane.setTransformMode(newMode);
+                }
             }
         });
+    }
+
+    public boolean isTransformMode() {
+        return isTransformMode;
+    }
+
+    public void setTransformMode(boolean mode) {
+        isTransformMode = mode;
+        updateHandleColors();
+    }
+
+    public void toggleTransformMode() {
+        isTransformMode = !isTransformMode;
+        updateHandleColors();
     }
 
     private void updateHandleColors() {
@@ -156,7 +176,7 @@ public class Plane {
     }
 
     private double snapAngleToClosest(double angle) {
-        double[] snapAngles = {0, 90, 180, 360};
+        double[] snapAngles = {0, 45, 90, 135, 180, 225, 270, 315, 360};
         for (double snapAngle : snapAngles) {
             if (Math.abs(angle - snapAngle) <= SNAP_ANGLE_THRESHOLD) {
                 return snapAngle;

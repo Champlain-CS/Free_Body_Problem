@@ -26,18 +26,21 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Sandbox extends Application {
-
+    private List<Plane> planes = new ArrayList<>();
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
     private boolean dragging = false; // Flag to indicate if a shape is being dragged
     private HBox helpBox;
     private boolean isDisplayingVectors = false;
+    private Pane sandBoxPane; // Add this line
 
     static TextField gravityField;
     public static Pane sandBoxPane;
@@ -129,7 +132,7 @@ public class Sandbox extends Application {
 
         // Add mouse event handlers for lineButton
         lineButton.setOnMouseClicked(event -> {
-            Plane newPlane = new Plane(100, 50, 200, 50, Color.BLACK);
+            Plane newPlane = new Plane(100, 50, 200, 50, Color.BLACK, this);
             sandBoxPane.getChildren().add(newPlane.getLine());
             newPlane.addLineResizeListener();
             newPlane.addDragListener();
@@ -314,12 +317,7 @@ public class Sandbox extends Application {
                         break;
                     case "line":
                         double lineLength = 100;
-                        Plane newPlane = new Plane(event.getX() - lineLength / 2, event.getY(), event.getX() + lineLength / 2, event.getY(), Color.BLACK);
-                        sandBoxPane.getChildren().add(newPlane.getLine());
-                        newPlane.addLineResizeListener();
-                        newPlane.addDragListener();
-                        sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
-                        newPlane.addKeyListener(); // Ensure this line is present
+                        createPlane(event.getX() - lineLength / 2, event.getY(), event.getX() + lineLength / 2, event.getY(), Color.BLACK);
                         break;
                     case "rope":
                         double ropeLength = 100;
@@ -335,6 +333,31 @@ public class Sandbox extends Application {
             event.setDropCompleted(success);
             event.consume();
         });
+    }
+
+    public List<Plane> getPlanes() {
+        return planes;
+    }
+
+    private void createPlane(double startX, double startY, double endX, double endY, Color color) {
+        Plane newPlane = new Plane(startX, startY, endX, endY, color, this);
+        planes.add(newPlane);
+        sandBoxPane.getChildren().add(newPlane.getLine());
+        newPlane.addLineResizeListener();
+        newPlane.addDragListener();
+        sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
+        newPlane.addKeyListener();
+    }
+
+    public boolean areAllPlanesInSameMode() {
+        if (planes.isEmpty()) return true;
+        boolean firstPlaneMode = planes.get(0).isTransformMode();
+        for (Plane plane : planes) {
+            if (plane.isTransformMode() != firstPlaneMode) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // Helper method to enable dragging and removal for shapes

@@ -226,10 +226,10 @@ public class Snapping {
             return;
         }
 
-       }
+    }
 
 
-       //Same method but for Box object through rectangle and will set end or start snapped and also associate the rope object to the box
+    //Same method but for Box object through rectangle and will set end or start snapped and also associate the rope object to the box
     private static void updateBoxSnappedStatus(Rectangle rectangle, Line line, boolean startSnapped, boolean endSnapped) {
         // Check different ways to find the associated Rope object
 
@@ -254,4 +254,4 @@ public class Snapping {
         }
 
     }
-    }
+}

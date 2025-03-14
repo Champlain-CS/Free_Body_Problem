@@ -133,36 +133,29 @@ public class Box extends Group{
             }
         });
     }
+    private static final double MIN_WIDTH = 50;
+    private static final double MIN_HEIGHT = 50;
 
     public void addResizeListener() {
-        resizeHandle.setOnMousePressed(event -> {
-            resizeHandle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
-        });
-
         resizeHandle.setOnMouseDragged(event -> {
-            double[] offset = (double[]) resizeHandle.getUserData();
-            double offsetX = event.getSceneX() - offset[0];
-            double offsetY = event.getSceneY() - offset[1];
+            double newWidth = event.getX() - rectangle.getX();
+            double newHeight = event.getY() - rectangle.getY();
 
-            rectangle.setWidth(rectangle.getWidth() + offsetX);
-            rectangle.setHeight(rectangle.getHeight() + offsetY);
+            if (newWidth >= MIN_WIDTH) {
+                rectangle.setWidth(newWidth);
+                resizeHandle.setCenterX(event.getX());
+                rotateHandle.setCenterX(event.getX());
+            }
 
-            resizeHandle.setCenterX(rectangle.getX() + rectangle.getWidth());
-            resizeHandle.setCenterY(rectangle.getY() + rectangle.getHeight());
+            if (newHeight >= MIN_HEIGHT) {
+                rectangle.setHeight(newHeight);
+                resizeHandle.setCenterY(event.getY());
+                rotateHandle.setCenterY(event.getY() - rectangle.getHeight() / 2);
+            }
 
             textField.setLayoutX(rectangle.getX() + rectangle.getWidth() / 2 - textField.getPrefWidth() / 2);
-            textField.setLayoutY(rectangle.getY() + rectangle.getHeight() / 2 - textField.getPrefHeight() / 2);
-
-            updateHandlePositions();
-            resizeHandle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+            textField.setLayoutY(rectangle.getY() + rectangle.getHeight() / 2 - textField.getPrefHeight() / 2 - 0.08 * rectangle.getHeight());
         });
-
-
-        rectangle.xProperty().addListener((obs, oldVal, newVal) -> updateHandlePositions());
-        rectangle.yProperty().addListener((obs, oldVal, newVal) -> updateHandlePositions());
-        rectangle.widthProperty().addListener((obs, oldVal, newVal) -> updateHandlePositions());
-        rectangle.heightProperty().addListener((obs, oldVal, newVal) -> updateHandlePositions());
-        rectangle.rotateProperty().addListener((obs, oldVal, newVal) -> updateHandlePositions());
     }
     private void updateHandlePositions() {
         double angle = Math.toRadians(rectangle.getRotate()); // Get the rotation angle in radians

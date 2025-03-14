@@ -4,6 +4,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -55,7 +56,22 @@ public class Box extends Group{
 
         addDragListener();
         addResizeListener();
+        textField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                parentContainer.requestFocus(); // Unfocus the TextField by requesting focus on the parent container
+            }
+        });
 
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                textField.setText(newValue.replaceAll("[^\\d]", ""));
+            }
+        });
+        textField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                parentContainer.requestFocus(); // Unfocus the TextField by requesting focus on the parent container
+            }
+        });
 
     }
 

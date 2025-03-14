@@ -252,6 +252,34 @@ public class Snapping {
 
 
         }
+    }
+    public static void snapPlaneEnds(Line plane1, Line plane2) {
+        double startX1 = plane1.getStartX();
+        double startY1 = plane1.getStartY();
+        double endX1 = plane1.getEndX();
+        double endY1 = plane1.getEndY();
 
+        double startX2 = plane2.getStartX();
+        double startY2 = plane2.getStartY();
+        double endX2 = plane2.getEndX();
+        double endY2 = plane2.getEndY();
+
+        if (distance(startX1, startY1, startX2, startY2) <= SNAP_THRESHOLD) {
+            plane1.setStartX(startX2);
+            plane1.setStartY(startY2);
+        } else if (distance(startX1, startY1, endX2, endY2) <= SNAP_THRESHOLD) {
+            plane1.setStartX(endX2);
+            plane1.setStartY(endY2);
+        } else if (distance(endX1, endY1, startX2, startY2) <= SNAP_THRESHOLD) {
+            plane1.setEndX(startX2);
+            plane1.setEndY(startY2);
+        } else if (distance(endX1, endY1, endX2, endY2) <= SNAP_THRESHOLD) {
+            plane1.setEndX(endX2);
+            plane1.setEndY(endY2);
+        }
+    }
+
+    private static double distance(double x1, double y1, double x2, double y2) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     }
 }

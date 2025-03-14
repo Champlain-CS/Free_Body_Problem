@@ -87,9 +87,9 @@ public class Sandbox extends Application {
             sandBoxPane.getChildren().clear();
             gravityField.setText("9.8");
             boxList.clear();
+            planes.clear();
             isDisplayingVectors = false;
         });
-
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(50, 50, Color.WHITE);
         Circle circleButton = createButtonCircle(15, Color.BLACK);
@@ -208,6 +208,18 @@ public class Sandbox extends Application {
         coefficientField.getStyleClass().add("editor-attribute-field");
         coefficientField.setText("0.4");
         coefficientBox.getChildren().addAll(coefficientLabel, coefficientField);
+
+        gravityField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                sandBoxPane.requestFocus(); // Unfocus the TextField by requesting focus on the parent container
+            }
+        });
+
+        coefficientField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                sandBoxPane.requestFocus(); // Unfocus the TextField by requesting focus on the parent container
+            }
+        });
 
         HBox vectorDisplayBox = new HBox();
         vectorDisplayBox.getStyleClass().add("larger-editor-attribute-box");

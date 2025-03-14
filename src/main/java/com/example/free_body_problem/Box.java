@@ -50,7 +50,7 @@ public class Box extends Group{
         textField.setAlignment(Pos.CENTER);
         textField.setPrefWidth(50); // Set preferred width
         textField.setLayoutX(x + width / 2 - textField.getPrefWidth() / 2);
-        textField.setLayoutY(y + height / 2 - textField.getPrefHeight() / 2 - 0.08*height);
+        textField.setLayoutY(y + height / 2 - textField.getPrefHeight() / 2);
 
         parentContainer.getChildren().addAll(rectangle, textField, resizeHandle);
 

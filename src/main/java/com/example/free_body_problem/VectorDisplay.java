@@ -28,6 +28,7 @@ public class VectorDisplay extends Pane {
         this.color = color;
         this.angle = angle;
 
+
         // Line for arrow shaft
         line = new Line(startX, startY, startX + length, startY);
         line.setStroke(color);

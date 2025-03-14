@@ -1,7 +1,6 @@
 package com.example.free_body_problem;
 
 import javafx.application.Application;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -10,8 +9,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -26,9 +23,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -61,6 +55,7 @@ public class Sandbox extends Application {
         sandBoxPane = new Pane();
         sandBoxPane.setPrefSize(600, 350);
         sandBoxRoot.setCenter(sandBoxPane);
+        sandBoxRoot.setStyle("-fx-background-color: white");
 
         ImageView infoDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/infoDisplay.png")));
         infoDisplayView.setPreserveRatio(true);
@@ -88,13 +83,8 @@ public class Sandbox extends Application {
         // Add RESET button
         Button resetBT = new Button("RESET");
         resetBT.getStyleClass().add("menu-button"); // Apply CSS class
-        resetBT.setOnMouseClicked(event -> {
-            sandBoxPane.getChildren().clear();
-            gravityField.setText("9.8");
-            boxList.clear();
-            planes.clear();
-            isDisplayingVectors = false;
-        });
+
+
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(50, 50, Color.WHITE);
         Circle circleButton = createButtonCircle(15, Color.BLACK);
@@ -232,7 +222,8 @@ public class Sandbox extends Application {
         vectorDisplayBox.getStyleClass().add("larger-editor-attribute-box");
         Label vectorDisplayLabel = new Label("Display Vectors: ");
         vectorDisplayLabel.getStyleClass().add("editor-attribute-label");
-        ImageView vectorDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+        ImageView vectorDisplayView = new ImageView(
+                new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
         vectorDisplayView.setPreserveRatio(true);
         vectorDisplayView.setFitHeight(50);
         vectorDisplayView.setPickOnBounds(true);
@@ -240,6 +231,26 @@ public class Sandbox extends Application {
 
         editorPane.getChildren().addAll(editorLabel, gravityBox, coefficientBox, vectorDisplayBox);
         editorPane.toFront();
+
+        resetBT.setOnMouseClicked(event -> {
+            sandBoxPane.getChildren().clear();
+            gravityField.setText("9.8");
+            boxList.clear();
+            planes.clear();
+            isDisplayingVectors = false;
+
+            //Removing the lock
+            Iterator<Node> rootIterator = sandBoxRoot.getChildren().iterator();
+            while (rootIterator.hasNext()) {
+                Node node = rootIterator.next();
+                if (node instanceof LockPane) {
+                    rootIterator.remove();
+                }
+            }
+            sandBoxRoot.setStyle("-fx-background-color: white");
+            vectorDisplayView.setImage(
+                    new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+        });
 
 
 
@@ -262,28 +273,49 @@ public class Sandbox extends Application {
 
 
         vectorDisplayView.setOnMouseClicked(event -> {
-            if (isDisplayingVectors) {
+            if (isDisplayingVectors) { //Remove vectors
                 isDisplayingVectors = false;
 
-                Iterator<Node> iterator = sandBoxPane.getChildren().iterator();
-                while (iterator.hasNext()) {
-                    Node node = iterator.next();
+                Iterator<Node> paneIterator = sandBoxPane.getChildren().iterator();
+                while (paneIterator.hasNext()) {
+                    Node node = paneIterator.next();
                     if (node instanceof VectorDisplay) {
-                        iterator.remove();
+                        paneIterator.remove();
                     }
                 }
-            } else {
+                Iterator<Node> rootIterator = sandBoxRoot.getChildren().iterator();
+                while (rootIterator.hasNext()) {
+                    Node node = rootIterator.next();
+                    if (node instanceof LockPane) {
+                        rootIterator.remove();
+                    }
+                }
+                sandBoxRoot.setStyle("-fx-background-color: white");
+                vectorDisplayView.setImage(
+                        new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+
+                System.out.println("unlocked");
+
+            } else { //Add vectors
+                isDisplayingVectors = true;
                 for (Box box : boxList) {
                     updateVectors(box);
-                    isDisplayingVectors = true;
                 }
+                LockPane locker = new LockPane(sandBoxPane.getWidth(), sandBoxRoot.getHeight());
+                locker.setTranslateX(editorPane.getWidth());
+                sandBoxRoot.getChildren().add(locker);
+                sandBoxRoot.setStyle("-fx-background-color: #8d9393");
+                vectorDisplayView.setImage(
+                        new Image(getClass().getResourceAsStream("/images/vectorDisplayCrossed.png")));
+                System.out.println("Locked");
+
             }
         });
 
         // Add event handler to remove the large rectangle when Escape is pressed
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE && helpBox != null) {
-                sandBoxPane.getChildren().remove(helpBox);
+                sandBoxRoot.getChildren().remove(helpBox);
                 helpBox = null;
             }
         });

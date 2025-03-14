@@ -4,13 +4,16 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-
+import java.util.ArrayList;
+import java.util.List;
 
 public class Pulley extends Node {
     public Group circleGroup;
-    public boolean hasRopeStartSnapped = false;
-    public boolean hasRopeEndSnapped = false;
-
+    // List to store multiple connected ropes
+    public List<Rope> connectedRopes;
+    // Lists to track which end of each rope is connected
+    public List<Boolean> ropeStartSnapped;
+    public List<Boolean> ropeEndSnapped;
 
     public Pulley(double x, double y, double outerRadius, double innerRadius, Color outerColor, Color innerColor) {
         Circle outerCircle = new Circle(x, y, outerRadius, outerColor);
@@ -20,12 +23,42 @@ public class Pulley extends Node {
         innerCircle.setStroke(null);
 
         circleGroup = new Group(outerCircle, innerCircle);
-        circleGroup.setUserData(this);
 
+        // Initialize the lists
+        connectedRopes = new ArrayList<>();
+        ropeStartSnapped = new ArrayList<>();
+        ropeEndSnapped = new ArrayList<>();
+
+        // Set userData for all components
+        innerCircle.setUserData(this);
+        outerCircle.setUserData(this);
+        circleGroup.setUserData(this);
     }
 
     public Group getCircleGroup() {
         return circleGroup;
+    }
+
+    // Add a rope to the pulley's connected ropes
+    public void addRope(Rope rope, boolean isStartSnapped) {
+        connectedRopes.add(rope);
+        if (isStartSnapped) {
+            ropeStartSnapped.add(true);
+            ropeEndSnapped.add(false);
+        } else {
+            ropeStartSnapped.add(false);
+            ropeEndSnapped.add(true);
+        }
+    }
+
+    // Remove a rope from the pulley
+    public void removeRope(Rope rope) {
+        int index = connectedRopes.indexOf(rope);
+        if (index != -1) {
+            connectedRopes.remove(index);
+            ropeStartSnapped.remove(index);
+            ropeEndSnapped.remove(index);
+        }
     }
 
     public void addDragListener() {
@@ -35,10 +68,35 @@ public class Pulley extends Node {
 
         circleGroup.setOnMouseDragged(event -> {
             double[] offset = (double[]) circleGroup.getUserData();
+            double deltaX = event.getSceneX() - offset[0];
+            double deltaY = event.getSceneY() - offset[1];
+
+            // Update the position of all circles in the group
             for (Node node : circleGroup.getChildren()) {
                 Circle circle = (Circle) node;
-                circle.setCenterX(circle.getCenterX() + (event.getSceneX() - offset[0]));
-                circle.setCenterY(circle.getCenterY() + (event.getSceneY() - offset[1]));
+                circle.setCenterX(circle.getCenterX() + deltaX);
+                circle.setCenterY(circle.getCenterY() + deltaY);
+            }
+
+            // Get the center position of the pulley (using first circle)
+            Circle firstCircle = (Circle) circleGroup.getChildren().get(0);
+            double centerX = firstCircle.getCenterX();
+            double centerY = firstCircle.getCenterY();
+
+            // Update all connected ropes
+            for (int i = 0; i < connectedRopes.size(); i++) {
+                Rope rope = connectedRopes.get(i);
+
+                // Update start or end point of the rope depending on which is snapped
+                if (ropeStartSnapped.get(i)) {
+                    rope.getLine().setStartX(centerX);
+                    rope.getLine().setStartY(centerY);
+                }
+
+                if (ropeEndSnapped.get(i)) {
+                    rope.getLine().setEndX(centerX);
+                    rope.getLine().setEndY(centerY);
+                }
             }
 
             circleGroup.setUserData(new double[]{event.getSceneX(), event.getSceneY()});

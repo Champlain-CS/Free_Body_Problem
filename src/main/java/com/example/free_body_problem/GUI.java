@@ -14,10 +14,11 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-
+import java.io.File;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 
 public class GUI extends Application {
     VBox mainMenuRoot = new VBox();
@@ -29,8 +30,7 @@ public class GUI extends Application {
         primaryStage.setResizable(false);
         primaryStage.setMaximized(true);
 
-
-        //Main Menu
+        // Main Menu
         mainMenuRoot.setSpacing(75);
         mainMenuRoot.setPadding(new Insets(70, 100, 100, 150));
         mainMenuRoot.setId("menuID");
@@ -39,8 +39,7 @@ public class GUI extends Application {
         nameLabel.getStyleClass().add("titleStyle");
         nameLabel.setEffect(new DropShadow());
 
-        ImageView logoView = new ImageView(
-                new Image(getClass().getResourceAsStream("/images/logoAlt.png")));
+        ImageView logoView = new ImageView(new Image(getClass().getResourceAsStream("/images/logoAlt.png")));
         logoView.setFitHeight(450);
         logoView.setFitWidth(450);
         logoView.setTranslateX(150);
@@ -53,8 +52,11 @@ public class GUI extends Application {
         Button startBT = new Button("START");
         startBT.getStyleClass().add("buttonStyle");
         startBT.setOnMouseEntered(e -> startBT.getStyleClass().add("buttonHover"));
-       //Run DraggableShapesApp on click
+        String uriString = new File("src/main/resources/sounds/Start.mp3").toURI().toString();
+        MediaPlayer player = new MediaPlayer( new Media(uriString));
+        player.play();
         startBT.setOnMouseClicked(e -> {
+
             Sandbox app = new Sandbox();
             app.start(new Stage());
             primaryStage.close();
@@ -62,7 +64,7 @@ public class GUI extends Application {
 
         Button optionsBT = new Button("OPTIONS");
         optionsBT.getStyleClass().add("buttonStyle");
-        optionsBT.setOnMouseEntered(e ->  optionsBT.getStyleClass().add("buttonHover"));
+        optionsBT.setOnMouseEntered(e -> optionsBT.getStyleClass().add("buttonHover"));
         optionsBT.setOnMouseClicked(e -> primaryStage.getScene().setRoot(optionsRoot));
 
         Button creditsBT = new Button("CREDITS");
@@ -73,15 +75,13 @@ public class GUI extends Application {
             creditsRoot.requestFocus();
         });
 
-        buttonBox.getChildren().addAll(startBT,optionsBT,creditsBT);
+        buttonBox.getChildren().addAll(startBT, optionsBT, creditsBT);
 
         HBox buttonsAndLogo = new HBox();
         buttonsAndLogo.setSpacing(30);
         buttonsAndLogo.getChildren().addAll(buttonBox, logoView);
         mainMenuRoot.getChildren().addAll(nameLabel, buttonsAndLogo);
         mainMenuRoot.getStylesheets().add("MainMenuStyleSheet.css");
-
-
 
         // Options Menu
         optionsRoot.setId("root");
@@ -101,7 +101,7 @@ public class GUI extends Application {
 
         Label musicVolumeLabel = new Label("Music Volume");
         musicVolumeLabel.getStyleClass().add("textStyle");
-        Slider musicVolumeSlider= new Slider();
+        Slider musicVolumeSlider = new Slider();
         musicVolumeSlider.getStyleClass().add("slider");
         HBox musicVolumeBox = new HBox();
         musicVolumeBox.setSpacing(30);
@@ -110,15 +110,14 @@ public class GUI extends Application {
 
         Label effectsVolumeLabel = new Label("Effect Volume");
         effectsVolumeLabel.getStyleClass().add("textStyle");
-        Slider effectsVolumeSlider= new Slider();
+        Slider effectsVolumeSlider = new Slider();
         effectsVolumeSlider.getStyleClass().add("slider");
         HBox effectsVolumeBox = new HBox();
         effectsVolumeBox.setSpacing(30);
         effectsVolumeBox.setAlignment(Pos.CENTER);
         effectsVolumeBox.getChildren().addAll(effectsVolumeLabel, effectsVolumeSlider);
 
-        ImageView optionsX = new ImageView(
-                new Image(getClass().getResourceAsStream("/images/blueX.png")));
+        ImageView optionsX = new ImageView(new Image(getClass().getResourceAsStream("/images/blueX.png")));
         optionsX.setPreserveRatio(true);
         optionsX.setFitHeight(35);
         optionsX.setTranslateX(460);
@@ -136,8 +135,6 @@ public class GUI extends Application {
                 primaryStage.getScene().setRoot(mainMenuRoot);
             }
         });
-
-
 
         // Credits
         creditsRoot.setId("root");
@@ -162,8 +159,7 @@ public class GUI extends Application {
         Label creditsLabel = new Label("CREDITS");
         creditsLabel.getStyleClass().add("titleStyle");
 
-        ImageView creditsX = new ImageView(
-                new Image(getClass().getResourceAsStream("/images/blueX.png")));
+        ImageView creditsX = new ImageView(new Image(getClass().getResourceAsStream("/images/blueX.png")));
         creditsX.setPreserveRatio(true);
         creditsX.setFitHeight(35);
         creditsX.setTranslateX(460);
@@ -172,12 +168,11 @@ public class GUI extends Application {
         creditsX.setOnMouseExited(e -> creditsX.setFitHeight(35));
         creditsX.setOnMouseClicked(e -> primaryStage.getScene().setRoot(mainMenuRoot));
 
-
         VBox creditsBox = new VBox();
         creditsBox.setSpacing(80);
         creditsBox.setAlignment(Pos.CENTER);
-        creditsBox.getChildren().addAll(creditsLabel,names);
-        creditsRoot.getChildren().addAll(creditsBase,creditsBox,creditsX);
+        creditsBox.getChildren().addAll(creditsLabel, names);
+        creditsRoot.getChildren().addAll(creditsBase, creditsBox, creditsX);
         creditsRoot.getStylesheets().add("OptionsAndCreditsStyleSheet.css");
 
         creditsRoot.setOnKeyPressed(e -> {
@@ -186,11 +181,13 @@ public class GUI extends Application {
             }
         });
 
-
         // Display
         Scene projectScene = new Scene(mainMenuRoot);
         primaryStage.setScene(projectScene);
         primaryStage.show();
+    }
 
+    public static void main(String[] args) {
+        launch(args);
     }
 }

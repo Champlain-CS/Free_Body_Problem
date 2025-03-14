@@ -21,6 +21,7 @@ public class Plane {
         line.setStrokeWidth(8);
         line.setUserData(this);
 
+
         startHandle = createHandle(startX, startY, Color.RED); // Start handle is red (transform)
         endHandle = createHandle(endX, endY, Color.RED); // End handle is red (transform)
 
@@ -152,8 +153,16 @@ public class Plane {
 
     public void addKeyListener() {
         line.getScene().setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.T) {
-                toggleTransformMode();
+            if (event.getCode() == KeyCode.R) {
+                Sandbox sandbox = this.sandbox;
+                boolean allSameMode = sandbox.areAllPlanesInSameMode();
+                boolean newMode = !isTransformMode;
+                if (!allSameMode) {
+                    newMode = !newMode;
+                }
+                for (Plane plane : sandbox.getPlanes()) {
+                    plane.setTransformMode(newMode);
+                }
             }
         });
     }

@@ -139,6 +139,8 @@ public class Snapping {
                         rope.setStartX(centerX);
                         rope.setStartY(centerY);
                         snapped = true;
+                        updatePulleySnappedStatus(circle, rope, true, false);
+
                     }
 
                     break; // Only need to check the first circle in the group
@@ -200,6 +202,8 @@ public class Snapping {
                         rope.setEndX(centerX);
                         rope.setEndY(centerY);
                         snapped = true;
+                        System.out.println("Yes");
+                        updatePulleySnappedStatus(circle, rope, false, true);
                     }
 
                     break; // Only need to check the first circle in the group
@@ -253,6 +257,36 @@ public class Snapping {
 
         }
     }
+
+
+    private static void updatePulleySnappedStatus(Node circle, Line line, boolean startSnapped, boolean endSnapped) {
+        // Check different ways to find the associated Rope object
+
+        // Option 1: Check if the box itself has the Rope object as userData
+        if (line.getUserData() instanceof Rope && circle.getUserData() instanceof Pulley) {
+            System.out.println("YEsser");
+
+            Pulley pulley = (Pulley) circle.getUserData();
+            Rope rope = (Rope) line.getUserData();
+
+            if (startSnapped){
+                pulley.snappedRope = rope;
+                pulley.pulleyRopestartSnapped = true;
+                pulley.pulleyRopeendSnapped = false;
+
+            }
+            if (endSnapped){
+                pulley.snappedRope = rope;
+                pulley.pulleyRopeendSnapped = true;
+                pulley.pulleyRopestartSnapped = false;
+
+            }
+
+
+        }
+    }
+
+
     public static void snapPlaneEnds(Line plane1, Line plane2) {
         double startX1 = plane1.getStartX();
         double startY1 = plane1.getStartY();

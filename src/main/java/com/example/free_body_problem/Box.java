@@ -122,6 +122,18 @@ public class Box extends Group{
 
             rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
 
+            if (hasRopeStartSnapped){
+                snappedRope.getLine().setStartX(rectangle.getX() + rectangle.getWidth() / 2);
+                snappedRope.getLine().setStartY(rectangle.getY() + rectangle.getHeight() / 2);
+                hasRopeEndSnapped = false;
+            }
+
+            if (hasRopeEndSnapped){
+                snappedRope.getLine().setEndX(rectangle.getX() + rectangle.getWidth() / 2);
+                snappedRope.getLine().setEndY(rectangle.getY() + rectangle.getHeight() / 2);
+                hasRopeStartSnapped = false;
+            }
+
             // Check for snapping to planes
             for (Node node : rectangle.getParent().getChildrenUnmodifiable()) {
                 if (node instanceof Line) {
@@ -129,6 +141,7 @@ public class Box extends Group{
                     Snapping.snapBoxToPlane(rectangle, plane);
                     // Update handle positions after snapping
                     updateHandlePositions();
+
                 }
             }
         });
@@ -191,17 +204,7 @@ public class Box extends Group{
         textField.setLayoutX(centerX - textField.getPrefWidth() / 2);
         textField.setLayoutY(centerY - textField.getPrefHeight() / 2);
 
-        if (hasRopeStartSnapped){
-            snappedRope.getLine().setStartX(centerX);
-            snappedRope.getLine().setStartY(centerY);
-            hasRopeEndSnapped = false;
-        }
 
-        if (hasRopeEndSnapped){
-            snappedRope.getLine().setEndX(centerX);
-            snappedRope.getLine().setEndY(centerY);
-            hasRopeStartSnapped = false;
-        }
     }
 
 }

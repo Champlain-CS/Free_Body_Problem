@@ -10,6 +10,9 @@ public class Pulley extends Node {
     public Group circleGroup;
     public boolean hasRopeStartSnapped = false;
     public boolean hasRopeEndSnapped = false;
+    public Boolean pulleyRopestartSnapped = false;
+    public Boolean pulleyRopeendSnapped = false;
+    public Rope snappedRope;
 
 
     public Pulley(double x, double y, double outerRadius, double innerRadius, Color outerColor, Color innerColor) {
@@ -20,6 +23,11 @@ public class Pulley extends Node {
         innerCircle.setStroke(null);
 
         circleGroup = new Group(outerCircle, innerCircle);
+        circleGroup.setUserData(this);
+
+
+        innerCircle.setUserData(this);
+        outerCircle.setUserData(this);
         circleGroup.setUserData(this);
 
     }
@@ -39,6 +47,17 @@ public class Pulley extends Node {
                 Circle circle = (Circle) node;
                 circle.setCenterX(circle.getCenterX() + (event.getSceneX() - offset[0]));
                 circle.setCenterY(circle.getCenterY() + (event.getSceneY() - offset[1]));
+                if (pulleyRopestartSnapped){
+                    snappedRope.getLine().setStartX(circle.getCenterX());
+                    snappedRope.getLine().setStartY(circle.getCenterY());
+                    System.out.println("STARTTTTTTTTTTT");
+                }
+
+                if (pulleyRopeendSnapped){
+                    snappedRope.getLine().setEndX(circle.getCenterX());
+                    snappedRope.getLine().setEndY(circle.getCenterY());
+                }
+
             }
 
             circleGroup.setUserData(new double[]{event.getSceneX(), event.getSceneY()});

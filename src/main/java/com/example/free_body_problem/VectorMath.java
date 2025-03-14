@@ -15,8 +15,10 @@ public final class VectorMath {
         double positionX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
         double positionY = box.getRectangle().getY() + box.getRectangle().getHeight();
 
+        double magnitude = massValue*gravityValue;
+
         VectorDisplay gravityVector = new VectorDisplay(positionX, positionY,
-                gravityValue * massValue, 90, "Gravity", Color.BLUE);
+                gravityValue * massValue, 90, "Gravity", magnitude, Color.BLUE);
         box.gravityVector = gravityVector;
         Sandbox.sandBoxPane.getChildren().add(gravityVector);
     }

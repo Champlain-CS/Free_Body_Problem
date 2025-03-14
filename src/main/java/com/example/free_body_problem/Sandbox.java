@@ -31,11 +31,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
 public class Sandbox extends Application {
     private List<Plane> planes = new ArrayList<>();
+    public ArrayList<Box> boxList = new ArrayList<Box>();
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
     private boolean dragging = false; // Flag to indicate if a shape is being dragged
     private HBox helpBox;
@@ -44,7 +46,7 @@ public class Sandbox extends Application {
     static TextField gravityField;
     public static Pane sandBoxPane;
 
-    public ArrayList<Box> boxList = new ArrayList<Box>();
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -53,6 +55,7 @@ public class Sandbox extends Application {
         // Root pane
         BorderPane sandBoxRoot = new BorderPane();
         sandBoxRoot.setStyle("-fx-border-color: darkgray");
+
 
         // Pane for draggable shapes
         sandBoxPane = new Pane();
@@ -64,6 +67,8 @@ public class Sandbox extends Application {
         infoDisplayView.setFitHeight(50);
         infoDisplayView.setPickOnBounds(true);
         sandBoxRoot.setRight(infoDisplayView);
+
+
 
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
@@ -183,6 +188,8 @@ public class Sandbox extends Application {
         // Add elements to the bottom bar
         bottomBar.getChildren().addAll(leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT);
 
+
+
         // Pane for world settings
         VBox editorPane = new VBox();
         editorPane.getStyleClass().add("editor-pane");
@@ -235,6 +242,7 @@ public class Sandbox extends Application {
         editorPane.toFront();
 
 
+
         // Set up the stage
         Scene scene = new Scene(sandBoxRoot, 600, 400);
         scene.getStylesheets().add("SandboxStyleSheet.css");
@@ -254,17 +262,21 @@ public class Sandbox extends Application {
 
 
         vectorDisplayView.setOnMouseClicked(event -> {
-            if(isDisplayingVectors) {
+            if (isDisplayingVectors) {
                 isDisplayingVectors = false;
-                for(Node node: sandBoxPane.getChildren()) {
-                    if(node instanceof VectorDisplay) {
-                        sandBoxPane.getChildren().remove(node);
+
+                Iterator<Node> iterator = sandBoxPane.getChildren().iterator();
+                while (iterator.hasNext()) {
+                    Node node = iterator.next();
+                    if (node instanceof VectorDisplay) {
+                        iterator.remove();
                     }
                 }
-            }
-            for(Box box: boxList) {
-                updateVectors(box);
-                isDisplayingVectors = true;
+            } else {
+                for (Box box : boxList) {
+                    updateVectors(box);
+                    isDisplayingVectors = true;
+                }
             }
         });
 

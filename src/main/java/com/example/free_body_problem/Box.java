@@ -12,15 +12,21 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.layout.Pane;
 import javafx.geometry.Pos;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Box extends Group{
     public Rectangle rectangle;
     private Circle resizeHandle;
     private Circle rotateHandle;
     private TextField textField;
     private Pane parentContainer;
-    public Boolean hasRopeStartSnapped = false;
-    public Boolean hasRopeEndSnapped = false;
-    public Rope snappedRope;
+
+
+    public List<Rope> connectedRopes;
+    // Lists to track which end of each rope is connected
+    public List<Boolean> ropeStartSnapped;
+    public List<Boolean> ropeEndSnapped;
     public Boolean snappedToPlane = false;
     public Plane snappedPlane;
 
@@ -53,6 +59,10 @@ public class Box extends Group{
         textField.setLayoutY(y + height / 2 - textField.getPrefHeight() / 2 - 0.08*height);
 
         parentContainer.getChildren().addAll(rectangle, textField, resizeHandle);
+
+        connectedRopes = new ArrayList<>();
+        ropeStartSnapped = new ArrayList<>();
+        ropeEndSnapped = new ArrayList<>();
 
         addDragListener();
         addResizeListener();
@@ -97,6 +107,27 @@ public class Box extends Group{
         return handle;
     }
 
+    public void addRope(Rope rope, boolean isStartSnapped) {
+        connectedRopes.add(rope);
+        if (isStartSnapped) {
+            ropeStartSnapped.add(true);
+            ropeEndSnapped.add(false);
+        } else {
+            ropeStartSnapped.add(false);
+            ropeEndSnapped.add(true);
+        }
+    }
+
+    // Remove a rope from the pulley
+    public void removeRope(Rope rope) {
+        int index = connectedRopes.indexOf(rope);
+        if (index != -1) {
+            connectedRopes.remove(index);
+            ropeStartSnapped.remove(index);
+            ropeEndSnapped.remove(index);
+        }
+    }
+
     public void addDragListener() {
         rectangle.setOnMousePressed(event -> {
             rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
@@ -122,16 +153,20 @@ public class Box extends Group{
 
             rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
 
-            if (hasRopeStartSnapped){
-                snappedRope.getLine().setStartX(rectangle.getX() + rectangle.getWidth() / 2);
-                snappedRope.getLine().setStartY(rectangle.getY() + rectangle.getHeight() / 2);
-                hasRopeEndSnapped = false;
-            }
+            // Update all connected ropes
+            for (int i = 0; i < connectedRopes.size(); i++) {
+                Rope rope = connectedRopes.get(i);
 
-            if (hasRopeEndSnapped){
-                snappedRope.getLine().setEndX(rectangle.getX() + rectangle.getWidth() / 2);
-                snappedRope.getLine().setEndY(rectangle.getY() + rectangle.getHeight() / 2);
-                hasRopeStartSnapped = false;
+                // Update start or end point of the rope depending on which is snapped
+                if (ropeStartSnapped.get(i)) {
+                    rope.getLine().setStartX(rectangle.getX() + rectangle.getWidth() / 2);
+                    rope.getLine().setStartY(rectangle.getY() + rectangle.getHeight() / 2);
+                }
+
+                if (ropeEndSnapped.get(i)) {
+                    rope.getLine().setEndX(rectangle.getX() + rectangle.getWidth() / 2);
+                    rope.getLine().setEndY(rectangle.getY() + rectangle.getHeight() / 2);
+                }
             }
 
             // Check for snapping to planes

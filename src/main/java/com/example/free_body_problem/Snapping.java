@@ -140,7 +140,6 @@ public class Snapping {
                         rope.setStartY(centerY);
                         snapped = true;
                         updatePulleySnappedStatus(circle, rope, true, false);
-
                     }
 
                     break; // Only need to check the first circle in the group
@@ -202,7 +201,6 @@ public class Snapping {
                         rope.setEndX(centerX);
                         rope.setEndY(centerY);
                         snapped = true;
-                        System.out.println("Yes");
                         updatePulleySnappedStatus(circle, rope, false, true);
                     }
 
@@ -226,66 +224,74 @@ public class Snapping {
             Rope rope = (Rope) line.getUserData();
             if (startSnapped) rope.setStartSnapped(true);
             if (endSnapped) rope.setEndSnapped(true);
-            System.out.println("Updated rope status from line userData");
-            return;
         }
-
     }
-
 
     //Same method but for Box object through rectangle and will set end or start snapped and also associate the rope object to the box
     private static void updateBoxSnappedStatus(Rectangle rectangle, Line line, boolean startSnapped, boolean endSnapped) {
-        // Check different ways to find the associated Rope object
-
-        // Option 1: Check if the box itself has the Rope object as userData
         if (line.getUserData() instanceof Rope && rectangle.getUserData() instanceof Box) {
             Box box = (Box) rectangle.getUserData();
             Rope rope = (Rope) line.getUserData();
 
-            if (startSnapped){
-                box.snappedRope = rope;
-                box.hasRopeStartSnapped = true;
-                box.hasRopeEndSnapped = false;
+            // Check if the rope is already connected to the box
+            int existingIndex = box.connectedRopes.indexOf(rope);
+
+            if (existingIndex != -1) {
+                // Update existing connection
+                if (startSnapped) {
+                    box.ropeStartSnapped.set(existingIndex, true);
+                    box.ropeEndSnapped.set(existingIndex, false);
+                }
+                if (endSnapped) {
+                    box.ropeStartSnapped.set(existingIndex, false);
+                    box.ropeEndSnapped.set(existingIndex, true);
+                }
+            } else {
+                // Add new rope connection
+                box.connectedRopes.add(rope);
+                if (startSnapped) {
+                    box.ropeStartSnapped.add(true);
+                    box.ropeEndSnapped.add(false);
+                } else {
+                    box.ropeStartSnapped.add(false);
+                    box.ropeEndSnapped.add(true);
+                }
             }
-            if (endSnapped){
-                box.snappedRope = rope;
-                box.hasRopeEndSnapped = true;
-                box.hasRopeStartSnapped = false;
-
-            }
-
-
         }
     }
 
-
+    // Updated to handle multiple ropes in a Pulley
     private static void updatePulleySnappedStatus(Node circle, Line line, boolean startSnapped, boolean endSnapped) {
-        // Check different ways to find the associated Rope object
-
-        // Option 1: Check if the box itself has the Rope object as userData
         if (line.getUserData() instanceof Rope && circle.getUserData() instanceof Pulley) {
-            System.out.println("YEsser");
-
             Pulley pulley = (Pulley) circle.getUserData();
             Rope rope = (Rope) line.getUserData();
 
-            if (startSnapped){
-                pulley.snappedRope = rope;
-                pulley.pulleyRopestartSnapped = true;
-                pulley.pulleyRopeendSnapped = false;
+            // Check if rope is already connected to this pulley
+            int existingIndex = pulley.connectedRopes.indexOf(rope);
 
+            if (existingIndex != -1) {
+                // Update existing connection
+                if (startSnapped) {
+                    pulley.ropeStartSnapped.set(existingIndex, true);
+                    pulley.ropeEndSnapped.set(existingIndex, false);
+                }
+                if (endSnapped) {
+                    pulley.ropeStartSnapped.set(existingIndex, false);
+                    pulley.ropeEndSnapped.set(existingIndex, true);
+                }
+            } else {
+                // Add new rope connection
+                pulley.connectedRopes.add(rope);
+                if (startSnapped) {
+                    pulley.ropeStartSnapped.add(true);
+                    pulley.ropeEndSnapped.add(false);
+                } else {
+                    pulley.ropeStartSnapped.add(false);
+                    pulley.ropeEndSnapped.add(true);
+                }
             }
-            if (endSnapped){
-                pulley.snappedRope = rope;
-                pulley.pulleyRopeendSnapped = true;
-                pulley.pulleyRopestartSnapped = false;
-
-            }
-
-
         }
     }
-
 
     public static void snapPlaneEnds(Line plane1, Line plane2) {
         double startX1 = plane1.getStartX();

@@ -1,12 +1,9 @@
 package com.example.free_body_problem;
 
-import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
-import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 
 public class Snapping {
 
@@ -95,13 +92,16 @@ public class Snapping {
         double px = rope.getLine().getStartX();
         double py = rope.getLine().getStartY();
 
+        // Store the current connection state before making any changes
+        PhysicsObject currentStartConnection = rope.getStartConnection();
+
         if (target instanceof Box) {
             // Handle Rectangle nodes
-
             double centerX = target.getCenterX();
             double centerY = target.getCenterY();
             Box box = (Box) target;
             Rectangle rect = box.getRectangle();
+
             // Calculate distance to rectangle bounds
             double minX = rect.getX();
             double minY = rect.getY();
@@ -113,45 +113,49 @@ public class Snapping {
             double distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance <= SNAP_THRESHOLD) {
+                // If we're snapping to a new object, remove connection from the old one
+                if (currentStartConnection != null && currentStartConnection != target) {
+                    currentStartConnection.connectedRopes.remove(rope);
+                }
+
+                // Update rope position and connections
                 rope.getLine().setStartX(centerX);
                 rope.getLine().setStartY(centerY);
                 target.connectedRopes.put(rope, true);
-
-            }
-            else if (distance > SNAP_THRESHOLD) {
-                target.connectedRopes.remove(rope);
-                System.out.println("aOUTTTTTTTTT START");
+                rope.setStartConnection(target);
             }
         } else if (target instanceof Pulley) {
             // Handle Group nodes (Pulley)
             Pulley pulley = (Pulley) target;
+            double centerX = pulley.getCenterX();
+            double centerY = pulley.getCenterY();
 
-            // Find first Circle in the group to get center coordinates
-                    double centerX = pulley.getCenterX();
-                    double centerY = pulley.getCenterY();
+            // Calculate direct distance to center
+            double dx = px - centerX;
+            double dy = py - centerY;
+            double distance = Math.sqrt(dx * dx + dy * dy);
 
-                    // Calculate direct distance to center
-                    double dx = px - centerX;
-                    double dy = py - centerY;
-                    double distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance <= SNAP_THRESHOLD) {
+                // If we're snapping to a new object, remove connection from the old one
+                if (currentStartConnection != null && currentStartConnection != target) {
+                    currentStartConnection.connectedRopes.remove(rope);
+                }
 
-                    if (distance <= SNAP_THRESHOLD) {
-                        rope.getLine().setStartX(centerX);
-                        rope.getLine().setStartY(centerY);
-                        target.connectedRopes.put(rope, true);
-                    }
-                    else if (distance > SNAP_THRESHOLD) {
-                        target.connectedRopes.remove(rope);
-                    }
+                // Update rope position and connections
+                rope.getLine().setStartX(centerX);
+                rope.getLine().setStartY(centerY);
+                target.connectedRopes.put(rope, true);
+                rope.setStartConnection(target);
+            }
         }
-
-        // Update the Rope object's snapped status if snapping occurred
-
     }
 
     public static void snapRopeEnd(PhysicsObject target, Rope rope) {
         double px = rope.getLine().getEndX();
         double py = rope.getLine().getEndY();
+
+        // Store the current connection state before making any changes
+        PhysicsObject currentEndConnection = rope.getEndConnection();
 
         if (target instanceof Box) {
             // Handle Rectangle nodes
@@ -171,46 +175,42 @@ public class Snapping {
             double distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance <= SNAP_THRESHOLD) {
+                // If we're snapping to a new object, remove connection from the old one
+                if (currentEndConnection != null && currentEndConnection != target) {
+                    currentEndConnection.connectedRopes.remove(rope);
+                }
+
+                // Update rope position and connections
                 rope.getLine().setEndX(centerX);
                 rope.getLine().setEndY(centerY);
                 target.connectedRopes.put(rope, false);
-
-            } else if (distance > SNAP_THRESHOLD) {
-                target.connectedRopes.remove(rope);
-                System.out.println("OUTTTTTTTT END");
-
+                rope.setEndConnection(target);
             }
         } else if (target instanceof Pulley) {
             // Handle Group nodes (Pulley)
             Pulley pulley = (Pulley) target;
-            // Find first Circle in the group to get center coordinates
-                    double centerX = pulley.getCenterX();
-                    double centerY = pulley.getCenterY();
+            double centerX = pulley.getCenterX();
+            double centerY = pulley.getCenterY();
 
-                    // Calculate direct distance to center
-                    double dx = px - centerX;
-                    double dy = py - centerY;
-                    double distance = Math.sqrt(dx * dx + dy * dy);
+            // Calculate direct distance to center
+            double dx = px - centerX;
+            double dy = py - centerY;
+            double distance = Math.sqrt(dx * dx + dy * dy);
 
-                    if (distance <= SNAP_THRESHOLD) {
-                        rope.getLine().setEndX(centerX);
-                        rope.getLine().setEndY(centerY);
-                        target.connectedRopes.put(rope, false);
-
-
-                    }
-                    else if (distance > SNAP_THRESHOLD) {
-                        target.connectedRopes.remove(rope);
-                    }
-
-
+            if (distance <= SNAP_THRESHOLD) {
+                // If we're snapping to a new object, remove connection from the old one
+                if (currentEndConnection != null && currentEndConnection != target) {
+                    currentEndConnection.connectedRopes.remove(rope);
                 }
 
+                // Update rope position and connections
+                rope.getLine().setEndX(centerX);
+                rope.getLine().setEndY(centerY);
+                target.connectedRopes.put(rope, false);
+                rope.setEndConnection(target);
+            }
         }
-
-
-
-
+    }
 
     public static void snapPlaneEnds(Line plane1, Line plane2) {
         double startX1 = plane1.getStartX();

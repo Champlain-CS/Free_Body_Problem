@@ -1,11 +1,9 @@
 package com.example.free_body_problem;
 
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
 
 import java.util.List;
 
@@ -18,6 +16,9 @@ public class Rope extends Group {
     private List<PhysicsObject> physicsObjectList;
     private boolean isOnHandle = false;
 
+    // Add these new fields to track connections
+    private PhysicsObject startConnection;
+    private PhysicsObject endConnection;
 
     public Rope(double startX, double startY, double endX, double endY, Color color, Boolean startSnapped, Boolean endSnapped, List<PhysicsObject> physicsObjectList) {
         line = new Line(startX, startY, endX, endY);
@@ -35,10 +36,12 @@ public class Rope extends Group {
         group.setUserData(this);
         getChildren().add(line);
 
-
+        // Initialize connections as null
+        this.startConnection = null;
+        this.endConnection = null;
     }
 
-    //Gettter and setter for start and end snapped
+    //Getter and setter for start and end snapped
     public Boolean getStartSnapped() {
         return startSnapped;
     }
@@ -55,6 +58,24 @@ public class Rope extends Group {
         this.endSnapped = endSnapped;
     }
 
+    // Add getters and setters for the new connection fields
+    public PhysicsObject getStartConnection() {
+        return startConnection;
+    }
+
+    public void setStartConnection(PhysicsObject object) {
+        this.startConnection = object;
+        this.startSnapped = (object != null);
+    }
+
+    public PhysicsObject getEndConnection() {
+        return endConnection;
+    }
+
+    public void setEndConnection(PhysicsObject object) {
+        this.endConnection = object;
+        this.endSnapped = (object != null);
+    }
 
     public Line getLine() {
         return line;
@@ -80,10 +101,13 @@ public class Rope extends Group {
         });
 
         startHandle.setOnMouseDragged(event -> {
-            line.setStartX(event.getX());
-            line.setStartY(event.getY());
-            startHandle.setCenterX(event.getX());
-            startHandle.setCenterY(event.getY());
+            // Only update positions if not snapped
+            if (startConnection == null) {
+                line.setStartX(event.getX());
+                line.setStartY(event.getY());
+                startHandle.setCenterX(event.getX());
+                startHandle.setCenterY(event.getY());
+            }
 
             for (PhysicsObject physicsObject : physicsObjectList) {
                 Snapping.snapRopeStart(physicsObject, this);
@@ -99,10 +123,13 @@ public class Rope extends Group {
         });
 
         endHandle.setOnMouseDragged(event -> {
-            line.setEndX(event.getX());
-            line.setEndY(event.getY());
-            endHandle.setCenterX(event.getX());
-            endHandle.setCenterY(event.getY());
+            // Only update positions if not snapped
+            if (endConnection == null) {
+                line.setEndX(event.getX());
+                line.setEndY(event.getY());
+                endHandle.setCenterX(event.getX());
+                endHandle.setCenterY(event.getY());
+            }
 
             for (PhysicsObject physicsObject : physicsObjectList) {
                 Snapping.snapRopeEnd(physicsObject, this);
@@ -139,9 +166,17 @@ public class Rope extends Group {
 
         line.setOnMouseDragged(event -> {
             if (!isOnHandle) {
-                for (PhysicsObject physicsObject : physicsObjectList) {
-                    physicsObject.connectedRopes.remove(this);
+                // Modified to only disconnect if dragging the entire rope
+                if (startConnection != null) {
+                    startConnection.connectedRopes.remove(this);
+                    startConnection = null;
                 }
+                if (endConnection != null) {
+                    endConnection.connectedRopes.remove(this);
+                    endConnection = null;
+                }
+                startSnapped = false;
+                endSnapped = false;
 
                 double[] offset = (double[]) line.getUserData();
                 double offsetX = event.getSceneX() - offset[0];

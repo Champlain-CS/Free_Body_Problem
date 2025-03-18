@@ -7,18 +7,27 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 
+import java.util.List;
+
 public class Rope extends Group {
     private Line line;
     private Circle startHandle;
     private Circle endHandle;
     public Boolean startSnapped = false;
     public Boolean endSnapped = false;
+    private List<PhysicsObject> physicsObjectList;
+    private boolean isOnHandle = false;
 
-    public Rope(double startX, double startY, double endX, double endY, Color color, Boolean startSnapped, Boolean endSnapped) {
+
+    public Rope(double startX, double startY, double endX, double endY, Color color, Boolean startSnapped, Boolean endSnapped, List<PhysicsObject> physicsObjectList) {
         line = new Line(startX, startY, endX, endY);
         line.setStroke(color);
         line.setStrokeWidth(8);
         startHandle = createHandle(startX, startY);
+        this.physicsObjectList = physicsObjectList;
+
+        //DEBUG
+        startHandle.setFill(Color.GREEN);
         endHandle = createHandle(endX, endY);
 
         line.setUserData(this);
@@ -28,16 +37,20 @@ public class Rope extends Group {
 
 
     }
+
     //Gettter and setter for start and end snapped
     public Boolean getStartSnapped() {
         return startSnapped;
     }
+
     public void setStartSnapped(Boolean startSnapped) {
         this.startSnapped = startSnapped;
     }
+
     public Boolean getEndSnapped() {
         return endSnapped;
     }
+
     public void setEndSnapped(Boolean endSnapped) {
         this.endSnapped = endSnapped;
     }
@@ -62,18 +75,27 @@ public class Rope extends Group {
     }
 
     public void addLineResizeListener() {
+        startHandle.setOnMousePressed(event -> {
+            isOnHandle = true;
+        });
+
         startHandle.setOnMouseDragged(event -> {
             line.setStartX(event.getX());
             line.setStartY(event.getY());
             startHandle.setCenterX(event.getX());
             startHandle.setCenterY(event.getY());
 
-            for (Node node : line.getParent().getChildrenUnmodifiable()) {
-                Snapping.snapRopeStart(node, line);
-
-                // Update handle positions after snapping
+            for (PhysicsObject physicsObject : physicsObjectList) {
+                Snapping.snapRopeStart(physicsObject, this);
             }
+        });
 
+        startHandle.setOnMouseReleased(event -> {
+            isOnHandle = false;
+        });
+
+        endHandle.setOnMousePressed(event -> {
+            isOnHandle = true;
         });
 
         endHandle.setOnMouseDragged(event -> {
@@ -82,14 +104,16 @@ public class Rope extends Group {
             endHandle.setCenterX(event.getX());
             endHandle.setCenterY(event.getY());
 
-            for (Node node : line.getParent().getChildrenUnmodifiable()) {
-                Snapping.snapRopeEnd(node, line);
-
-                // Update handle positions after snapping
+            for (PhysicsObject physicsObject : physicsObjectList) {
+                Snapping.snapRopeEnd(physicsObject, this);
             }
-
         });
 
+        endHandle.setOnMouseReleased(event -> {
+            isOnHandle = false;
+        });
+
+        // Keep your property listeners
         line.startXProperty().addListener((obs, oldVal, newVal) -> {
             startHandle.setCenterX(newVal.doubleValue());
         });
@@ -109,25 +133,32 @@ public class Rope extends Group {
 
     public void addDragListener() {
         line.setOnMousePressed(event -> {
+            isOnHandle = false; // Make sure we know we're on the line, not a handle
             line.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
         });
 
         line.setOnMouseDragged(event -> {
-            double[] offset = (double[]) line.getUserData();
-            double offsetX = event.getSceneX() - offset[0];
-            double offsetY = event.getSceneY() - offset[1];
+            if (!isOnHandle) {
+                for (PhysicsObject physicsObject : physicsObjectList) {
+                    physicsObject.connectedRopes.remove(this);
+                }
 
-            line.setStartX(line.getStartX() + offsetX);
-            line.setStartY(line.getStartY() + offsetY);
-            line.setEndX(line.getEndX() + offsetX);
-            line.setEndY(line.getEndY() + offsetY);
+                double[] offset = (double[]) line.getUserData();
+                double offsetX = event.getSceneX() - offset[0];
+                double offsetY = event.getSceneY() - offset[1];
 
-            startHandle.setCenterX(line.getStartX());
-            startHandle.setCenterY(line.getStartY());
-            endHandle.setCenterX(line.getEndX());
-            endHandle.setCenterY(line.getEndY());
+                line.setStartX(line.getStartX() + offsetX);
+                line.setStartY(line.getStartY() + offsetY);
+                line.setEndX(line.getEndX() + offsetX);
+                line.setEndY(line.getEndY() + offsetY);
 
-            line.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+                startHandle.setCenterX(line.getStartX());
+                startHandle.setCenterY(line.getStartY());
+                endHandle.setCenterX(line.getEndX());
+                endHandle.setCenterY(line.getEndY());
+
+                line.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+            }
         });
     }
 }

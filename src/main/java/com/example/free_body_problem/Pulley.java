@@ -7,7 +7,7 @@ import javafx.scene.shape.Circle;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Pulley extends Node {
+public class Pulley extends PhysicsObject {
     public Group circleGroup;
     // List to store multiple connected ropes
     public List<Rope> connectedRopes;
@@ -25,14 +25,18 @@ public class Pulley extends Node {
         circleGroup = new Group(outerCircle, innerCircle);
 
         // Initialize the lists
-        connectedRopes = new ArrayList<>();
-        ropeStartSnapped = new ArrayList<>();
-        ropeEndSnapped = new ArrayList<>();
+
 
         // Set userData for all components
         innerCircle.setUserData(this);
         outerCircle.setUserData(this);
         circleGroup.setUserData(this);
+    }
+    public double getCenterX(){
+        return circleGroup.getBoundsInParent().getCenterX();
+    }
+    public double getCenterY(){
+        return circleGroup.getBoundsInParent().getCenterY();
     }
 
     public Group getCircleGroup() {
@@ -83,21 +87,7 @@ public class Pulley extends Node {
             double centerX = firstCircle.getCenterX();
             double centerY = firstCircle.getCenterY();
 
-            // Update all connected ropes
-            for (int i = 0; i < connectedRopes.size(); i++) {
-                Rope rope = connectedRopes.get(i);
-
-                // Update start or end point of the rope depending on which is snapped
-                if (ropeStartSnapped.get(i)) {
-                    rope.getLine().setStartX(centerX);
-                    rope.getLine().setStartY(centerY);
-                }
-
-                if (ropeEndSnapped.get(i)) {
-                    rope.getLine().setEndX(centerX);
-                    rope.getLine().setEndY(centerY);
-                }
-            }
+            updateConnectedRopes();
 
             circleGroup.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
         });

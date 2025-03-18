@@ -91,14 +91,72 @@ public class Snapping {
         return new double[] {closestX, closestY};
     }
 
-    public static void snapRopeStart(Node target, Line rope) {
-        double px = rope.getStartX();
-        double py = rope.getStartY();
-        boolean snapped = false;
+    public static void snapRopeStart(PhysicsObject target, Rope rope) {
+        double px = rope.getLine().getStartX();
+        double py = rope.getLine().getStartY();
 
-        if (target instanceof Rectangle) {
+        if (target instanceof Box) {
             // Handle Rectangle nodes
-            Rectangle rect = (Rectangle) target;
+
+            double centerX = target.getCenterX();
+            double centerY = target.getCenterY();
+            Box box = (Box) target;
+            Rectangle rect = box.getRectangle();
+            // Calculate distance to rectangle bounds
+            double minX = rect.getX();
+            double minY = rect.getY();
+            double maxX = minX + rect.getWidth();
+            double maxY = minY + rect.getHeight();
+
+            double dx = Math.max(minX - px, Math.max(0, px - maxX));
+            double dy = Math.max(minY - py, Math.max(0, py - maxY));
+            double distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= SNAP_THRESHOLD) {
+                rope.getLine().setStartX(centerX);
+                rope.getLine().setStartY(centerY);
+                target.connectedRopes.put(rope, true);
+
+            }
+            else if (distance > SNAP_THRESHOLD) {
+                target.connectedRopes.remove(rope);
+                System.out.println("aOUTTTTTTTTT START");
+            }
+        } else if (target instanceof Pulley) {
+            // Handle Group nodes (Pulley)
+            Pulley pulley = (Pulley) target;
+
+            // Find first Circle in the group to get center coordinates
+                    double centerX = pulley.getCenterX();
+                    double centerY = pulley.getCenterY();
+
+                    // Calculate direct distance to center
+                    double dx = px - centerX;
+                    double dy = py - centerY;
+                    double distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance <= SNAP_THRESHOLD) {
+                        rope.getLine().setStartX(centerX);
+                        rope.getLine().setStartY(centerY);
+                        target.connectedRopes.put(rope, true);
+                    }
+                    else if (distance > SNAP_THRESHOLD) {
+                        target.connectedRopes.remove(rope);
+                    }
+        }
+
+        // Update the Rope object's snapped status if snapping occurred
+
+    }
+
+    public static void snapRopeEnd(PhysicsObject target, Rope rope) {
+        double px = rope.getLine().getEndX();
+        double py = rope.getLine().getEndY();
+
+        if (target instanceof Box) {
+            // Handle Rectangle nodes
+            Box box = (Box) target;
+            Rectangle rect = box.getRectangle();
             double centerX = rect.getX() + rect.getWidth() / 2;
             double centerY = rect.getY() + rect.getHeight() / 2;
 
@@ -113,22 +171,21 @@ public class Snapping {
             double distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance <= SNAP_THRESHOLD) {
-                rope.setStartX(centerX);
-                rope.setStartY(centerY);
-                updateBoxSnappedStatus(rect, rope, true, false);
+                rope.getLine().setEndX(centerX);
+                rope.getLine().setEndY(centerY);
+                target.connectedRopes.put(rope, false);
 
-                snapped = true;
+            } else if (distance > SNAP_THRESHOLD) {
+                target.connectedRopes.remove(rope);
+                System.out.println("OUTTTTTTTT END");
+
             }
-        } else if (target instanceof Group) {
+        } else if (target instanceof Pulley) {
             // Handle Group nodes (Pulley)
-            Group group = (Group) target;
-
+            Pulley pulley = (Pulley) target;
             // Find first Circle in the group to get center coordinates
-            for (Node node : group.getChildren()) {
-                if (node instanceof Circle) {
-                    Circle circle = (Circle) node;
-                    double centerX = circle.getCenterX();
-                    double centerY = circle.getCenterY();
+                    double centerX = pulley.getCenterX();
+                    double centerY = pulley.getCenterY();
 
                     // Calculate direct distance to center
                     double dx = px - centerX;
@@ -136,162 +193,24 @@ public class Snapping {
                     double distance = Math.sqrt(dx * dx + dy * dy);
 
                     if (distance <= SNAP_THRESHOLD) {
-                        rope.setStartX(centerX);
-                        rope.setStartY(centerY);
-                        snapped = true;
-                        updatePulleySnappedStatus(circle, rope, true, false);
+                        rope.getLine().setEndX(centerX);
+                        rope.getLine().setEndY(centerY);
+                        target.connectedRopes.put(rope, false);
+
+
+                    }
+                    else if (distance > SNAP_THRESHOLD) {
+                        target.connectedRopes.remove(rope);
                     }
 
-                    break; // Only need to check the first circle in the group
+
                 }
-            }
+
         }
 
-        // Update the Rope object's snapped status if snapping occurred
-        if (snapped) {
-            updateRopeSnappedStatus(rope, true, false);
-        }
-    }
 
-    public static void snapRopeEnd(Node target, Line rope) {
-        double px = rope.getEndX();
-        double py = rope.getEndY();
-        boolean snapped = false;
 
-        if (target instanceof Rectangle) {
-            // Handle Rectangle nodes
-            Rectangle rect = (Rectangle) target;
-            double centerX = rect.getX() + rect.getWidth() / 2;
-            double centerY = rect.getY() + rect.getHeight() / 2;
 
-            // Calculate distance to rectangle bounds
-            double minX = rect.getX();
-            double minY = rect.getY();
-            double maxX = minX + rect.getWidth();
-            double maxY = minY + rect.getHeight();
-
-            double dx = Math.max(minX - px, Math.max(0, px - maxX));
-            double dy = Math.max(minY - py, Math.max(0, py - maxY));
-            double distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance <= SNAP_THRESHOLD) {
-                rope.setEndX(centerX);
-                rope.setEndY(centerY);
-                updateBoxSnappedStatus(rect, rope, false, true);
-
-                snapped = true;
-            }
-        } else if (target instanceof Group) {
-            // Handle Group nodes (Pulley)
-            Group group = (Group) target;
-
-            // Find first Circle in the group to get center coordinates
-            for (Node node : group.getChildren()) {
-                if (node instanceof Circle) {
-                    Circle circle = (Circle) node;
-                    double centerX = circle.getCenterX();
-                    double centerY = circle.getCenterY();
-
-                    // Calculate direct distance to center
-                    double dx = px - centerX;
-                    double dy = py - centerY;
-                    double distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance <= SNAP_THRESHOLD) {
-                        rope.setEndX(centerX);
-                        rope.setEndY(centerY);
-                        snapped = true;
-                        updatePulleySnappedStatus(circle, rope, false, true);
-                    }
-
-                    break; // Only need to check the first circle in the group
-                }
-            }
-        }
-
-        // Update the Rope object's snapped status if snapping occurred
-        if (snapped) {
-            updateRopeSnappedStatus(rope, false, true);
-        }
-    }
-
-    // Helper method to find and update the Rope object
-    private static void updateRopeSnappedStatus(Line line, boolean startSnapped, boolean endSnapped) {
-        // Check different ways to find the associated Rope object
-
-        // Option 1: Check if the line itself has the Rope object as userData
-        if (line.getUserData() instanceof Rope) {
-            Rope rope = (Rope) line.getUserData();
-            if (startSnapped) rope.setStartSnapped(true);
-            if (endSnapped) rope.setEndSnapped(true);
-        }
-    }
-
-    //Same method but for Box object through rectangle and will set end or start snapped and also associate the rope object to the box
-    private static void updateBoxSnappedStatus(Rectangle rectangle, Line line, boolean startSnapped, boolean endSnapped) {
-        if (line.getUserData() instanceof Rope && rectangle.getUserData() instanceof Box) {
-            Box box = (Box) rectangle.getUserData();
-            Rope rope = (Rope) line.getUserData();
-
-            // Check if the rope is already connected to the box
-            int existingIndex = box.connectedRopes.indexOf(rope);
-
-            if (existingIndex != -1) {
-                // Update existing connection
-                if (startSnapped) {
-                    box.ropeStartSnapped.set(existingIndex, true);
-                    box.ropeEndSnapped.set(existingIndex, false);
-                }
-                if (endSnapped) {
-                    box.ropeStartSnapped.set(existingIndex, false);
-                    box.ropeEndSnapped.set(existingIndex, true);
-                }
-            } else {
-                // Add new rope connection
-                box.connectedRopes.add(rope);
-                if (startSnapped) {
-                    box.ropeStartSnapped.add(true);
-                    box.ropeEndSnapped.add(false);
-                } else {
-                    box.ropeStartSnapped.add(false);
-                    box.ropeEndSnapped.add(true);
-                }
-            }
-        }
-    }
-
-    // Updated to handle multiple ropes in a Pulley
-    private static void updatePulleySnappedStatus(Node circle, Line line, boolean startSnapped, boolean endSnapped) {
-        if (line.getUserData() instanceof Rope && circle.getUserData() instanceof Pulley) {
-            Pulley pulley = (Pulley) circle.getUserData();
-            Rope rope = (Rope) line.getUserData();
-
-            // Check if rope is already connected to this pulley
-            int existingIndex = pulley.connectedRopes.indexOf(rope);
-
-            if (existingIndex != -1) {
-                // Update existing connection
-                if (startSnapped) {
-                    pulley.ropeStartSnapped.set(existingIndex, true);
-                    pulley.ropeEndSnapped.set(existingIndex, false);
-                }
-                if (endSnapped) {
-                    pulley.ropeStartSnapped.set(existingIndex, false);
-                    pulley.ropeEndSnapped.set(existingIndex, true);
-                }
-            } else {
-                // Add new rope connection
-                pulley.connectedRopes.add(rope);
-                if (startSnapped) {
-                    pulley.ropeStartSnapped.add(true);
-                    pulley.ropeEndSnapped.add(false);
-                } else {
-                    pulley.ropeStartSnapped.add(false);
-                    pulley.ropeEndSnapped.add(true);
-                }
-            }
-        }
-    }
 
     public static void snapPlaneEnds(Line plane1, Line plane2) {
         double startX1 = plane1.getStartX();

@@ -31,11 +31,12 @@ import java.util.Scanner;
 
 public class Sandbox extends Application {
     private List<Plane> planes = new ArrayList<>();
-    public ArrayList<Box> boxList = new ArrayList<Box>();
+    public ArrayList<PhysicsObject> physicsObjectList = new ArrayList<PhysicsObject>();
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
     private boolean dragging = false; // Flag to indicate if a shape is being dragged
     private HBox helpBox;
     private boolean isDisplayingVectors = false;
+
 
     static TextField gravityField;
     public static Pane sandBoxPane;
@@ -145,7 +146,7 @@ public class Sandbox extends Application {
 
         // Add mouse event handlers for ropeButton
         ropeButton.setOnMouseClicked(event -> {
-            Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN, false, false);
+            Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN, false, false, physicsObjectList);
             sandBoxPane.getChildren().add(newRope.getLine());
             newRope.addLineResizeListener();
             newRope.addDragListener();
@@ -235,7 +236,7 @@ public class Sandbox extends Application {
         resetBT.setOnMouseClicked(event -> {
             sandBoxPane.getChildren().clear();
             gravityField.setText("9.8");
-            boxList.clear();
+            physicsObjectList.clear();
             planes.clear();
             isDisplayingVectors = false;
 
@@ -298,8 +299,12 @@ public class Sandbox extends Application {
 
             } else { //Add vectors
                 isDisplayingVectors = true;
-                for (Box box : boxList) {
-                    updateVectors(box);
+                for (PhysicsObject physObj : physicsObjectList) {
+                    if (physObj instanceof Box) {
+                        // Cast the physObj to Box to access Box-specific methods
+                        Box box = (Box) physObj;
+                        updateVectors(box);
+                    }
                 }
                 LockPane locker = new LockPane(sandBoxPane.getWidth(), sandBoxRoot.getHeight());
                 locker.setTranslateX(editorPane.getWidth());
@@ -360,7 +365,7 @@ public class Sandbox extends Application {
                         double rectWidth = 150;
                         double rectHeight = 100;
                         Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE, sandBoxPane);
-                        boxList.add(newBox);
+                        physicsObjectList.add(newBox);
                         sandBoxPane.getChildren().add(newBox.getRectangle());
                         newBox.addDragListener();
                         sandBoxPane.getChildren().add(newBox.getResizeHandle());
@@ -369,6 +374,7 @@ public class Sandbox extends Application {
                         Pulley newPulley = new Pulley(event.getX(), event.getY(), 25, 10, Color.GRAY, Color.BLACK);
                         sandBoxPane.getChildren().add(newPulley.getCircleGroup());
                         newPulley.addDragListener();
+                        physicsObjectList.add(newPulley);
                         break;
                     case "line":
                         double lineLength = 100;
@@ -376,7 +382,7 @@ public class Sandbox extends Application {
                         break;
                     case "rope":
                         double ropeLength = 100;
-                        Rope newRope = new Rope(event.getX() - ropeLength / 2, event.getY(), event.getX() + ropeLength / 2, event.getY(), Color.BROWN, false, false);
+                        Rope newRope = new Rope(event.getX() - ropeLength / 2, event.getY(), event.getX() + ropeLength / 2, event.getY(), Color.BROWN, false, false, physicsObjectList);
                         sandBoxPane.getChildren().add(newRope.getLine());
                         newRope.addLineResizeListener();
                         newRope.addDragListener();

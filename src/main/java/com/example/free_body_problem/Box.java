@@ -37,6 +37,7 @@ public class Box extends PhysicsObject{
     protected VectorDisplay netVector;
 
     protected double totalXForce, totalYForce;
+    protected double angle; //used for vector calculations
 
 
     public Box(double x, double y, double width, double height, Color color, Pane parentContainer) {
@@ -236,4 +237,11 @@ public class Box extends PhysicsObject{
 
     }
 
+    public double getAngle() {
+        return angle;
+    }
+
+    public void setAngle(double angle) {
+        this.angle = angle;
+    }
 }

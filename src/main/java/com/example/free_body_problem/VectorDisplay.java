@@ -20,17 +20,20 @@ public class VectorDisplay extends Pane {
     private double endX, endY;
     private Color color;
     private double angle;
-    private final double MAX_LENGTH = 5;
+    private final double MAX_LENGTH = 100;
 
 
-    public VectorDisplay(double startX, double startY, double length, double angle, String name, double magnitude, Color color) {
+    public VectorDisplay(double startX, double startY, double length, double angle, String name, Color color) {
         this.length = length;
+        if(length>MAX_LENGTH)
+            this.length = MAX_LENGTH;
+
         this.color = color;
         this.angle = angle;
 
 
         // Line for arrow shaft
-        line = new Line(startX, startY, startX + length, startY);
+        line = new Line(startX, startY, startX + this.length, startY);
         line.setStroke(color);
         line.setStrokeWidth(5);
 
@@ -49,7 +52,7 @@ public class VectorDisplay extends Pane {
         forceName.setFont(new Font(16));
 
         //Force Magnitude (Text)
-        forceMagnitude = new Text(magnitude + " N");
+        forceMagnitude = new Text(length + " N");
         forceMagnitude.setFill(color);
         forceMagnitude.setFont(new Font(12));
 
@@ -88,6 +91,9 @@ public class VectorDisplay extends Pane {
 
     public void setLength(double newLength) {
         length = newLength;
+        if(newLength > MAX_LENGTH)
+            length = MAX_LENGTH;
+
         line.setEndX(line.getStartX() + newLength);
         updateVector();
     }

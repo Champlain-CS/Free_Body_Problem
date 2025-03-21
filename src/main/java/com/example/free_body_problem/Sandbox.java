@@ -527,8 +527,9 @@ public class Sandbox extends Application {
     }
 
     public void updateVectors(Box box) {
-        System.out.println("Gravity Vector updated for " + box);
         VectorMath.calculateGravityVector(box);
 
+        if(box.snappedToPlane)
+            VectorMath.calculateNormalVector(box);
     }
 }

@@ -366,9 +366,7 @@ public class Sandbox extends Application {
                         double rectHeight = 100;
                         Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE, sandBoxPane);
                         physicsObjectList.add(newBox);
-                        sandBoxPane.getChildren().add(newBox.getRectangle());
                         newBox.addDragListener();
-                        sandBoxPane.getChildren().add(newBox.getResizeHandle());
                         break;
                     case "circle":
                         Pulley newPulley = new Pulley(event.getX(), event.getY(), 25, 10, Color.GRAY, Color.BLACK);

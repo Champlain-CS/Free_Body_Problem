@@ -1,0 +1,28 @@
+.textField {
+    -fx-background-color: none;
+    -fx-text-alignment: right;
+    -fx-text-origin: right;
+    -fx-pref-width: 50px;
+}
+
+.label {
+    -fx-font-weight: bold;
+    -fx-font-size: 12;
+    -fx-min-height: 10;
+
+    -fx-translate-y: 4;
+    -fx-translate-x: 5;
+}
+
+.massField {
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #abe2ff);
+    -fx-background-radius: 5;
+    -fx-border-color: darkgray;
+    -fx-border-radius: 5px;
+
+    -fx-min-width: 80px;
+    /*-fx-pref-height: 30px;*/
+
+    /*-fx-alignment: right;*/
+    /*-fx-column-halignment: right;*/
+}

@@ -3,8 +3,10 @@ package com.example.free_body_problem;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -20,6 +22,7 @@ public class Box extends PhysicsObject{
     private Circle resizeHandle;
     private Circle rotateHandle;
     private TextField textField;
+    private HBox massField;
     private Pane parentContainer;
 
 
@@ -28,10 +31,17 @@ public class Box extends PhysicsObject{
 
 
     protected VectorDisplay gravityVector;
+    protected VectorDisplay normalVector;
+    protected VectorDisplay frictionVector;
+    protected VectorDisplay tensionVector; //May need multiple, or we do max 1 rope per box
+    protected VectorDisplay netVector;
+
+    protected double totalXForce, totalYForce;
 
 
     public Box(double x, double y, double width, double height, Color color, Pane parentContainer) {
         this.parentContainer = parentContainer;
+        parentContainer.getStylesheets().add("BoxStyleSheet.css");
 
         rectangle = new Rectangle(x, y, width, height);
         rectangle.setUserData(this);
@@ -50,11 +60,23 @@ public class Box extends PhysicsObject{
         textField = new TextField();
         textField.setText("5");
         textField.setAlignment(Pos.CENTER);
-        textField.setPrefWidth(50); // Set preferred width
-        textField.setLayoutX(x + width / 2 - textField.getPrefWidth() / 2);
-        textField.setLayoutY(y + height / 2 - textField.getPrefHeight() / 2);
+        textField.getStyleClass().add("textField");
 
-        parentContainer.getChildren().addAll(rectangle, textField, resizeHandle);
+
+        Label kgLabel = new Label("kg");
+        kgLabel.getStyleClass().add("label");
+
+        massField = new HBox();
+        //Shifting by hard values because hbox doesn't get created with a width
+        massField.setLayoutX(this.getCenterX() - 40);
+        massField.setLayoutY(this.getCenterY() - 14);
+        massField.getChildren().addAll(textField, kgLabel);
+        massField.getStyleClass().add("massField");
+
+
+
+        parentContainer.getChildren().addAll(rectangle, massField, resizeHandle);
+
 
 
         addDragListener();
@@ -169,8 +191,12 @@ public class Box extends PhysicsObject{
                 rotateHandle.setCenterY(event.getY() - rectangle.getHeight() / 2);
             }
 
-            textField.setLayoutX(rectangle.getX() + rectangle.getWidth() / 2 - textField.getPrefWidth() / 2);
-            textField.setLayoutY(rectangle.getY() + rectangle.getHeight() / 2 - textField.getPrefHeight() / 2 - 0.08 * rectangle.getHeight());
+
+            massField.setLayoutX(this.getCenterX() - massField.getWidth() / 2);
+            massField.setLayoutY(this.getCenterY() - massField.getHeight() / 2);
+
+
+
         });
     }
     private void updateHandlePositions() {
@@ -204,8 +230,8 @@ public class Box extends PhysicsObject{
         rotateHandle.setCenterY(rotatedTopCornerY);
 
         // Update the text field's position to stay centered
-        textField.setLayoutX(centerX - textField.getPrefWidth() / 2);
-        textField.setLayoutY(centerY - textField.getPrefHeight() / 2);
+        massField.setLayoutX(this.getCenterX() - massField.getWidth() / 2);
+        massField.setLayoutY(this.getCenterY() - massField.getHeight() / 2);
 
 
     }

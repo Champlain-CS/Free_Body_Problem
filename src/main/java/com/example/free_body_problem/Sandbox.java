@@ -1,6 +1,5 @@
 package com.example.free_body_problem;
 
-import com.example.free_body_problem.old_Files.SoundPlayer;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -24,10 +23,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.File;
-import javax.sound.sampled.*;
 
 import java.util.*;
 

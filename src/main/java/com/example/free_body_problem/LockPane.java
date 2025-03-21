@@ -20,6 +20,4 @@ public class LockPane extends Pane {
 
         getChildren().addAll(rectangle, padlock);
     }
-
-
 }

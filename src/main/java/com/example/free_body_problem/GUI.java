@@ -1,3 +1,4 @@
+// src/main/java/com/example/free_body_problem/GUI.java
 package com.example.free_body_problem;
 
 import javafx.application.Application;
@@ -16,7 +17,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import com.example.free_body_problem.old_Files.SoundPlayer;
 
 public class GUI extends Application {
     VBox mainMenuRoot = new VBox();
@@ -112,8 +112,11 @@ public class GUI extends Application {
 
         Label effectsVolumeLabel = new Label("Effect Volume");
         effectsVolumeLabel.getStyleClass().add("textStyle");
-        Slider effectsVolumeSlider = new Slider();
+        Slider effectsVolumeSlider = new Slider(0, 1, 1); // Slider range from 0 to 1, default value 1
         effectsVolumeSlider.getStyleClass().add("slider");
+        effectsVolumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            SoundPlayer.setVolume(newValue.doubleValue()); // Update volume
+        });
         HBox effectsVolumeBox = new HBox();
         effectsVolumeBox.setSpacing(30);
         effectsVolumeBox.setAlignment(Pos.CENTER);

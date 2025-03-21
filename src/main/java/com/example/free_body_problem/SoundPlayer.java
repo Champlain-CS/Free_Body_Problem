@@ -1,12 +1,12 @@
-package com.example.free_body_problem.old_Files;
+// src/main/java/com/example/free_body_problem/old_Files/SoundPlayer.java
+package com.example.free_body_problem;
 
-import javafx.application.Platform;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import java.io.File;
 
 public class SoundPlayer {
-    private static boolean isPlatformStarted = false;
+    private static double volume = 1.0; // Default volume
 
     public void playSound(String soundFilePath) {
         try {
@@ -17,6 +17,7 @@ public class SoundPlayer {
             }
             Media sound = new Media(soundFile.toURI().toString());
             MediaPlayer mediaPlayer = new MediaPlayer(sound);
+            mediaPlayer.setVolume(volume); // Set the volume
             mediaPlayer.setOnError(() -> System.err.println("Error playing sound: " + mediaPlayer.getError().getMessage()));
             mediaPlayer.play();
             System.out.println("Playing sound: " + soundFilePath);
@@ -25,18 +26,7 @@ public class SoundPlayer {
         }
     }
 
-    public static void main(String[] args) {
-        if (!isPlatformStarted) {
-            Platform.startup(() -> {
-                isPlatformStarted = true;
-                SoundPlayer soundPlayer = new SoundPlayer();
-                soundPlayer.playSound("target/classes/sounds/Place.wav");
-            });
-        } else {
-            Platform.runLater(() -> {
-                SoundPlayer soundPlayer = new SoundPlayer();
-                soundPlayer.playSound("target/classes/sounds/Place.wav");
-            });
-        }
+    public static void setVolume(double newVolume) {
+        volume = newVolume;
     }
 }

@@ -376,7 +376,7 @@ public class Sandbox extends Application {
                     case "rectangle":
                         double rectWidth = 150;
                         double rectHeight = 100;
-                        Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE, sandBoxPane);
+                        Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE, sandBoxPane, planes);
                         physicsObjectList.add(newBox);
                         newBox.addDragListener();
                         soundPlayer.playSound("src/main/resources/sounds/Place.wav");
@@ -529,7 +529,7 @@ public class Sandbox extends Application {
     public void updateVectors(Box box) {
         VectorMath.calculateGravityVector(box);
 
-        if(box.snappedToPlane)
+        if(box.isSnapped)
             VectorMath.calculateNormalVector(box);
     }
 }

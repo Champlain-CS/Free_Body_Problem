@@ -28,22 +28,24 @@ public class Box extends PhysicsObject{
 
     public boolean snappedToPlane = false;
     public Plane snappedPlane;
-
+    boolean isSnapped = false;
 
     protected VectorDisplay gravityVector;
     protected VectorDisplay normalVector;
     protected VectorDisplay frictionVector;
     protected VectorDisplay tensionVector; //May need multiple, or we do max 1 rope per box
     protected VectorDisplay netVector;
+    public List<Plane> planeList;
 
     protected double totalXForce, totalYForce;
     protected double angle; //used for vector calculations
 
 
-    public Box(double x, double y, double width, double height, Color color, Pane parentContainer) {
+    public Box(double x, double y, double width, double height, Color color, Pane parentContainer, List<Plane> planeList) {
         this.parentContainer = parentContainer;
         parentContainer.getStylesheets().add("BoxStyleSheet.css");
 
+        this.planeList = planeList;
         rectangle = new Rectangle(x, y, width, height);
         rectangle.setUserData(this);
         Group group = new Group(rectangle);
@@ -155,21 +157,14 @@ public class Box extends PhysicsObject{
 
             updateHandlePositions();
 
-            rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
-
             // Update all connected ropes
             updateConnectedRopes();
 
-            // Check for snapping to planes
-            for (Node node : rectangle.getParent().getChildrenUnmodifiable()) {
-                if (node instanceof Line) {
-                    Line plane = (Line) node;
-                    Snapping.snapBoxToPlane(rectangle, plane);
-                    // Update handle positions after snapping
-                    updateHandlePositions();
+            // Check for snapping to planes using the physicsObjectList
+            Snapping.snapBoxToPlane(this, planeList);
 
-                }
-            }
+            // Update handle positions after snapping
+            updateHandlePositions();
         });
     }
     private static final double MIN_WIDTH = 50;

@@ -1,5 +1,6 @@
 package com.example.free_body_problem;
 
+import com.example.free_body_problem.old_Files.SoundPlayer;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -23,11 +24,12 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Scanner;
+import java.io.File;
+import javax.sound.sampled.*;
+
+import java.util.*;
 
 public class Sandbox extends Application {
     private List<Plane> planes = new ArrayList<>();
@@ -37,11 +39,11 @@ public class Sandbox extends Application {
     private HBox helpBox;
     private boolean isDisplayingVectors = false;
 
-
     static TextField gravityField;
     public static Pane sandBoxPane;
 
-
+    // Instantiate SoundPlayer
+    private SoundPlayer soundPlayer = new SoundPlayer();
 
     @Override
     public void start(Stage primaryStage) {
@@ -50,7 +52,6 @@ public class Sandbox extends Application {
         // Root pane
         BorderPane sandBoxRoot = new BorderPane();
         sandBoxRoot.setStyle("-fx-border-color: darkgray");
-
 
         // Pane for draggable shapes
         sandBoxPane = new Pane();
@@ -64,8 +65,6 @@ public class Sandbox extends Application {
         infoDisplayView.setPickOnBounds(true);
         sandBoxRoot.setRight(infoDisplayView);
 
-
-
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
         bottomBar.getStyleClass().add("bottom-bar");
@@ -75,7 +74,13 @@ public class Sandbox extends Application {
         // Back to Menu Button
         Button menuBT = new Button("MENU");
         menuBT.getStyleClass().add("menu-button"); // Apply CSS class
+        // Instantiate SoundPlayer for menu button
+        SoundPlayer menuSoundPlayer = new SoundPlayer();
+
         menuBT.setOnMouseClicked(e -> {
+            // Play menu button sound
+            menuSoundPlayer.playSound("target/classes/sounds/Menu.wav");
+
             GUI app = new GUI();
             app.start(new Stage());
             primaryStage.close();
@@ -84,7 +89,6 @@ public class Sandbox extends Application {
         // Add RESET button
         Button resetBT = new Button("RESET");
         resetBT.getStyleClass().add("menu-button"); // Apply CSS class
-
 
         // Create buttons for each shape
         Rectangle rectangleButton = createButtonRectangle(50, 50, Color.WHITE);
@@ -179,8 +183,6 @@ public class Sandbox extends Application {
         // Add elements to the bottom bar
         bottomBar.getChildren().addAll(leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT);
 
-
-
         // Pane for world settings
         VBox editorPane = new VBox();
         editorPane.getStyleClass().add("editor-pane");
@@ -233,6 +235,9 @@ public class Sandbox extends Application {
         editorPane.getChildren().addAll(editorLabel, gravityBox, coefficientBox, vectorDisplayBox);
         editorPane.toFront();
 
+        // Instantiate SoundPlayer for reset button
+        SoundPlayer resetSoundPlayer = new SoundPlayer();
+
         resetBT.setOnMouseClicked(event -> {
             sandBoxPane.getChildren().clear();
             gravityField.setText("9.8");
@@ -240,7 +245,7 @@ public class Sandbox extends Application {
             planes.clear();
             isDisplayingVectors = false;
 
-            //Removing the lock
+            // Removing the lock
             Iterator<Node> rootIterator = sandBoxRoot.getChildren().iterator();
             while (rootIterator.hasNext()) {
                 Node node = rootIterator.next();
@@ -251,9 +256,10 @@ public class Sandbox extends Application {
             sandBoxRoot.setStyle("-fx-background-color: white");
             vectorDisplayView.setImage(
                     new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+
+            // Play reset sound
+            resetSoundPlayer.playSound("target/classes/sounds/Reset.wav");
         });
-
-
 
         // Set up the stage
         Scene scene = new Scene(sandBoxRoot, 600, 400);
@@ -261,6 +267,9 @@ public class Sandbox extends Application {
         primaryStage.setTitle("Sandbox");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        // Instantiate SoundPlayer for info display
+        SoundPlayer infoSoundPlayer = new SoundPlayer();
 
         infoDisplayView.setOnMouseClicked(event -> {
             if (helpBox == null) {
@@ -270,11 +279,16 @@ public class Sandbox extends Application {
                 sandBoxPane.getChildren().remove(helpBox); // Remove it from the pane
                 helpBox = null; // Reset the helpBox variable to null
             }
+
+            // Play info display sound
+            infoSoundPlayer.playSound("target/classes/sounds/Info.wav");
         });
 
+// Instantiate SoundPlayer for vector button
+        SoundPlayer vectorSoundPlayer = new SoundPlayer();
 
         vectorDisplayView.setOnMouseClicked(event -> {
-            if (isDisplayingVectors) { //Remove vectors
+            if (isDisplayingVectors) { // Remove vectors
                 isDisplayingVectors = false;
 
                 Iterator<Node> paneIterator = sandBoxPane.getChildren().iterator();
@@ -297,7 +311,7 @@ public class Sandbox extends Application {
 
                 System.out.println("unlocked");
 
-            } else { //Add vectors
+            } else { // Add vectors
                 isDisplayingVectors = true;
                 for (PhysicsObject physObj : physicsObjectList) {
                     if (physObj instanceof Box) {
@@ -313,8 +327,10 @@ public class Sandbox extends Application {
                 vectorDisplayView.setImage(
                         new Image(getClass().getResourceAsStream("/images/vectorDisplayCrossed.png")));
                 System.out.println("Locked");
-
             }
+
+            // Play vector button sound
+            vectorSoundPlayer.playSound("target/classes/sounds/Vectors.wav");
         });
 
         // Add event handler to remove the large rectangle when Escape is pressed
@@ -367,16 +383,19 @@ public class Sandbox extends Application {
                         Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE, sandBoxPane);
                         physicsObjectList.add(newBox);
                         newBox.addDragListener();
+                        soundPlayer.playSound("target/classes/sounds/Place.wav");
                         break;
                     case "circle":
                         Pulley newPulley = new Pulley(event.getX(), event.getY(), 25, 10, Color.GRAY, Color.BLACK);
                         sandBoxPane.getChildren().add(newPulley.getCircleGroup());
                         newPulley.addDragListener();
                         physicsObjectList.add(newPulley);
+                        soundPlayer.playSound("target/classes/sounds/Place.wav");
                         break;
                     case "line":
                         double lineLength = 100;
                         createPlane(event.getX() - lineLength / 2, event.getY(), event.getX() + lineLength / 2, event.getY(), Color.BLACK);
+                        soundPlayer.playSound("target/classes/sounds/Place.wav");
                         break;
                     case "rope":
                         double ropeLength = 100;
@@ -385,6 +404,7 @@ public class Sandbox extends Application {
                         newRope.addLineResizeListener();
                         newRope.addDragListener();
                         sandBoxPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());
+                        soundPlayer.playSound("target/classes/sounds/Place.wav");
                         break;
                 }
                 success = true;
@@ -464,6 +484,7 @@ public class Sandbox extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
 
     public static HBox createHelpDialogue() {
         HBox helpBox = new HBox();

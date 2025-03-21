@@ -16,14 +16,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import java.io.File;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
+import com.example.free_body_problem.old_Files.SoundPlayer;
 
 public class GUI extends Application {
     VBox mainMenuRoot = new VBox();
     StackPane optionsRoot = new StackPane();
     StackPane creditsRoot = new StackPane();
+
+    // Instantiate SoundPlayer
+    private SoundPlayer soundPlayer = new SoundPlayer();
 
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Free Body Problem");
@@ -52,11 +53,8 @@ public class GUI extends Application {
         Button startBT = new Button("START");
         startBT.getStyleClass().add("buttonStyle");
         startBT.setOnMouseEntered(e -> startBT.getStyleClass().add("buttonHover"));
-        String uriString = new File("src/main/resources/sounds/Start.mp3").toURI().toString();
-        MediaPlayer player = new MediaPlayer( new Media(uriString));
-        player.play();
         startBT.setOnMouseClicked(e -> {
-
+            soundPlayer.playSound("target/classes/sounds/start.wav");
             Sandbox app = new Sandbox();
             app.start(new Stage());
             primaryStage.close();
@@ -65,12 +63,16 @@ public class GUI extends Application {
         Button optionsBT = new Button("OPTIONS");
         optionsBT.getStyleClass().add("buttonStyle");
         optionsBT.setOnMouseEntered(e -> optionsBT.getStyleClass().add("buttonHover"));
-        optionsBT.setOnMouseClicked(e -> primaryStage.getScene().setRoot(optionsRoot));
+        optionsBT.setOnMouseClicked(e -> {
+            soundPlayer.playSound("target/classes/sounds/Menu Buttons.wav");
+            primaryStage.getScene().setRoot(optionsRoot);
+        });
 
         Button creditsBT = new Button("CREDITS");
         creditsBT.getStyleClass().add("buttonStyle");
         creditsBT.setOnMouseEntered(e -> creditsBT.getStyleClass().add("buttonHover"));
         creditsBT.setOnMouseClicked(e -> {
+            soundPlayer.playSound("target/classes/sounds/Menu Buttons.wav");
             primaryStage.getScene().setRoot(creditsRoot);
             creditsRoot.requestFocus();
         });

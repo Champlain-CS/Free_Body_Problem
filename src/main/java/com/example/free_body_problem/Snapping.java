@@ -114,6 +114,11 @@ public class Snapping {
         // Store the current connection state before making any changes
         PhysicsObject currentStartConnection = rope.getStartConnection();
 
+        // Check if the end of the rope is already connected to the target
+        if (rope.getEndConnection() == target) {
+            return; // Do not snap if the end is already connected to the target
+        }
+
         if (target instanceof Box) {
             // Handle Rectangle nodes
             double centerX = target.getCenterX();
@@ -175,6 +180,11 @@ public class Snapping {
 
         // Store the current connection state before making any changes
         PhysicsObject currentEndConnection = rope.getEndConnection();
+
+        // Check if the start of the rope is already connected to the target
+        if (rope.getStartConnection() == target) {
+            return; // Do not snap if the start is already connected to the target
+        }
 
         if (target instanceof Box) {
             // Handle Rectangle nodes

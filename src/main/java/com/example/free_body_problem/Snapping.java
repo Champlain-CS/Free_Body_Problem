@@ -15,6 +15,7 @@ public class Snapping {
         double planeAngle = Math.toDegrees(Math.atan2(plane.getEndY() - plane.getStartY(),
                 plane.getEndX() - plane.getStartX()));
 
+
         // Normalize the angle to be between 0 and 360
         planeAngle = (planeAngle % 360 + 360) % 360;
 
@@ -58,6 +59,11 @@ public class Snapping {
 
             // Rotate the box to match the plane's angle
             box.setRotate(planeAngle);
+        }
+        else {
+            // If the box is not close enough, revert its position
+            box.setRotate(0);
+
         }
     }
 

@@ -11,10 +11,12 @@ public class Plane {
     private Circle endHandle;
     private static final double SNAP_ANGLE_THRESHOLD = 5;
     private boolean isTransformMode = true;
+    private double[] dragOffset;
 
     private Sandbox sandbox;
 
     public Plane(double startX, double startY, double endX, double endY, Color color, Sandbox sandbox) {
+
         this.sandbox = sandbox;
         line = new Line(startX, startY, endX, endY);
         line.setStroke(color);
@@ -39,6 +41,14 @@ public class Plane {
 
     public Circle getEndHandle() {
         return endHandle;
+    }
+
+    public void setDragOffset(double[] offset) {
+        this.dragOffset = offset;
+    }
+
+    public double[] getDragOffset() {
+        return dragOffset;
     }
 
     private Circle createHandle(double x, double y, Color color) {
@@ -129,11 +139,11 @@ public class Plane {
 
     public void addDragListener() {
         line.setOnMousePressed(event -> {
-            line.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+            this.setDragOffset(new double[]{event.getSceneX(), event.getSceneY()});
         });
 
         line.setOnMouseDragged(event -> {
-            double[] offset = (double[]) line.getUserData();
+            double[] offset = this.getDragOffset();
             double offsetX = event.getSceneX() - offset[0];
             double offsetY = event.getSceneY() - offset[1];
 
@@ -147,7 +157,8 @@ public class Plane {
             endHandle.setCenterX(line.getEndX());
             endHandle.setCenterY(line.getEndY());
 
-            line.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+            // Update the drag offset
+            this.setDragOffset(new double[]{event.getSceneX(), event.getSceneY()});
         });
     }
 

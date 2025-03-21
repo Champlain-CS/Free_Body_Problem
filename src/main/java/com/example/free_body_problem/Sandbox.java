@@ -75,7 +75,7 @@ public class Sandbox extends Application {
 
         menuBT.setOnMouseClicked(e -> {
             // Play menu button sound
-            menuSoundPlayer.playSound("target/classes/sounds/Menu.wav");
+            menuSoundPlayer.playSound("src/main/resources/sounds/Menu.wav");
 
             GUI app = new GUI();
             app.start(new Stage());
@@ -254,7 +254,7 @@ public class Sandbox extends Application {
                     new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
 
             // Play reset sound
-            resetSoundPlayer.playSound("target/classes/sounds/Reset.wav");
+            resetSoundPlayer.playSound("src/main/resources/sounds/Reset.wav");
         });
 
         // Set up the stage
@@ -277,7 +277,7 @@ public class Sandbox extends Application {
             }
 
             // Play info display sound
-            infoSoundPlayer.playSound("target/classes/sounds/Info.wav");
+            infoSoundPlayer.playSound("src/main/resources/sounds/Info.wav");
         });
 
 // Instantiate SoundPlayer for vector button
@@ -326,7 +326,7 @@ public class Sandbox extends Application {
             }
 
             // Play vector button sound
-            vectorSoundPlayer.playSound("target/classes/sounds/Vectors.wav");
+            vectorSoundPlayer.playSound("src/main/resources/sounds/Vectors.wav");
         });
 
         // Add event handler to remove the large rectangle when Escape is pressed
@@ -379,19 +379,19 @@ public class Sandbox extends Application {
                         Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE, sandBoxPane);
                         physicsObjectList.add(newBox);
                         newBox.addDragListener();
-                        soundPlayer.playSound("target/classes/sounds/Place.wav");
+                        soundPlayer.playSound("src/main/resources/sounds/Place.wav");
                         break;
                     case "circle":
                         Pulley newPulley = new Pulley(event.getX(), event.getY(), 25, 10, Color.GRAY, Color.BLACK);
                         sandBoxPane.getChildren().add(newPulley.getCircleGroup());
                         newPulley.addDragListener();
                         physicsObjectList.add(newPulley);
-                        soundPlayer.playSound("target/classes/sounds/Place.wav");
+                        soundPlayer.playSound("src/main/resources/sounds/Place.wav");
                         break;
                     case "line":
                         double lineLength = 100;
                         createPlane(event.getX() - lineLength / 2, event.getY(), event.getX() + lineLength / 2, event.getY(), Color.BLACK);
-                        soundPlayer.playSound("target/classes/sounds/Place.wav");
+                        soundPlayer.playSound("src/main/resources/sounds/Place.wav");
                         break;
                     case "rope":
                         double ropeLength = 100;
@@ -400,7 +400,7 @@ public class Sandbox extends Application {
                         newRope.addLineResizeListener();
                         newRope.addDragListener();
                         sandBoxPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());
-                        soundPlayer.playSound("target/classes/sounds/Place.wav");
+                        soundPlayer.playSound("src/main/resources/sounds/Place.wav");
                         break;
                 }
                 success = true;

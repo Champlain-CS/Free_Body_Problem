@@ -1,4 +1,3 @@
-// src/main/java/com/example/free_body_problem/old_Files/SoundPlayer.java
 package com.example.free_body_problem;
 
 import javafx.scene.media.Media;
@@ -28,5 +27,9 @@ public class SoundPlayer {
 
     public static void setVolume(double newVolume) {
         volume = newVolume;
+    }
+
+    public static double getVolume() {
+        return volume;
     }
 }

@@ -1,4 +1,3 @@
-// src/main/java/com/example/free_body_problem/GUI.java
 package com.example.free_body_problem;
 
 import javafx.application.Application;
@@ -54,7 +53,7 @@ public class GUI extends Application {
         startBT.getStyleClass().add("buttonStyle");
         startBT.setOnMouseEntered(e -> startBT.getStyleClass().add("buttonHover"));
         startBT.setOnMouseClicked(e -> {
-            soundPlayer.playSound("target/classes/sounds/start.wav");
+            soundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
             Sandbox app = new Sandbox();
             app.start(new Stage());
             primaryStage.close();
@@ -64,7 +63,7 @@ public class GUI extends Application {
         optionsBT.getStyleClass().add("buttonStyle");
         optionsBT.setOnMouseEntered(e -> optionsBT.getStyleClass().add("buttonHover"));
         optionsBT.setOnMouseClicked(e -> {
-            soundPlayer.playSound("target/classes/sounds/Menu Buttons.wav");
+            soundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
             primaryStage.getScene().setRoot(optionsRoot);
         });
 
@@ -72,7 +71,7 @@ public class GUI extends Application {
         creditsBT.getStyleClass().add("buttonStyle");
         creditsBT.setOnMouseEntered(e -> creditsBT.getStyleClass().add("buttonHover"));
         creditsBT.setOnMouseClicked(e -> {
-            soundPlayer.playSound("target/classes/sounds/Menu Buttons.wav");
+            soundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
             primaryStage.getScene().setRoot(creditsRoot);
             creditsRoot.requestFocus();
         });
@@ -112,7 +111,7 @@ public class GUI extends Application {
 
         Label effectsVolumeLabel = new Label("Effect Volume");
         effectsVolumeLabel.getStyleClass().add("textStyle");
-        Slider effectsVolumeSlider = new Slider(0, 1, 1); // Slider range from 0 to 1, default value 1
+        Slider effectsVolumeSlider = new Slider(0, 1, SoundPlayer.getVolume()); // Set slider to current volume
         effectsVolumeSlider.getStyleClass().add("slider");
         effectsVolumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             SoundPlayer.setVolume(newValue.doubleValue()); // Update volume

@@ -1,5 +1,6 @@
 package com.example.free_body_problem;
 
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -50,11 +51,13 @@ public class VectorDisplay extends Pane {
         forceName = new Text(name);
         forceName.setFill(color);
         forceName.setFont(new Font(16));
+        forceName.setEffect(new DropShadow(4, color.WHITE));
 
         //Force Magnitude (Text)
         forceMagnitude = new Text(length + " N");
         forceMagnitude.setFill(color);
         forceMagnitude.setFont(new Font(12));
+        forceMagnitude.setEffect(new DropShadow(3, color.WHITE));
 
         forceText = new VBox(forceName, forceMagnitude);
         updateVector();

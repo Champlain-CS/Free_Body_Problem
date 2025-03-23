@@ -17,13 +17,14 @@ import javafx.geometry.Pos;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Box extends PhysicsObject{
+public class Box extends PhysicsObject {
     public Rectangle rectangle;
     private Circle resizeHandle;
     private Circle rotateHandle;
     private TextField textField;
     private HBox massField;
     private Pane parentContainer;
+    private Double lastDragDelta = null;
 
 
     public boolean snappedToPlane = false;
@@ -77,9 +78,7 @@ public class Box extends PhysicsObject{
         massField.getStyleClass().add("massField");
 
 
-
         parentContainer.getChildren().addAll(rectangle, massField, resizeHandle);
-
 
 
         addDragListener();
@@ -119,124 +118,181 @@ public class Box extends PhysicsObject{
         return textField;
     }
 
+    public Double getLastDragDelta() {
+        return lastDragDelta;
+    }
+
+    public void setLastDragDelta(Double delta) {
+        this.lastDragDelta = delta;
+    }
+
     private Circle createHandle(double x, double y) {
         Circle handle = new Circle(x, y, Sandbox.HANDLE_RADIUS);
         handle.setFill(Color.RED);
         return handle;
     }
 
-    public double getCenterX(){
+    public double getCenterX() {
         return rectangle.getX() + rectangle.getWidth() / 2;
     }
 
-    public double getCenterY(){
+    public double getCenterY() {
         return rectangle.getY() + rectangle.getHeight() / 2;
     }
 
 
     public void addDragListener() {
         rectangle.setOnMousePressed(event -> {
+            // Store initial press position
             rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+            lastDragDelta = null; // Reset on new drag
         });
 
         rectangle.setOnMouseDragged(event -> {
-            double[] offset = (double[]) rectangle.getUserData();
-            double offsetX = event.getSceneX() - offset[0];
-            double offsetY = event.getSceneY() - offset[1];
+            double[] initialPress = (double[]) rectangle.getUserData();
 
-            rectangle.setX(rectangle.getX() + offsetX);
-            rectangle.setY(rectangle.getY() + offsetY);
+            // Calculate total distance from initial press position
+            double totalDragDistance = Math.sqrt(
+                    Math.pow(event.getSceneX() - initialPress[0], 2) +
+                            Math.pow(event.getSceneY() - initialPress[1], 2)
+            );
 
-            resizeHandle.setCenterX(resizeHandle.getCenterX() + offsetX);
-            resizeHandle.setCenterY(resizeHandle.getCenterY() + offsetY);
+            // If box is snapped and we've dragged far enough, unsnap it
+            if (isSnapped && totalDragDistance >= 50) {
+                // Unsnap the box
+                isSnapped = false;
+                snappedToPlane = false;
+                snappedPlane = null;
+                rectangle.setRotate(0); // Reset rotation
+                resizeHandle.setFill(Color.RED); // Reset handle color
 
-            textField.setLayoutX(rectangle.getX() + rectangle.getWidth() / 2 - textField.getPrefWidth() / 2);
-            textField.setLayoutY(rectangle.getY() + rectangle.getHeight() / 2 - textField.getPrefHeight() / 2);
+                // Calculate the offset from center to where the mouse was initially pressed
+                double mouseOffsetX = initialPress[0] - (rectangle.getX() + rectangle.getWidth() / 2);
+                double mouseOffsetY = initialPress[1] - (rectangle.getY() + rectangle.getHeight() / 2);
 
-            rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+                // Set the box position maintaining the same relative mouse position
+                rectangle.setX(event.getSceneX() - mouseOffsetX - rectangle.getWidth() / 2);
+                rectangle.setY(event.getSceneY() - mouseOffsetY - rectangle.getHeight() / 2);
 
-            updateHandlePositions();
+                // Update the handle positions
+                updateHandlePositions();
 
-            // Update all connected ropes
-            updateConnectedRopes();
+                // Store new reference point for future drag calculations
+                rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
+                return; // Skip the rest of the method for this drag event
+            }
 
-            // Check for snapping to planes using the physicsObjectList
-            Snapping.snapBoxToPlane(this, planeList);
+            // Only continue with drag if not snapped
+            if (!isSnapped) {
+                double offsetX = event.getSceneX() - initialPress[0];
+                double offsetY = event.getSceneY() - initialPress[1];
 
-            // Update handle positions after snapping
-            updateHandlePositions();
+                // Update reference for next drag event
+                initialPress[0] = event.getSceneX();
+                initialPress[1] = event.getSceneY();
+                rectangle.setUserData(initialPress);
+
+                lastDragDelta = Math.sqrt(offsetX*offsetX + offsetY*offsetY);
+
+                // Move the box
+                rectangle.setX(rectangle.getX() + offsetX);
+                rectangle.setY(rectangle.getY() + offsetY);
+
+                // Update handle positions
+                updateHandlePositions();
+
+                // Update all connected ropes
+                updateConnectedRopes();
+
+                // Check for snapping to planes
+                Snapping.snapBoxToPlane(this, planeList);
+
+                // Update handle positions again after potential snapping
+                updateHandlePositions();
+            }
+        });
+
+        rectangle.setOnMouseReleased(event -> {
+            lastDragDelta = null; // Reset when done dragging
         });
     }
+
     private static final double MIN_WIDTH = 50;
     private static final double MIN_HEIGHT = 50;
 
     public void addResizeListener() {
         resizeHandle.setOnMouseDragged(event -> {
-            double newWidth = event.getX() - rectangle.getX();
-            double newHeight = event.getY() - rectangle.getY();
+            // Only allow resizing if not snapped to a plane
+            if (!isSnapped) {
+                double newWidth = event.getX() - rectangle.getX();
+                double newHeight = event.getY() - rectangle.getY();
 
-            if (newWidth >= MIN_WIDTH) {
-                rectangle.setWidth(newWidth);
-                resizeHandle.setCenterX(event.getX());
-                rotateHandle.setCenterX(event.getX());
+                if (newWidth >= MIN_WIDTH) {
+                    rectangle.setWidth(newWidth);
+                    resizeHandle.setCenterX(event.getX());
+                    rotateHandle.setCenterX(event.getX());
+                }
+
+                if (newHeight >= MIN_HEIGHT) {
+                    rectangle.setHeight(newHeight);
+                    resizeHandle.setCenterY(event.getY());
+                    rotateHandle.setCenterY(event.getY() - rectangle.getHeight() / 2);
+                }
+
+                massField.setLayoutX(this.getCenterX() - massField.getWidth() / 2);
+                massField.setLayoutY(this.getCenterY() - massField.getHeight() / 2);
             }
+        });
 
-            if (newHeight >= MIN_HEIGHT) {
-                rectangle.setHeight(newHeight);
-                resizeHandle.setCenterY(event.getY());
-                rotateHandle.setCenterY(event.getY() - rectangle.getHeight() / 2);
+        // Update cursor based on snap status
+        resizeHandle.setOnMouseEntered(event -> {
+            if (!isSnapped) {
+                resizeHandle.setCursor(Cursor.SE_RESIZE);
+            } else {
+                resizeHandle.setCursor(Cursor.DEFAULT);
             }
-
-
-            massField.setLayoutX(this.getCenterX() - massField.getWidth() / 2);
-            massField.setLayoutY(this.getCenterY() - massField.getHeight() / 2);
-
-
-
         });
     }
+
     private void updateHandlePositions() {
-        double angle = Math.toRadians(rectangle.getRotate()); // Get the rotation angle in radians
-        double cos = Math.cos(angle);
-        double sin = Math.sin(angle);
+        // Update the resize handle position
+        if (isSnapped) {
+            double angle = Math.toRadians(rectangle.getRotate());
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
 
-        // Calculate the bottom-right corner of the box relative to its center
-        double centerX = rectangle.getX() + rectangle.getWidth() / 2;
-        double centerY = rectangle.getY() + rectangle.getHeight() / 2;
-        double cornerX = rectangle.getWidth() / 2;
-        double cornerY = rectangle.getHeight() / 2;
+            // Calculate the bottom-right corner of the box relative to its center
+            double centerX = rectangle.getX() + rectangle.getWidth() / 2;
+            double centerY = rectangle.getY() + rectangle.getHeight() / 2;
+            double cornerX = rectangle.getWidth() / 2;
+            double cornerY = rectangle.getHeight() / 2;
 
-        // Rotate the corner point around the center
-        double rotatedCornerX = centerX + cornerX * cos - cornerY * sin;
-        double rotatedCornerY = centerY + cornerX * sin + cornerY * cos;
+            // Rotate the corner point around the center
+            double rotatedCornerX = centerX + cornerX * cos - cornerY * sin;
+            double rotatedCornerY = centerY + cornerX * sin + cornerY * cos;
 
-        // Update the resize handle's position to stay at the rotated bottom-right corner
-        resizeHandle.setCenterX(rotatedCornerX);
-        resizeHandle.setCenterY(rotatedCornerY);
+            // Update the resize handle's position
+            resizeHandle.setCenterX(rotatedCornerX);
+            resizeHandle.setCenterY(rotatedCornerY);
 
-        // Calculate the top-right corner of the box relative to its center
-        cornerY = -rectangle.getHeight() / 2;
+            // Calculate the top-right corner of the box
+            cornerY = -rectangle.getHeight() / 2;
+            double rotatedTopCornerX = centerX + cornerX * cos - cornerY * sin;
+            double rotatedTopCornerY = centerY + cornerX * sin + cornerY * cos;
 
-        // Rotate the corner point around the center
-        double rotatedTopCornerX = centerX + cornerX * cos - cornerY * sin;
-        double rotatedTopCornerY = centerY + cornerX * sin + cornerY * cos;
+            // Update the rotate handle's position
+            rotateHandle.setCenterX(rotatedTopCornerX);
+            rotateHandle.setCenterY(rotatedTopCornerY);
+        } else {
+            // Simpler positioning for unsnapped boxes
+            resizeHandle.setCenterX(rectangle.getX() + rectangle.getWidth());
+            resizeHandle.setCenterY(rectangle.getY() + rectangle.getHeight());
+            rotateHandle.setCenterX(rectangle.getX() + rectangle.getWidth());
+            rotateHandle.setCenterY(rectangle.getY() + rectangle.getHeight() / 2);
+        }
 
-        // Update the rotate handle's position to stay at the rotated top-right corner
-        rotateHandle.setCenterX(rotatedTopCornerX);
-        rotateHandle.setCenterY(rotatedTopCornerY);
-
-        // Update the text field's position to stay centered
-        massField.setLayoutX(this.getCenterX() - massField.getWidth() / 2);
-        massField.setLayoutY(this.getCenterY() - massField.getHeight() / 2);
-
-
-    }
-
-    public double getAngle() {
-        return angle;
-    }
-
-    public void setAngle(double angle) {
-        this.angle = angle;
+        // Update the mass field position
+        massField.setLayoutX(getCenterX() - massField.getWidth() / 2);
+        massField.setLayoutY(getCenterY() - massField.getHeight() / 2);
     }
 }

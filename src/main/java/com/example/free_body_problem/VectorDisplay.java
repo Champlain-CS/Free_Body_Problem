@@ -10,6 +10,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 
+import java.text.DecimalFormat;
+
 public class VectorDisplay extends Pane {
     private final Line line;
     private final Polygon arrowhead;
@@ -22,6 +24,8 @@ public class VectorDisplay extends Pane {
     private Color color;
     private double angle;
     private final double MAX_LENGTH = 100;
+
+    private DecimalFormat df = new DecimalFormat("#.####");
 
 
     public VectorDisplay(double startX, double startY, double length, double angle, String name, Color color) {
@@ -54,7 +58,7 @@ public class VectorDisplay extends Pane {
         forceName.setEffect(new DropShadow(4, color.WHITE));
 
         //Force Magnitude (Text)
-        forceMagnitude = new Text(length + " N");
+        forceMagnitude = new Text(df.format(length) + " N");
         forceMagnitude.setFill(color);
         forceMagnitude.setFont(new Font(12));
         forceMagnitude.setEffect(new DropShadow(3, color.WHITE));

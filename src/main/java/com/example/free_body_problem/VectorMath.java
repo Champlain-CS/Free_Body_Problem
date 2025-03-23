@@ -38,7 +38,7 @@ public final class VectorMath {
             magnitude = massValue * gravityValue;
         }
         else {
-            magnitude = (massValue * gravityValue) * Math.cos(90+angle);
+            magnitude = (massValue * gravityValue) * Math.cos(Math.toRadians(angle));
         }
 
         VectorDisplay gravityVector = new VectorDisplay(positionX, positionY,

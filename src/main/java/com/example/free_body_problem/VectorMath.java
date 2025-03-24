@@ -49,14 +49,22 @@ public final class VectorMath {
     }
 
     public static void calculateFrictionVector(Box box) {
-        double normal = normalMag;
         double coefficient = Double.parseDouble(Sandbox.coefficientField.getText());
+        double magnitude  = coefficient * normalMag;
 
-        double positionX = box.getRectangle().getX();
+        double positionX;
         double positionY = box.getRectangle().getY() + box.getRectangle().getHeight()/2;
+        double angle;
 
-        double magnitude  = coefficient * normal;
-        double angle = box.rectangle.getRotate() + 180;
+        if(box.rectangle.getRotate() < 180) {
+            positionX = box.getRectangle().getX();
+            angle = box.rectangle.getRotate() + 180;
+        }
+        else {
+            positionX = box.getRectangle().getX() + box.getRectangle().getWidth();
+            angle = box.rectangle.getRotate();
+        }
+
 
         VectorDisplay frictionVector = new VectorDisplay(
                 positionX, positionY, magnitude, angle, "Friction", Color.GREEN);

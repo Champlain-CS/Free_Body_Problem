@@ -532,7 +532,8 @@ public class Sandbox extends Application {
 
         if(box.isSnapped) {
             VectorMath.calculateNormalVector(box);
-            VectorMath.calculateFrictionVector(box);
+            if(box.rectangle.getRotate() != 0)
+                VectorMath.calculateFrictionVector(box);
         }
 
     }

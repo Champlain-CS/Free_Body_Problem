@@ -36,6 +36,7 @@ public class Sandbox extends Application {
     private boolean isDisplayingVectors = false;
 
     static TextField gravityField;
+    static TextField coefficientField;
     public static Pane sandBoxPane;
 
     // Instantiate SoundPlayer
@@ -200,7 +201,7 @@ public class Sandbox extends Application {
         coefficientBox.getStyleClass().add("editor-attribute-box");
         Label coefficientLabel = new Label("Coefficient of Friction:");
         coefficientLabel.getStyleClass().add("editor-attribute-label");
-        TextField coefficientField = new TextField();
+        coefficientField = new TextField();
         coefficientField.getStyleClass().add("editor-attribute-field");
         coefficientField.setText("0.4");
         coefficientBox.getChildren().addAll(coefficientLabel, coefficientField);
@@ -529,7 +530,10 @@ public class Sandbox extends Application {
     public void updateVectors(Box box) {
         VectorMath.calculateGravityVector(box);
 
-        if(box.isSnapped)
+        if(box.isSnapped) {
             VectorMath.calculateNormalVector(box);
+            VectorMath.calculateFrictionVector(box);
+        }
+
     }
 }

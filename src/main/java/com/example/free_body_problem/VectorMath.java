@@ -4,6 +4,7 @@ import javafx.scene.paint.Color;
 
 public final class VectorMath {
     private Sandbox sandbox;
+    private static double normalMag;
 
     public VectorMath(Sandbox sandbox) {
         this.sandbox = sandbox;
@@ -32,14 +33,13 @@ public final class VectorMath {
         double angle = box.rectangle.getRotate();
         double magnitude;
 
-        System.out.println(angle);
-
         if(angle == 0) {
             magnitude = massValue * gravityValue;
         }
         else {
             magnitude = (massValue * gravityValue) * Math.cos(Math.toRadians(angle));
         }
+        normalMag = magnitude;
 
         VectorDisplay gravityVector = new VectorDisplay(positionX, positionY,
                 magnitude, angle-90, "Normal", Color.RED);
@@ -48,4 +48,20 @@ public final class VectorMath {
         System.out.println("Normal Vector updated for " + box);
     }
 
+    public static void calculateFrictionVector(Box box) {
+        double normal = normalMag;
+        double coefficient = Double.parseDouble(Sandbox.coefficientField.getText());
+
+        double positionX = box.getRectangle().getX();
+        double positionY = box.getRectangle().getY() + box.getRectangle().getHeight()/2;
+
+        double magnitude  = coefficient * normal;
+        double angle = box.rectangle.getRotate() + 180;
+
+        VectorDisplay frictionVector = new VectorDisplay(
+                positionX, positionY, magnitude, angle, "Friction", Color.GREEN);
+        box.frictionVector = frictionVector;
+        Sandbox.sandBoxPane.getChildren().add(frictionVector);
+        System.out.println("Friction Vector updated for " + box);
+    }
 }

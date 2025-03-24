@@ -16,6 +16,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+
+import java.io.File;
 
 public class GUI extends Application {
     VBox mainMenuRoot = new VBox();
@@ -24,11 +28,28 @@ public class GUI extends Application {
 
     // Instantiate SoundPlayer
     private SoundPlayer soundPlayer = new SoundPlayer();
+    private static MediaPlayer backgroundMusicPlayer;
 
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Free Body Problem");
         primaryStage.setResizable(false);
         primaryStage.setMaximized(true);
+
+        // Load and play background music
+        String musicFilePath = "src/main/resources/sounds/Music.wav";
+        File musicFile = new File(musicFilePath);
+        if (musicFile.exists()) {
+            if (backgroundMusicPlayer != null) {
+                backgroundMusicPlayer.stop();
+            }
+            Media backgroundMusic = new Media(musicFile.toURI().toString());
+            backgroundMusicPlayer = new MediaPlayer(backgroundMusic);
+            backgroundMusicPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop the music
+            backgroundMusicPlayer.setVolume(SoundPlayer.getVolume()); // Set initial volume
+            backgroundMusicPlayer.play();
+        } else {
+            System.err.println("Background music file not found: " + musicFilePath);
+        }
 
         // Main Menu
         mainMenuRoot.setSpacing(75);
@@ -102,8 +123,14 @@ public class GUI extends Application {
 
         Label musicVolumeLabel = new Label("Music Volume");
         musicVolumeLabel.getStyleClass().add("textStyle");
-        Slider musicVolumeSlider = new Slider();
+        Slider musicVolumeSlider = new Slider(0, 1, SoundPlayer.getVolume()); // Set slider to current volume
         musicVolumeSlider.getStyleClass().add("slider");
+        musicVolumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            SoundPlayer.setVolume(newValue.doubleValue()); // Update volume
+            if (backgroundMusicPlayer != null) {
+                backgroundMusicPlayer.setVolume(newValue.doubleValue());
+            }
+        });
         HBox musicVolumeBox = new HBox();
         musicVolumeBox.setSpacing(30);
         musicVolumeBox.setAlignment(Pos.CENTER);

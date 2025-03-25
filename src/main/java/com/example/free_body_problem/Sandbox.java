@@ -1,6 +1,7 @@
 package com.example.free_body_problem;
 
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -166,9 +167,41 @@ public class Sandbox extends Application {
         Pane spacer = new Pane();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        // labels for the shapes
+        Label boxLbl = new Label("Box");
+        boxLbl.getStyleClass().add("shape-label");
+        Label pulleyLbl = new Label("Pulley");
+        pulleyLbl.getStyleClass().add("shape-label");
+        Label planeLbl = new Label("Plane");
+        planeLbl.getStyleClass().add("shape-label");
+        Label ropeLbl = new Label("Rope");
+        ropeLbl.getStyleClass().add("shape-label");
+
+
         // Grouping the shape buttons
-        HBox shapeButtons = new HBox(20, rectangleButton, circleButton, lineButton, ropeButton);
+        VBox boxBTBox = new VBox(boxLbl, rectangleButton);
+        boxBTBox.setSpacing(10);
+        boxBTBox.setAlignment(Pos.CENTER);
+
+        VBox pulleyBTBox = new VBox(pulleyLbl, circleButton);
+        pulleyBTBox.setSpacing(15);
+        pulleyBTBox.setAlignment(Pos.CENTER);
+        pulleyBTBox.setTranslateY(-3);
+
+        VBox planeBTBox = new VBox(planeLbl, lineButton);
+        planeBTBox.setSpacing(30);
+        planeBTBox.setAlignment(Pos.CENTER);
+        planeBTBox.setTranslateY(-10);
+
+        VBox ropeBTBox = new VBox(ropeLbl, ropeButton);
+        ropeBTBox.setSpacing(30);
+        ropeBTBox.setAlignment(Pos.CENTER);
+        ropeBTBox.setTranslateY(-10);
+
+        HBox shapeButtons = new HBox(30, boxBTBox, pulleyBTBox, planeBTBox, ropeBTBox);
         shapeButtons.setAlignment(Pos.CENTER);
+
+
 
         // Create spacers for centering
         Region leftSpacer = new Region();

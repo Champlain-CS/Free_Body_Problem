@@ -79,3 +79,11 @@
     -fx-background-color: lightblue;
 }
 
+.shape-label {
+    -fx-font-weight: bold;
+    -fx-font-family: "Arial";
+    -fx-font-size: 10pt;
+    -fx-alignment: center;
+    -fx-text-origin: center;
+}
+

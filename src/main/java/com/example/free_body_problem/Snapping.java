@@ -21,11 +21,7 @@ public class Snapping {
 
         Rectangle box = boxObject.getRectangle();
 
-//        double dragDelta = 0; // Default value
-//        if (boxObject.getLastDragDelta() != null) {
-//            dragDelta = boxObject.getLastDragDelta();
-//        }
-        // Loop through all physics objects to find planes
+        // Loop through all planes to find snapping opportunities
         for (Plane obj : planeList) {
             Line planeLine = obj.getLine();
 
@@ -36,61 +32,73 @@ public class Snapping {
             // Normalize the angle to be between 0 and 360
             planeAngle = (planeAngle % 360 + 360) % 360;
 
-            // Determine which side of the box to connect to the plane
-            boolean useBottomSide = (planeAngle <= 90 || planeAngle >= 270);
+            // Determine whether to use top or bottom of the box based on plane angle
+            boolean useBottomEdge = !(planeAngle > 90 && planeAngle < 270);
 
             // Get the current angle of the box in radians
-            double currentAngleRad = Math.toRadians(box.getRotate());
+            double currentAngleRad = Math.toRadians(planeAngle);
 
             // Calculate the box's center position
             double boxCenterX = box.getX() + box.getWidth() / 2;
             double boxCenterY = box.getY() + box.getHeight() / 2;
 
-            // Calculate the vector from center to the connecting side (before rotation)
-            double vectorY = useBottomSide ? box.getHeight() / 2 : -box.getHeight() / 2;
+            // Calculate the edge center point (bottom or top) of the box before rotation
+            double edgeCenterX = boxCenterX;
+            double edgeCenterY = useBottomEdge
+                    ? (boxCenterY + box.getHeight() / 2)  // Bottom edge
+                    : (boxCenterY - box.getHeight() / 2); // Top edge
 
-            // Apply rotation to this vector
-            double rotatedVectorX = -Math.sin(currentAngleRad) * vectorY;
-            double rotatedVectorY = Math.cos(currentAngleRad) * vectorY;
+            // Rotate the edge center point around the center of the box
+            double rotatedEdgeX = boxCenterX +
+                    (edgeCenterX - boxCenterX) * Math.cos(currentAngleRad) -
+                    (edgeCenterY - boxCenterY) * Math.sin(currentAngleRad);
+            double rotatedEdgeY = boxCenterY +
+                    (edgeCenterX - boxCenterX) * Math.sin(currentAngleRad) +
+                    (edgeCenterY - boxCenterY) * Math.cos(currentAngleRad);
 
-            // Calculate the actual connecting point position (bottom or top center)
-            double connectingPointX = boxCenterX + rotatedVectorX;
-            double connectingPointY = boxCenterY + rotatedVectorY;
+            // Find the closest point on the plane to the rotated edge center
+            double[] closestPoint = findClosestPointOnLine(rotatedEdgeX, rotatedEdgeY, planeLine);
 
-            // Find the closest point on the plane to the box's connecting point
-            double[] closestPoint = findClosestPointOnLine(connectingPointX, connectingPointY, planeLine);
-
-            // Calculate the distance between the connecting point and the closest point
-            double distance = Math.hypot(connectingPointX - closestPoint[0], connectingPointY - closestPoint[1]);
+            // Calculate the distance between the edge center and the closest point
+            double distance = Math.hypot(rotatedEdgeX - closestPoint[0], rotatedEdgeY - closestPoint[1]);
 
             // If the box is close enough to the plane, snap it
             if (distance <= SNAP_THRESHOLD) {
-                // Position the box so its connecting point aligns with the closest point on the plane
-                double newCenterX = closestPoint[0] - rotatedVectorX;
-                double newCenterY = closestPoint[1] - rotatedVectorY;
+                // Calculate the offset to move the box so its edge is exactly on the plane
+                double offsetX = closestPoint[0] - rotatedEdgeX;
+                double offsetY = closestPoint[1] - rotatedEdgeY;
 
-                // Adjust to find the top-left corner of the box
-                box.setX(newCenterX - box.getWidth() / 2);
-                box.setY(newCenterY - box.getHeight() / 2);
+                // Move the box
+                box.setX(box.getX() + offsetX);
+                box.setY(box.getY() + offsetY);
 
-                // Rotate the box to match the plane's angle
-                box.setRotate(planeAngle);
+                // Adjust rotation to ensure correct orientation for normal vectors
+                // If the plane angle is between 90 and 270, flip 180 degrees
+                double finalRotation = planeAngle;
+                if (planeAngle > 90 && planeAngle < 270) {
+                    finalRotation += 180;
+                }
+                finalRotation %= 360;
+
+                // Set the box rotation
+                box.setRotate(finalRotation);
 
                 boxObject.isSnapped = true;
+                boxObject.snappedToPlane = true;
+                boxObject.snappedPlane = obj;
 
                 break; // Exit the loop once snapped to a plane
             }
         }
 
+        // Handle visual feedback for snapping
         if (boxObject.isSnapped) {
             boxObject.getResizeHandle().setFill(Color.GRAY); // Gray out the handle when disabled
         } else {
             boxObject.getResizeHandle().setFill(Color.RED);  // Return to original color
             box.setRotate(0); // If the box is not snapped to any plane, reset its rotation to 0
         }
-
     }
-
 
     // Helper method to find the closest point on a line segment to a given point
     private static double[] findClosestPointOnLine(double px, double py, Line line) {

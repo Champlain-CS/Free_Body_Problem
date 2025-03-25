@@ -245,7 +245,14 @@ public class Sandbox extends Application {
         gravityField = new TextField();
         gravityField.getStyleClass().add("editor-attribute-field");
         gravityField.setText("9.8");
-        gravityBox.getChildren().addAll(gravityLabel, gravityField);
+
+        HBox gravityWithUnits = new HBox();
+        gravityWithUnits.setSpacing(5);
+        Label gravityUnits = new Label("m/s²");
+        gravityUnits.setTranslateY(3);
+        gravityUnits.getStyleClass().add("editor-attribute-label");
+        gravityWithUnits.getChildren().addAll(gravityField, gravityUnits);
+        gravityBox.getChildren().addAll(gravityLabel, gravityWithUnits);
 
         HBox coefficientBox = new HBox();
         coefficientBox.getStyleClass().add("editor-attribute-box");

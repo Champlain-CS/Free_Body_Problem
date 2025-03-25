@@ -87,5 +87,29 @@
     -fx-text-origin: center;
 }
 
+.plane-scroll-pane {
+    -fx-background-color: #f0f0f0;
+    -fx-border-color: #cccccc;
+    -fx-border-width: 1px;
+    -fx-pref-height: 200px;
+}
+
+.plane-list-box {
+    -fx-background-color: white;
+}
+
+.plane-list-box .label {
+    -fx-font-weight: bold;
+}
+
+.plane-list-box .text {
+    -fx-fill: #666666;
+}
+.plane-angle-field {
+    -fx-pref-width: 60px;
+    -fx-font-size: 12px;
+    -fx-text-alignment: center;
+}
+
 
 

@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -25,10 +26,10 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.io.InputStream;
-
 import java.util.*;
 
 public class Sandbox extends Application {
@@ -42,6 +43,7 @@ public class Sandbox extends Application {
     static TextField gravityField;
     static TextField coefficientField;
     public static Pane sandBoxPane;
+    private VBox planeListBox; // New field to store the list of plane angles
 
     // Instantiate SoundPlayer
     private SoundPlayer soundPlayer = new SoundPlayer();
@@ -139,13 +141,7 @@ public class Sandbox extends Application {
 
         // Add mouse event handlers for lineButton
         lineButton.setOnMouseClicked(event -> {
-            Plane newPlane = new Plane(100, 50, 200, 50, Color.BLACK, this);
-            sandBoxPane.getChildren().add(newPlane.getLine());
-            newPlane.addLineResizeListener();
-            newPlane.addDragListener();
-            sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
-            newPlane.addKeyListener(); // Ensure this line is present
-            sandBoxPane.requestFocus(); // Ensure the pane is focused
+            createPlane(100, 50, 200, 50, Color.BLACK);
         });
         lineButton.setOnMouseEntered(e -> {
             lineButton.setScaleX(1.2);
@@ -158,6 +154,7 @@ public class Sandbox extends Application {
 
         // Add mouse event handlers for ropeButton
         ropeButton.setOnMouseClicked(event -> {
+            double ropeLength = 100;
             Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN, false, false, physicsObjectList);
             sandBoxPane.getChildren().add(newRope.getLine());
             newRope.addLineResizeListener();
@@ -187,7 +184,6 @@ public class Sandbox extends Application {
         Label ropeLbl = new Label("Rope");
         ropeLbl.getStyleClass().add("shape-label");
 
-
         // Grouping the shape buttons
         VBox boxBTBox = new VBox(boxLbl, rectangleButton);
         boxBTBox.setSpacing(10);
@@ -211,8 +207,6 @@ public class Sandbox extends Application {
         HBox shapeButtons = new HBox(30, boxBTBox, pulleyBTBox, planeBTBox, ropeBTBox);
         shapeButtons.setAlignment(Pos.CENTER);
 
-
-
         // Create spacers for centering
         Region leftSpacer = new Region();
         Region rightSpacer = new Region();
@@ -230,6 +224,19 @@ public class Sandbox extends Application {
 
         Label editorLabel = new Label("Sandbox Editor");
         editorLabel.getStyleClass().add("editor-label");
+
+        // Create a scroll pane for plane list
+        ScrollPane planeScrollPane = new ScrollPane();
+        planeScrollPane.setFitToWidth(true);
+        planeScrollPane.setPrefHeight(200);
+        planeScrollPane.getStyleClass().add("plane-scroll-pane");
+
+        // Create a VBox to hold the list of planes
+        planeListBox = new VBox(10);
+        planeListBox.setPadding(new Insets(10));
+        planeListBox.getStyleClass().add("plane-list-box");
+
+        planeScrollPane.setContent(planeListBox);
 
         HBox gravityBox = new HBox();
         gravityBox.getStyleClass().add("editor-attribute-box");
@@ -272,8 +279,14 @@ public class Sandbox extends Application {
         vectorDisplayView.setPickOnBounds(true);
         vectorDisplayBox.getChildren().addAll(vectorDisplayLabel, vectorDisplayView);
 
-        editorPane.getChildren().addAll(editorLabel, gravityBox, coefficientBox, vectorDisplayBox);
-        editorPane.toFront();
+        // Add elements to the editor pane
+        editorPane.getChildren().addAll(
+                editorLabel,
+                planeScrollPane,  // Add the scroll pane
+                gravityBox,
+                coefficientBox,
+                vectorDisplayBox
+        );
 
         // Instantiate SoundPlayer for reset button
         SoundPlayer resetSoundPlayer = new SoundPlayer();
@@ -283,6 +296,7 @@ public class Sandbox extends Application {
             gravityField.setText("9.8");
             physicsObjectList.clear();
             planes.clear();
+            planeListBox.getChildren().clear();  // Clear the plane list
             isDisplayingVectors = false;
 
             // Removing the lock
@@ -324,7 +338,7 @@ public class Sandbox extends Application {
             infoSoundPlayer.playSound("src/main/resources/sounds/Info.wav");
         });
 
-// Instantiate SoundPlayer for vector button
+        // Instantiate SoundPlayer for vector button
         SoundPlayer vectorSoundPlayer = new SoundPlayer();
 
         vectorDisplayView.setOnMouseClicked(event -> {
@@ -434,7 +448,7 @@ public class Sandbox extends Application {
                         break;
                     case "line":
                         double lineLength = 100;
-                        createPlane(event.getX() - lineLength / 2, event.getY(), event.getX() + lineLength / 2, event.getY(), Color.BLACK);
+                        Plane newPlane = createPlane(event.getX() - lineLength / 2, event.getY(), event.getX() + lineLength / 2, event.getY(), Color.BLACK);
                         soundPlayer.playSound("src/main/resources/sounds/Place.wav");
                         break;
                     case "rope":
@@ -455,18 +469,76 @@ public class Sandbox extends Application {
         });
     }
 
-    public List<Plane> getPlanes() {
-        return planes;
-    }
-
-    private void createPlane(double startX, double startY, double endX, double endY, Color color) {
+    private Plane createPlane(double startX, double startY, double endX, double endY, Color color) {
         Plane newPlane = new Plane(startX, startY, endX, endY, color, this);
         planes.add(newPlane);
         sandBoxPane.getChildren().add(newPlane.getLine());
         newPlane.addLineResizeListener();
         newPlane.addDragListener();
-        sandBoxPane.getChildren().addAll(newPlane.getStartHandle(), newPlane.getEndHandle());
+        sandBoxPane.getChildren().addAll(
+                newPlane.getStartHandle(),
+                newPlane.getEndHandle()
+        );
         newPlane.addKeyListener();
+
+        // Update the plane list
+        updatePlaneList();
+
+        return newPlane;
+    }
+
+    // New method to update the plane list
+    public void updatePlaneList() {
+        planeListBox.getChildren().clear();
+        for (int i = 0; i < planes.size(); i++) {
+            Plane plane = planes.get(i);
+            HBox planeInfoBox = new HBox(10);
+            planeInfoBox.setAlignment(Pos.CENTER_LEFT);
+
+            Label planeLabel = new Label("Plane " + (i + 1));
+            planeLabel.setFont(Font.font(14));
+
+            // Create an editable text field for the angle
+            TextField angleField = new TextField(String.format("%.1f", plane.calculatePlaneAngle()));
+            angleField.setPrefWidth(60);
+            angleField.getStyleClass().add("plane-angle-field");
+
+            // Add a degree symbol label
+            Label degreeLabel = new Label("°");
+
+            // Add listener to update plane angle when text field is modified
+            angleField.setOnAction(event -> {
+                try {
+                    double newAngle = Double.parseDouble(angleField.getText());
+                    plane.setPlaneAngle(newAngle);
+                    updatePlaneList(); // Refresh the list to ensure accuracy
+                } catch (NumberFormatException e) {
+                    // Revert to original angle if invalid input
+                    angleField.setText(String.format("%.1f", plane.calculatePlaneAngle()));
+                }
+            });
+
+            // Bind the angleField to update when plane is moved
+            plane.getLine().startXProperty().addListener((obs, oldVal, newVal) -> {
+                angleField.setText(String.format("%.1f", plane.calculatePlaneAngle()));
+            });
+            plane.getLine().startYProperty().addListener((obs, oldVal, newVal) -> {
+                angleField.setText(String.format("%.1f", plane.calculatePlaneAngle()));
+            });
+            plane.getLine().endXProperty().addListener((obs, oldVal, newVal) -> {
+                angleField.setText(String.format("%.1f", plane.calculatePlaneAngle()));
+            });
+            plane.getLine().endYProperty().addListener((obs, oldVal, newVal) -> {
+                angleField.setText(String.format("%.1f", plane.calculatePlaneAngle()));
+            });
+
+            planeInfoBox.getChildren().addAll(planeLabel, angleField, degreeLabel);
+            planeListBox.getChildren().add(planeInfoBox);
+        }
+    }
+
+    public List<Plane> getPlanes() {
+        return planes;
     }
 
     public boolean areAllPlanesInSameMode() {
@@ -478,26 +550,6 @@ public class Sandbox extends Application {
             }
         }
         return true;
-    }
-
-    // Helper method to enable dragging and removal for shapes
-    private void enableDraggingAndRemoval(Node shape) {
-        shape.setOnMousePressed(event -> {
-            dragging = true;
-            shape.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
-        });
-
-        shape.setOnMouseDragged(event -> {
-            double[] offset = (double[]) shape.getUserData();
-            if (shape instanceof Group) {
-                // Dragging logic for Group
-            } else if (shape instanceof Rectangle) {
-                // Dragging logic for Rectangle
-            }
-            shape.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
-        });
-
-        shape.setOnMouseReleased(event -> dragging = false);
     }
 
     // Helper method to create a rectangle button
@@ -522,10 +574,19 @@ public class Sandbox extends Application {
         return line;
     }
 
+    public void updateVectors(Box box) {
+        VectorMath.calculateGravityVector(box);
+
+        if(box.isSnapped) {
+            VectorMath.calculateNormalVector(box);
+            if(box.rectangle.getRotate() != 0)
+                VectorMath.calculateFrictionVector(box);
+        }
+    }
+
     public static void main(String[] args) {
         launch(args);
     }
-
 
     public static HBox createHelpDialogue() {
         HBox helpBox = new HBox();
@@ -569,16 +630,5 @@ public class Sandbox extends Application {
 
         helpBox.getChildren().addAll(background, title, textArea);
         return helpBox;
-    }
-
-    public void updateVectors(Box box) {
-        VectorMath.calculateGravityVector(box);
-
-        if(box.isSnapped) {
-            VectorMath.calculateNormalVector(box);
-            if(box.rectangle.getRotate() != 0)
-                VectorMath.calculateFrictionVector(box);
-        }
-
     }
 }

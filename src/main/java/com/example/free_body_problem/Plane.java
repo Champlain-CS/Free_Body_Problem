@@ -4,6 +4,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.StrokeLineCap;
 
 public class Plane {
     private Line line;
@@ -22,6 +23,7 @@ public class Plane {
         line.setStroke(color);
         line.setStrokeWidth(8);
         line.setUserData(this);
+        line.setStrokeLineCap(StrokeLineCap.ROUND);
 
 
         startHandle = createHandle(startX, startY, Color.RED); // Start handle is red (transform)

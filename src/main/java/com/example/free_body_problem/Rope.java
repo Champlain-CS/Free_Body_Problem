@@ -2,8 +2,11 @@ package com.example.free_body_problem;
 
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.StrokeLineCap;
 
 import java.util.List;
 
@@ -22,13 +25,21 @@ public class Rope extends Group {
 
     public Rope(double startX, double startY, double endX, double endY, Color color, Boolean startSnapped, Boolean endSnapped, List<PhysicsObject> physicsObjectList) {
         line = new Line(startX, startY, endX, endY);
-        line.setStroke(color);
+        LinearGradient gradient = new LinearGradient(0, 0, 1, 1, true,
+                javafx.scene.paint.CycleMethod.REFLECT,
+                new Stop(0, Color.web("#A0522D")),
+                new Stop(0.5, Color.web("#D2691E")),
+                new Stop(1, Color.web("#8B4513")));
+        line.setStroke(gradient);
         line.setStrokeWidth(8);
+        line.setStrokeLineCap(StrokeLineCap.ROUND);
+
+
         startHandle = createHandle(startX, startY);
         this.physicsObjectList = physicsObjectList;
 
         //DEBUG
-        startHandle.setFill(Color.GREEN);
+        startHandle.setFill(Color.RED);
         endHandle = createHandle(endX, endY);
 
         line.setUserData(this);

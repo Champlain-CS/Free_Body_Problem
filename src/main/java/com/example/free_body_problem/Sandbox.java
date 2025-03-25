@@ -18,9 +18,12 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
@@ -95,6 +98,13 @@ public class Sandbox extends Application {
         circleButton.setStrokeWidth(10); // Adjust the stroke width to create the inner radius effect
         Line lineButton = createButtonLine(50, 10, Color.BLACK);
         Line ropeButton = createButtonLine(50, 10, Color.BROWN);
+        LinearGradient ropeGradient = new LinearGradient(0, 0, 1, 1, true,
+                javafx.scene.paint.CycleMethod.REFLECT,
+                new Stop(0, Color.web("#A0522D")),
+                new Stop(0.5, Color.web("#D2691E")),
+                new Stop(1, Color.web("#8B4513")));
+        ropeButton.setStroke(ropeGradient);
+        ropeButton.setStrokeLineCap(StrokeLineCap.ROUND);
 
         // Add drag-and-drop handlers for each button
         addDragHandlers(rectangleButton, sandBoxPane, "rectangle");
@@ -431,6 +441,7 @@ public class Sandbox extends Application {
                         double ropeLength = 100;
                         Rope newRope = new Rope(event.getX() - ropeLength / 2, event.getY(), event.getX() + ropeLength / 2, event.getY(), Color.BROWN, false, false, physicsObjectList);
                         sandBoxPane.getChildren().add(newRope.getLine());
+                        newRope.getStyleClass().add("rope-line");
                         newRope.addLineResizeListener();
                         newRope.addDragListener();
                         sandBoxPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());

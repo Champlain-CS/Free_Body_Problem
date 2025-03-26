@@ -275,6 +275,8 @@ public class Sandbox extends Application {
             }
         });
 
+        sandBoxPane.setOnMouseClicked(event -> sandBoxPane.requestFocus());
+
         HBox vectorDisplayBox = new HBox();
         vectorDisplayBox.getStyleClass().add("larger-editor-attribute-box");
         Label vectorDisplayLabel = new Label("Display Vectors: ");

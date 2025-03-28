@@ -3,6 +3,7 @@ package com.example.free_body_problem;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -44,6 +45,8 @@ public class Sandbox extends Application {
     static TextField coefficientField;
     public static Pane sandBoxPane;
     private VBox planeListBox; // New field to store the list of plane angles
+    private boolean deletionMode = false;
+    private Button deleteBT;
 
     // Instantiate SoundPlayer
     private SoundPlayer soundPlayer = new SoundPlayer();
@@ -73,7 +76,23 @@ public class Sandbox extends Application {
         bottomBar.getStyleClass().add("bottom-bar");
 
         sandBoxRoot.setBottom(bottomBar);
+        deleteBT = new Button("DELETE");
+        deleteBT.getStyleClass().add("menu-button");
+        deleteBT.setOnMouseClicked(e -> {
+            // Toggle deletion mode
+            deletionMode = !deletionMode;
 
+            if (deletionMode) {
+
+                // Visual indication that delete mode is active
+                deleteBT.getStyleClass().add("delete-mode-active");
+                sandBoxPane.setCursor(Cursor.CROSSHAIR);
+            } else {
+                // Return to normal mode
+                deleteBT.getStyleClass().remove("delete-mode-active");
+                sandBoxPane.setCursor(Cursor.DEFAULT);
+            }
+        });
         // Back to Menu Button
         Button menuBT = new Button("MENU");
         menuBT.getStyleClass().add("menu-button"); // Apply CSS class
@@ -215,7 +234,7 @@ public class Sandbox extends Application {
         HBox.setHgrow(rightSpacer, Priority.ALWAYS);
 
         // Add elements to the bottom bar
-        bottomBar.getChildren().addAll(leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT);
+        bottomBar.getChildren().addAll(leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT, deleteBT);
 
         // Pane for world settings
         VBox editorPane = new VBox();
@@ -277,7 +296,19 @@ public class Sandbox extends Application {
             }
         });
 
-        sandBoxPane.setOnMouseClicked(event -> sandBoxPane.requestFocus());
+        sandBoxPane.setOnMouseClicked(event -> {
+            // Handle deletion if in deletion mode
+            if (deletionMode) {
+                // Pick the node at exactly the clicked position
+                Node clickedNode = event.getPickResult().getIntersectedNode();
+                if (clickedNode != null && clickedNode != sandBoxPane) {
+                    deleteElement(clickedNode);
+                }
+            }
+
+            // Always request focus on the pane to handle any TextField unfocus
+            sandBoxPane.requestFocus();
+        });
 
         HBox vectorDisplayBox = new HBox();
         vectorDisplayBox.getStyleClass().add("larger-editor-attribute-box");
@@ -602,6 +633,154 @@ public class Sandbox extends Application {
                 textField.setText(oldValue);
             }
         });
+    }
+    private void deleteElement(Node clickedNode) {
+        // Check if the clicked node is directly a node we recognize
+        for (Object obj : new ArrayList<>(physicsObjectList)) {
+            if (obj instanceof Box &&
+                    (((Box)obj).getRectangle() == clickedNode ||
+                            ((Box)obj).getResizeHandle() == clickedNode ||
+                            ((Box)obj).getRotateHandle() == clickedNode)) {
+                deleteBoxObject((Box)obj);
+                return;
+            } else if (obj instanceof Pulley &&
+                    (((Pulley)obj).getCircleGroup() == clickedNode ||
+                            clickedNode.getParent() == ((Pulley)obj).getCircleGroup())) {
+                deletePulleyObject((Pulley)obj);
+                return;
+            } else if (obj instanceof Plane &&
+                    (((Plane)obj).getLine() == clickedNode ||
+                            ((Plane)obj).getStartHandle() == clickedNode ||
+                            ((Plane)obj).getEndHandle() == clickedNode)) {
+                deletePlaneObject((Plane)obj);
+                return;
+            } else if (obj instanceof Rope) {
+                Rope rope = (Rope)obj;
+                if (rope.getLine() == clickedNode ||
+                        rope.getStartHandle() == clickedNode ||
+                        rope.getEndHandle() == clickedNode) {
+                    deleteRopeObject(rope);
+                    return;
+                }
+            }
+        }
+
+        // If not found directly, traverse userData
+        Node nodeToCheck = clickedNode;
+        while (nodeToCheck != null) {
+            Object userData = nodeToCheck.getUserData();
+
+            if (userData instanceof Box) {
+                deleteBoxObject((Box)userData);
+                return;
+            } else if (userData instanceof Pulley) {
+                deletePulleyObject((Pulley)userData);
+                return;
+            } else if (userData instanceof Plane) {
+                deletePlaneObject((Plane)userData);
+                return;
+            } else if (userData instanceof Rope) {
+                deleteRopeObject((Rope)userData);
+                return;
+            } else if (userData instanceof Group) {
+                // Check if this group contains our objects
+                Group group = (Group)userData;
+                for (Node child : group.getChildren()) {
+                    if (child == clickedNode) {
+                        // Check if this group is part of our objects
+                        for (Object obj : physicsObjectList) {
+                            if (obj instanceof Pulley &&
+                                    ((Pulley)obj).getCircleGroup() == group) {
+                                deletePulleyObject((Pulley)obj);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Move up to parent node
+            nodeToCheck = nodeToCheck.getParent();
+        }
+
+        // Special case: check if the clicked node is part of a Rope but not directly matching
+        if (clickedNode instanceof Line) {
+            for (Object obj : physicsObjectList) {
+                if (obj instanceof Rope && ((Rope)obj).getLine() == clickedNode) {
+                    deleteRopeObject((Rope)obj);
+                    return;
+                }
+            }
+        }
+    }
+
+    private void deleteRopeObject(Rope rope) {
+        // First disconnect any connections the rope has
+        if (rope.getStartConnection() != null) {
+            rope.getStartConnection().connectedRopes.remove(rope);
+        }
+        if (rope.getEndConnection() != null) {
+            rope.getEndConnection().connectedRopes.remove(rope);
+        }
+
+        // Remove visual elements with null checks
+        if (rope.getLine() != null) {
+            sandBoxPane.getChildren().remove(rope.getLine());
+        }
+        if (rope.getStartHandle() != null) {
+            sandBoxPane.getChildren().remove(rope.getStartHandle());
+        }
+        if (rope.getEndHandle() != null) {
+            sandBoxPane.getChildren().remove(rope.getEndHandle());
+        }
+
+        // Remove from physics object list and play sound
+        physicsObjectList.remove(rope);
+        soundPlayer.playSound("src/main/resources/sounds/Delete.wav");
+    }
+
+    private void deleteBoxObject(Box box) {
+        sandBoxPane.getChildren().remove(box.getRectangle());
+        if (box.getResizeHandle() != null) sandBoxPane.getChildren().remove(box.getResizeHandle());
+        if (box.getRotateHandle() != null) sandBoxPane.getChildren().remove(box.getRotateHandle());
+
+        // Remove the HBox containing the mass field - improved method for finding it
+        for (Node node : new ArrayList<>(sandBoxPane.getChildren())) {
+            if (node instanceof HBox && ((HBox)node).getChildren().size() > 0) {
+                double boxCenterX = box.getCenterX();
+                double boxCenterY = box.getCenterY();
+                double nodeX = node.getLayoutX();
+                double nodeY = node.getLayoutY();
+                double nodeWidth = node.getBoundsInLocal().getWidth();
+                double nodeHeight = node.getBoundsInLocal().getHeight();
+
+                // Check if this HBox is within the expected area for this box's mass field
+                if (Math.abs(nodeX + nodeWidth/2 - boxCenterX) < 50 &&
+                        Math.abs(nodeY + nodeHeight/2 - boxCenterY) < 50) {
+                    sandBoxPane.getChildren().remove(node);
+                    break;
+                }
+            }
+        }
+
+        physicsObjectList.remove(box);
+        soundPlayer.playSound("src/main/resources/sounds/Delete.wav");
+    }
+
+    private void deletePulleyObject(Pulley pulley) {
+        sandBoxPane.getChildren().remove(pulley.getCircleGroup());
+        physicsObjectList.remove(pulley);
+        soundPlayer.playSound("src/main/resources/sounds/Delete.wav");
+    }
+
+    private void deletePlaneObject(Plane plane) {
+        sandBoxPane.getChildren().remove(plane.getLine());
+        sandBoxPane.getChildren().remove(plane.getStartHandle());
+        sandBoxPane.getChildren().remove(plane.getEndHandle());
+        planes.remove(plane);
+        physicsObjectList.remove(plane);
+        updatePlaneList();
+        soundPlayer.playSound("src/main/resources/sounds/Delete.wav");
     }
 
     public static void main(String[] args) {

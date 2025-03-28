@@ -245,6 +245,7 @@ public class Sandbox extends Application {
         gravityField = new TextField();
         gravityField.getStyleClass().add("editor-attribute-field");
         gravityField.setText("9.8");
+        restrictTextFieldToNumbers(gravityField);
 
         HBox gravityWithUnits = new HBox();
         gravityWithUnits.setSpacing(5);
@@ -261,6 +262,7 @@ public class Sandbox extends Application {
         coefficientField = new TextField();
         coefficientField.getStyleClass().add("editor-attribute-field");
         coefficientField.setText("0.4");
+        restrictTextFieldToNumbers(coefficientField);
         coefficientBox.getChildren().addAll(coefficientLabel, coefficientField);
 
         gravityField.setOnKeyPressed(event -> {
@@ -511,6 +513,7 @@ public class Sandbox extends Application {
             TextField angleField = new TextField(String.format("%.1f", plane.calculatePlaneAngle()));
             angleField.setPrefWidth(60);
             angleField.getStyleClass().add("plane-angle-field");
+            restrictTextFieldToNumbers(angleField);
 
             // Add a degree symbol label
             Label degreeLabel = new Label("°");
@@ -591,6 +594,14 @@ public class Sandbox extends Application {
             if(box.rectangle.getRotate() != 0)
                 VectorMath.calculateFrictionVector(box);
         }
+    }
+
+    private void restrictTextFieldToNumbers(TextField textField) {
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*(\\.\\d*)?")) {
+                textField.setText(oldValue);
+            }
+        });
     }
 
     public static void main(String[] args) {

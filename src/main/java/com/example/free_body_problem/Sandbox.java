@@ -179,6 +179,9 @@ public class Sandbox extends Application {
             newRope.addLineResizeListener();
             newRope.addDragListener();
             sandBoxPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());
+
+            // Add to physics object list to enable deletion
+            physicsObjectList.add(newRope);
         });
         ropeButton.setOnMouseEntered(e -> {
             ropeButton.setScaleX(1.2);
@@ -501,6 +504,7 @@ public class Sandbox extends Application {
                         newRope.addLineResizeListener();
                         newRope.addDragListener();
                         sandBoxPane.getChildren().addAll(newRope.getStartHandle(), newRope.getEndHandle());
+                        physicsObjectList.add(newRope);
                         soundPlayer.playSound("src/main/resources/sounds/Place.wav");
                         break;
                 }

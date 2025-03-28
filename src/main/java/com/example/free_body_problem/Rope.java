@@ -10,7 +10,7 @@ import javafx.scene.shape.StrokeLineCap;
 
 import java.util.List;
 
-public class Rope extends Group {
+public class Rope extends PhysicsObject {
     private Line line;
     private Circle startHandle;
     private Circle endHandle;
@@ -206,5 +206,14 @@ public class Rope extends Group {
                 line.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
             }
         });
+    }
+    @Override
+    public double getCenterX() {
+        return (line.getStartX() + line.getEndX()) / 2;
+    }
+
+    @Override
+    public double getCenterY() {
+        return (line.getStartY() + line.getEndY()) / 2;
     }
 }

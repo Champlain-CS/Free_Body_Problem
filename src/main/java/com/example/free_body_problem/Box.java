@@ -76,6 +76,8 @@ public class Box extends PhysicsObject {
         massField.setLayoutY(this.getCenterY() - 14);
         massField.getChildren().addAll(textField, kgLabel);
         massField.getStyleClass().add("massField");
+        restrictTextFieldToNumbers(textField);
+
 
 
         parentContainer.getChildren().addAll(rectangle, massField, resizeHandle);
@@ -89,11 +91,6 @@ public class Box extends PhysicsObject {
             }
         });
 
-        textField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.matches("\\d*")) {
-                textField.setText(newValue.replaceAll("[^\\d]", ""));
-            }
-        });
         textField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 parentContainer.requestFocus(); // Unfocus the TextField by requesting focus on the parent container
@@ -294,5 +291,13 @@ public class Box extends PhysicsObject {
         // Update the mass field position
         massField.setLayoutX(getCenterX() - massField.getWidth() / 2);
         massField.setLayoutY(getCenterY() - massField.getHeight() / 2);
+    }
+
+    private void restrictTextFieldToNumbers(TextField textField) {
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*(\\.\\d*)?")) {
+                textField.setText(oldValue);
+            }
+        });
     }
 }

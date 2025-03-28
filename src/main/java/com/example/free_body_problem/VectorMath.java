@@ -172,6 +172,14 @@ public final class VectorMath {
             netAngle = 360 - phi;
         }
 
+        VectorDisplay xComponentVector = new VectorDisplay(positionCenterX, positionCenterY,
+                xComponent, 270, "x", Color.GRAY);
+        VectorDisplay yComponentVector = new VectorDisplay(positionCenterX, positionCenterY,
+                yComponent, 0, "y", Color.GRAY);
+        Sandbox.sandBoxPane.getChildren().add(xComponentVector);
+        Sandbox.sandBoxPane.getChildren().add(yComponentVector);
+
+
         VectorDisplay netVector = new VectorDisplay(positionCenterX, positionCenterY,
                 magnitude, netAngle, "Net", Color.BLACK);
         box.gravityVector = netVector;

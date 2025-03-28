@@ -78,7 +78,7 @@ public class Box extends PhysicsObject {
         massField.getStyleClass().add("massField");
 
 
-        parentContainer.getChildren().addAll(rectangle, massField, resizeHandle);
+        parentContainer.getChildren().addAll(rectangle, massField);
 
 
         addDragListener();

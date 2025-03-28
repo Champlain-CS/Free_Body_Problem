@@ -1,6 +1,8 @@
 package com.example.free_body_problem;
 
 import javafx.scene.paint.Color;
+import javafx.scene.transform.Rotate;
+import javafx.geometry.Point2D;
 
 public final class VectorMath {
     private Sandbox sandbox;
@@ -13,12 +15,29 @@ public final class VectorMath {
     public static void calculateGravityVector(Box box) {
         double gravityValue = Double.parseDouble(Sandbox.gravityField.getText());
         double massValue = Double.parseDouble(box.getTextField().getText());
-        double positionX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
-        double positionY = box.getRectangle().getY() + box.getRectangle().getHeight();
+
+        double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+        double rotationAngle = box.getRectangle().getRotate();
+
+        // Create a Point2D to represent the center of the rectangle
+        Point2D center = new Point2D(positionCenterX, positionCenterY);
+
+        // The vector's original position relative to the center (before rotation)
+        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double vectorY = box.getRectangle().getY() + box.getRectangle().getHeight();
+
+        // Rotate the vector point relative to the center
+        Rotate rotate = new Rotate(rotationAngle, center.getX(), center.getY());
+        Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
+
+        // Now, rotatedVector gives the new position of the vector after the box is rotated
+        double newPositionX = rotatedVector.getX();
+        double newPositionY = rotatedVector.getY();
 
         double magnitude = massValue*gravityValue;
 
-        VectorDisplay gravityVector = new VectorDisplay(positionX, positionY,
+        VectorDisplay gravityVector = new VectorDisplay(newPositionX, newPositionY,
                 magnitude, 90, "Gravity", Color.BLUE);
         box.gravityVector = gravityVector;
         Sandbox.sandBoxPane.getChildren().add(gravityVector);
@@ -28,8 +47,26 @@ public final class VectorMath {
     public static void calculateNormalVector(Box box) {
         double gravityValue = Double.parseDouble(Sandbox.gravityField.getText());
         double massValue = Double.parseDouble(box.getTextField().getText());
-        double positionX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
-        double positionY = box.getRectangle().getY();
+        double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+        double rotationAngle = box.getRectangle().getRotate();
+
+        // Create a Point2D to represent the center of the rectangle
+        Point2D center = new Point2D(positionCenterX, positionCenterY);
+
+        // The vector's original position relative to the center (before rotation)
+        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double vectorY = box.getRectangle().getY();
+
+        // Rotate the vector point relative to the center
+        Rotate rotate = new Rotate(rotationAngle, center.getX(), center.getY());
+        Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
+
+        // Now, rotatedVector gives the new position of the vector after the box is rotated
+        double newPositionX = rotatedVector.getX();
+        double newPositionY = rotatedVector.getY();
+
+
         double angle = box.rectangle.getRotate();
         double magnitude;
 
@@ -41,7 +78,7 @@ public final class VectorMath {
         }
         normalMag = magnitude;
 
-        VectorDisplay gravityVector = new VectorDisplay(positionX, positionY,
+        VectorDisplay gravityVector = new VectorDisplay(newPositionX, newPositionY,
                 magnitude, angle-90, "Normal", Color.RED);
         box.gravityVector = gravityVector;
         Sandbox.sandBoxPane.getChildren().add(gravityVector);
@@ -51,23 +88,40 @@ public final class VectorMath {
     public static void calculateFrictionVector(Box box) {
         double coefficient = Double.parseDouble(Sandbox.coefficientField.getText());
         double magnitude  = coefficient * normalMag;
-
-        double positionX;
-        double positionY = box.getRectangle().getY() + box.getRectangle().getHeight()/2;
         double angle;
 
+        double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+        double rotationAngle = box.getRectangle().getRotate();
+
+
+        // Create a Point2D to represent the center of the rectangle
+        Point2D center = new Point2D(positionCenterX, positionCenterY);
+
+        // The vector's original position relative to the center (before rotation)
+        double vectorX;
         if(box.rectangle.getRotate() < 180) {
-            positionX = box.getRectangle().getX();
+            vectorX = box.getRectangle().getX();
             angle = box.rectangle.getRotate() + 180;
         }
         else {
-            positionX = box.getRectangle().getX() + box.getRectangle().getWidth();
+            vectorX = box.getRectangle().getX() + box.getRectangle().getWidth();
             angle = box.rectangle.getRotate();
         }
+        double vectorY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+
+        // Rotate the vector point relative to the center
+        Rotate rotate = new Rotate(rotationAngle, center.getX(), center.getY());
+        Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
+
+        // Now, rotatedVector gives the new position of the vector after the box is rotated
+        double newPositionX = rotatedVector.getX();
+        double newPositionY = rotatedVector.getY();
+
 
 
         VectorDisplay frictionVector = new VectorDisplay(
-                positionX, positionY, magnitude, angle, "Friction", Color.GREEN);
+                newPositionX, newPositionY, magnitude, angle, "Friction", Color.GREEN);
         box.frictionVector = frictionVector;
         Sandbox.sandBoxPane.getChildren().add(frictionVector);
         System.out.println("Friction Vector updated for " + box);

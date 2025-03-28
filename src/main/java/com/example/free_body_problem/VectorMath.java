@@ -42,6 +42,8 @@ public final class VectorMath {
         box.gravityVector = gravityVector;
         Sandbox.sandBoxPane.getChildren().add(gravityVector);
         System.out.println("Gravity Vector updated for " + box);
+
+        box.totalYForce -= magnitude; //always down
     }
 
     public static void calculateNormalVector(Box box) {
@@ -78,11 +80,18 @@ public final class VectorMath {
         }
         normalMag = magnitude;
 
-        VectorDisplay gravityVector = new VectorDisplay(newPositionX, newPositionY,
+        VectorDisplay normalVector = new VectorDisplay(newPositionX, newPositionY,
                 magnitude, angle-90, "Normal", Color.RED);
-        box.gravityVector = gravityVector;
-        Sandbox.sandBoxPane.getChildren().add(gravityVector);
+        box.normalVector = normalVector;
+        Sandbox.sandBoxPane.getChildren().add(normalVector);
         System.out.println("Normal Vector updated for " + box);
+
+        box.totalYForce += magnitude * Math.cos(Math.toRadians(angle));
+
+        if(angle <= 90)
+            box.totalXForce += magnitude * Math.sin(Math.toRadians(angle));
+        else
+            box.totalXForce -= magnitude * Math.sin(Math.toRadians(angle));
     }
 
     public static void calculateFrictionVector(Box box) {
@@ -97,6 +106,7 @@ public final class VectorMath {
 
         // Create a Point2D to represent the center of the rectangle
         Point2D center = new Point2D(positionCenterX, positionCenterY);
+        double rawBoxAngle = box.rectangle.getRotate();
 
         // The vector's original position relative to the center (before rotation)
         double vectorX;
@@ -125,5 +135,49 @@ public final class VectorMath {
         box.frictionVector = frictionVector;
         Sandbox.sandBoxPane.getChildren().add(frictionVector);
         System.out.println("Friction Vector updated for " + box);
+
+        //Sending component magnitudes for net vector
+        box.totalYForce += magnitude * Math.sin(Math.toRadians(angle));
+
+        if(rawBoxAngle <= 90)
+            box.totalXForce -= magnitude * Math.cos(Math.toRadians(angle));
+        else
+            box.totalXForce += magnitude * Math.cos(Math.toRadians(angle));
+    }
+
+    public static void calculateNetVector(Box box) {
+        double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+
+        double xComponent = box.totalXForce;
+        double yComponent = box.totalYForce;
+
+        double magnitude = Math.sqrt(xComponent*xComponent + yComponent*yComponent);
+        double boxAngle = box.getRectangle().getRotate();
+        double netAngle;
+
+        //Angle calculation for all 4 cases
+        double phi = Math.toDegrees(Math.atan(yComponent/xComponent))-90; //Angle between net vector and x component (used as reference)
+
+        if(boxAngle <= 90) {
+            netAngle = phi;
+        }
+        else if(boxAngle <= 180) {
+            netAngle = 90 + phi;
+        }
+        else if (boxAngle <= 270) {
+            netAngle = 180 + phi;
+        }
+        else {
+            netAngle = 360 - phi;
+        }
+
+        VectorDisplay netVector = new VectorDisplay(positionCenterX, positionCenterY,
+                magnitude, netAngle, "Net", Color.BLACK);
+        box.gravityVector = netVector;
+        Sandbox.sandBoxPane.getChildren().add(netVector);
+        System.out.println("Net Vector updated for " + box + " at " + netAngle + "degrees");
+
+
     }
 }

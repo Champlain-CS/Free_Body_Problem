@@ -38,8 +38,8 @@ public class Box extends PhysicsObject {
     protected VectorDisplay netVector;
     public List<Plane> planeList;
 
-    protected double totalXForce, totalYForce;
-    protected double angle; //used for vector calculations
+    public double totalXForce, totalYForce;
+    public double angle; //used for vector calculations
 
 
     public Box(double x, double y, double width, double height, Color color, Pane parentContainer, List<Plane> planeList) {

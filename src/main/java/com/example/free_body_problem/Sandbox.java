@@ -27,6 +27,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
@@ -805,45 +806,61 @@ public class Sandbox extends Application {
 
     public static HBox createHelpDialogue() {
         HBox helpBox = new HBox();
-        Rectangle background = new Rectangle();
-        background.setWidth(900);
-        background.setHeight(400);
+        helpBox.setAlignment(Pos.CENTER);
+
+        // Define dimensions
+        double boxWidth = 900;
+        double boxHeight = 400;
+
+        // Create background rectangle
+        Rectangle background = new Rectangle(boxWidth, boxHeight);
         background.setFill(Color.LIGHTBLUE);
         background.setStroke(Color.BLACK);
-        background.setTranslateX(50);
-        background.setTranslateY(50);
 
+        // Create container for text content
+        VBox contentBox = new VBox(10);
+        contentBox.setPadding(new Insets(20));
+        contentBox.setMaxWidth(boxWidth - 40);
+        contentBox.setMaxHeight(boxHeight - 40);
+        contentBox.setAlignment(Pos.TOP_CENTER);
+
+        // Create title
         Label title = new Label("Help Information");
-        title.setFont(Font.font("Arial", 25));
-        title.setTranslateX(-820);
-        title.setTranslateY(70);
-        title.setMinWidth(300);
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 25));
+        title.setPadding(new Insets(0, 0, 10, 0));
 
+        // Create text area for help content
         TextArea textArea = new TextArea();
-        textArea.setTranslateX(-1125);
-        textArea.setTranslateY(110);
         textArea.getStyleClass().add("help-text-area");
         textArea.setEditable(false);
+        textArea.setPrefWidth(boxWidth - 60);
+        textArea.setPrefHeight(boxHeight - 100);
 
+        // Load content from file
         InputStream inputStream = Sandbox.class.getClassLoader().getResourceAsStream("helpText.txt");
         if (inputStream != null) {
             try {
-                // Read the file content
                 Scanner scanner = new Scanner(inputStream);
                 StringBuilder content = new StringBuilder();
                 while (scanner.hasNextLine()) {
                     content.append(scanner.nextLine()).append("\n");
                 }
                 scanner.close();
-
-                // Set the content to the TextArea
                 textArea.setText(content.toString());
             } catch (Exception e) {
-                textArea.setText("File not found!");
+                textArea.setText("Help content not found!");
             }
         }
 
-        helpBox.getChildren().addAll(background, title, textArea);
+        // Add elements to containers
+        contentBox.getChildren().addAll(title, textArea);
+        StackPane centerPane = new StackPane(background, contentBox);
+        helpBox.getChildren().add(centerPane);
+
+        // Center the help box in the sandbox pane
+        helpBox.layoutXProperty().bind(sandBoxPane.widthProperty().subtract(boxWidth).divide(2));
+        helpBox.layoutYProperty().bind(sandBoxPane.heightProperty().subtract(boxHeight).divide(2));
+
         return helpBox;
     }
 }

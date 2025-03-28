@@ -80,7 +80,7 @@ public class Box extends PhysicsObject {
 
 
 
-        parentContainer.getChildren().addAll(rectangle, massField, resizeHandle);
+        parentContainer.getChildren().addAll(rectangle, massField);
 
 
         addDragListener();

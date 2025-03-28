@@ -404,6 +404,16 @@ public class Sandbox extends Application {
                         rootIterator.remove();
                     }
                 }
+                Iterator<Node> boxIterator = sandBoxPane.getChildren().iterator();
+                while (boxIterator.hasNext()) {
+                    Node node = boxIterator.next();
+                    if (node instanceof Box) {
+                        ((Box) node).totalXForce = 0;
+                        ((Box) node).totalYForce = 0;
+                    }
+                }
+
+
                 sandBoxRoot.setStyle("-fx-background-color: white");
                 vectorDisplayView.setImage(
                         new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
@@ -629,6 +639,8 @@ public class Sandbox extends Application {
             if(box.rectangle.getRotate() != 0)
                 VectorMath.calculateFrictionVector(box);
         }
+
+        VectorMath.calculateNetVector(box);
     }
 
     private void restrictTextFieldToNumbers(TextField textField) {

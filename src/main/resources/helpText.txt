@@ -1,4 +1,17 @@
-- Drag objects from the bottom panel to add them to the sandbox.
-- Angle planes by dragging either end.
-- Connect objects through a pulley by using a rope.
-- Manually change any block’s mass to your desired value
+Thank you for using the Free Body Problem Simulator!
+
+There are certain key commands that you can use to interact with the simulator. Here are some of the most important ones:
+I = Information
+D = Delete Mode
+R = Reset
+M = Menu
+V = Vectors Mode
+You may also use the integrated Buttons around the screen to perform these actions.
+
+There are also some other quirks and features that you should be aware of:
+- To snap two objects you must drag the red handles on either side of the object.
+- To unsnap two objects you must drag the body of the object away from the other object.
+- When in display Vectors Mode you may not edit the system, you must exit the mode to edit the system.
+- The simulator will not automatically save your system when you exit the program.
+
+Enjoy your time using the Free Body Problem Simulator!

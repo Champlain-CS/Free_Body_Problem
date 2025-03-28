@@ -14,7 +14,7 @@ public class HelpInfoDialogueBox extends Pane {
     HelpInfoDialogueBox() {
         background = new Rectangle();
         background.setWidth(900);
-        background.setHeight(400);
+        background.setHeight(500);
         background.setFill(Color.LIGHTBLUE);
 
         title = new Label();

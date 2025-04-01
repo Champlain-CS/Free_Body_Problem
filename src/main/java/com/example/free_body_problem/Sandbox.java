@@ -564,7 +564,6 @@ public class Sandbox extends Application {
                 newPlane.getStartHandle(),
                 newPlane.getEndHandle()
         );
-        newPlane.addKeyListener();
 
         // Update the plane list
         updatePlaneList();

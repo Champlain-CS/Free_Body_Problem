@@ -110,6 +110,10 @@ public class VectorDisplay extends Pane {
         updateVector();
     }
 
+    public Text getForceName() {
+        return forceName;
+    }
+
     public double getLength() {
         return length;
     }

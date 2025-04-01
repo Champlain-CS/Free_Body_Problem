@@ -27,6 +27,9 @@ public class Box extends PhysicsObject {
     private Double lastDragDelta = null;
 
 
+    public double gravityForce;
+    public double normalForce;
+    public double frictionForce;
     public boolean snappedToPlane = false;
     public Plane snappedPlane;
     boolean isSnapped = false;

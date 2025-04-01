@@ -7,11 +7,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -51,6 +47,12 @@ public class Sandbox extends Application {
     private BorderPane sandBoxRoot;
     private ImageView vectorDisplayView;
     private VBox menuPane;
+
+    // Checkboxes for vector display control
+    private CheckBox gravityVectorCB;
+    private CheckBox normalVectorCB;
+    private CheckBox frictionVectorCB;
+    private CheckBox netForceVectorCB;
 
     // Instantiate SoundPlayer
     private SoundPlayer soundPlayer = new SoundPlayer();
@@ -311,13 +313,66 @@ public class Sandbox extends Application {
         vectorDisplayView.setPickOnBounds(true);
         vectorDisplayBox.getChildren().addAll(vectorDisplayLabel, vectorDisplayView);
 
+        // Create checkboxes for different vector types
+        gravityVectorCB = new CheckBox("Gravity");
+        gravityVectorCB.getStyleClass().add("vector-checkbox");
+        gravityVectorCB.setSelected(true);
+
+        normalVectorCB = new CheckBox("Normal Force");
+        normalVectorCB.getStyleClass().add("vector-checkbox");
+        normalVectorCB.setSelected(true);
+
+        frictionVectorCB = new CheckBox("Friction");
+        frictionVectorCB.getStyleClass().add("vector-checkbox");
+        frictionVectorCB.setSelected(true);
+
+        netForceVectorCB = new CheckBox("Net Force");
+        netForceVectorCB.getStyleClass().add("vector-checkbox");
+        netForceVectorCB.setSelected(true);
+
+        // Pack checkboxes in a VBox with appropriate padding
+        VBox vectorCheckboxes = new VBox(10);
+        vectorCheckboxes.setPadding(new Insets(5, 10, 10, 20));
+        vectorCheckboxes.getChildren().addAll(
+                gravityVectorCB,
+                normalVectorCB,
+                frictionVectorCB,
+                netForceVectorCB
+        );
+
+        // Add event handlers to checkboxes to update vector display
+        gravityVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (isDisplayingVectors) {
+                updateAllVectors();
+            }
+        });
+
+        normalVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (isDisplayingVectors) {
+                updateAllVectors();
+            }
+        });
+
+        frictionVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (isDisplayingVectors) {
+                updateAllVectors();
+            }
+        });
+
+        netForceVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (isDisplayingVectors) {
+                updateAllVectors();
+            }
+        });
+
         // Add elements to the editor pane
         editorPane.getChildren().addAll(
                 editorLabel,
                 planeScrollPane,  // Add the scroll pane
                 gravityBox,
                 coefficientBox,
-                vectorDisplayBox
+                vectorDisplayBox,// Add the vector controls section
+                vectorCheckboxes      // Add the vector checkboxes
         );
 
         // Instantiate SoundPlayer for reset button
@@ -411,6 +466,12 @@ public class Sandbox extends Application {
         planeListBox.getChildren().clear();  // Clear the plane list
         isDisplayingVectors = false;
 
+        // Reset checkboxes to selected state
+        gravityVectorCB.setSelected(true);
+        normalVectorCB.setSelected(true);
+        frictionVectorCB.setSelected(true);
+        netForceVectorCB.setSelected(true);
+
         // Removing the lock
         Iterator<Node> rootIterator = sandBoxRoot.getChildren().iterator();
         while (rootIterator.hasNext()) {
@@ -464,19 +525,32 @@ public class Sandbox extends Application {
 
         } else { // Add vectors
             isDisplayingVectors = true;
-            for (PhysicsObject physObj : physicsObjectList) {
-                if (physObj instanceof Box) {
-                    // Cast the physObj to Box to access Box-specific methods
-                    Box box = (Box) physObj;
-                    updateVectors(box);
-                }
-            }
+            updateAllVectors();
+
             LockPane locker = new LockPane(sandBoxPane.getWidth(), sandBoxRoot.getHeight());
             locker.setTranslateX(((VBox)sandBoxRoot.getLeft()).getWidth());
             sandBoxRoot.getChildren().add(locker);
             sandBoxRoot.setStyle("-fx-background-color: #8d9393");
             vectorDisplayView.setImage(
                     new Image(getClass().getResourceAsStream("/images/vectorDisplayCrossed.png")));
+        }
+    }
+
+    private void updateAllVectors() {
+        // Clear all existing vectors
+        Iterator<Node> iterator = sandBoxPane.getChildren().iterator();
+        while (iterator.hasNext()) {
+            Node node = iterator.next();
+            if (node instanceof VectorDisplay) {
+                iterator.remove();
+            }
+        }
+
+        // Recalculate vectors for all boxes
+        for (PhysicsObject physObj : physicsObjectList) {
+            if (physObj instanceof Box) {
+                updateVectors((Box) physObj);
+            }
         }
     }
 
@@ -660,15 +734,53 @@ public class Sandbox extends Application {
     }
 
     public void updateVectors(Box box) {
-        VectorMath.calculateGravityVector(box);
-
-        if(box.isSnapped) {
-            VectorMath.calculateNormalVector(box);
-            if(box.rectangle.getRotate() != 0)
-                VectorMath.calculateFrictionVector(box);
+        // Remove existing vectors for this box
+        Iterator<Node> iterator = sandBoxPane.getChildren().iterator();
+        while (iterator.hasNext()) {
+            Node node = iterator.next();
+            if (node instanceof VectorDisplay &&
+                    ((VectorDisplay)node).getUserData() == box) {
+                iterator.remove();
+            }
         }
 
-        VectorMath.calculateNetVector(box);
+        // Reset force totals before recalculating
+        box.totalXForce = 0;
+        box.totalYForce = 0;
+
+        // Calculate ALL forces regardless of checkbox selections
+        // This ensures physics remains consistent
+        VectorMath.calculateGravityVector(box);
+
+        if (box.isSnapped) {
+            VectorMath.calculateNormalVector(box);
+        }
+
+        if (box.isSnapped && box.rectangle.getRotate() != 0) {
+            VectorMath.calculateFrictionVector(box);
+        }
+
+        // Remove vectors that shouldn't be displayed based on checkbox selections
+        iterator = sandBoxPane.getChildren().iterator();
+        while (iterator.hasNext()) {
+            Node node = iterator.next();
+            if (node instanceof VectorDisplay) {
+                VectorDisplay vectorDisplay = (VectorDisplay) node;
+                String vectorName = vectorDisplay.getForceName().getText();
+
+                if ((!gravityVectorCB.isSelected() && vectorName.equals("Gravity")) ||
+                        (!normalVectorCB.isSelected() && vectorName.equals("Normal")) ||
+                        (!frictionVectorCB.isSelected() && vectorName.equals("Friction")) ||
+                        (!netForceVectorCB.isSelected() && vectorName.equals("Net"))) {
+                    iterator.remove();
+                }
+            }
+        }
+
+        // Always calculate net force for physics, but only display if selected
+        if (netForceVectorCB.isSelected()) {
+            VectorMath.calculateNetVector(box);
+        }
     }
 
     // Extract the toggle functionality to a reusable method

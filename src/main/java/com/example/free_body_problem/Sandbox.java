@@ -48,6 +48,9 @@ public class Sandbox extends Application {
     private VBox planeListBox; // New field to store the list of plane angles
     private boolean deletionMode = false;
     private Button deleteBT;
+    private BorderPane sandBoxRoot;
+    private ImageView vectorDisplayView;
+    private VBox menuPane;
 
     // Instantiate SoundPlayer
     private SoundPlayer soundPlayer = new SoundPlayer();
@@ -57,7 +60,7 @@ public class Sandbox extends Application {
         primaryStage.setMaximized(true);
 
         // Root pane
-        BorderPane sandBoxRoot = new BorderPane();
+        sandBoxRoot = new BorderPane();
         sandBoxRoot.setStyle("-fx-border-color: darkgray");
 
         // Pane for draggable shapes
@@ -78,21 +81,9 @@ public class Sandbox extends Application {
 
         sandBoxRoot.setBottom(bottomBar);
         deleteBT = new Button("DELETE");
-        deleteBT.getStyleClass().add("menu-button");
+        deleteBT.getStyleClass().add("delete-button"); // Apply CSS class
         deleteBT.setOnMouseClicked(e -> {
-            // Toggle deletion mode
-            deletionMode = !deletionMode;
-
-            if (deletionMode) {
-
-                // Visual indication that delete mode is active
-                deleteBT.getStyleClass().add("delete-mode-active");
-                sandBoxPane.setCursor(Cursor.CROSSHAIR);
-            } else {
-                // Return to normal mode
-                deleteBT.getStyleClass().remove("delete-mode-active");
-                sandBoxPane.setCursor(Cursor.DEFAULT);
-            }
+            toggleDeleteMode();
         });
         // Back to Menu Button
         Button menuBT = new Button("MENU");
@@ -101,12 +92,7 @@ public class Sandbox extends Application {
         SoundPlayer menuSoundPlayer = new SoundPlayer();
 
         menuBT.setOnMouseClicked(e -> {
-            // Play menu button sound
-            menuSoundPlayer.playSound("src/main/resources/sounds/Menu.wav");
-
-            GUI app = new GUI();
-            app.start(new Stage());
-            primaryStage.close();
+            showMenu();
         });
 
         // Add RESET button
@@ -318,7 +304,7 @@ public class Sandbox extends Application {
         vectorDisplayBox.getStyleClass().add("larger-editor-attribute-box");
         Label vectorDisplayLabel = new Label("Display Vectors: ");
         vectorDisplayLabel.getStyleClass().add("editor-attribute-label");
-        ImageView vectorDisplayView = new ImageView(
+        vectorDisplayView = new ImageView(
                 new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
         vectorDisplayView.setPreserveRatio(true);
         vectorDisplayView.setFitHeight(50);
@@ -338,27 +324,7 @@ public class Sandbox extends Application {
         SoundPlayer resetSoundPlayer = new SoundPlayer();
 
         resetBT.setOnMouseClicked(event -> {
-            sandBoxPane.getChildren().clear();
-            gravityField.setText("9.8");
-            physicsObjectList.clear();
-            planes.clear();
-            planeListBox.getChildren().clear();  // Clear the plane list
-            isDisplayingVectors = false;
-
-            // Removing the lock
-            Iterator<Node> rootIterator = sandBoxRoot.getChildren().iterator();
-            while (rootIterator.hasNext()) {
-                Node node = rootIterator.next();
-                if (node instanceof LockPane) {
-                    rootIterator.remove();
-                }
-            }
-            sandBoxRoot.setStyle("-fx-background-color: white");
-            vectorDisplayView.setImage(
-                    new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
-
-            // Play reset sound
-            resetSoundPlayer.playSound("src/main/resources/sounds/Reset.wav");
+            resetSimulation();
         });
 
         // Set up the stage
@@ -371,14 +337,9 @@ public class Sandbox extends Application {
         // Instantiate SoundPlayer for info display
         SoundPlayer infoSoundPlayer = new SoundPlayer();
 
+        // Keep the existing click handler
         infoDisplayView.setOnMouseClicked(event -> {
-            if (helpBox == null) {
-                helpBox = createHelpDialogue(); // Create the help box
-                sandBoxPane.getChildren().add(helpBox); // Add it to the pane
-            } else {
-                sandBoxPane.getChildren().remove(helpBox); // Remove it from the pane
-                helpBox = null; // Reset the helpBox variable to null
-            }
+            toggleHelpBox();
 
             // Play info display sound
             infoSoundPlayer.playSound("src/main/resources/sounds/Info.wav");
@@ -388,68 +349,135 @@ public class Sandbox extends Application {
         SoundPlayer vectorSoundPlayer = new SoundPlayer();
 
         vectorDisplayView.setOnMouseClicked(event -> {
-            if (isDisplayingVectors) { // Remove vectors
-                isDisplayingVectors = false;
-
-                Iterator<Node> paneIterator = sandBoxPane.getChildren().iterator();
-                while (paneIterator.hasNext()) {
-                    Node node = paneIterator.next();
-                    if (node instanceof VectorDisplay) {
-                        paneIterator.remove();
-                    }
-                }
-                Iterator<Node> rootIterator = sandBoxRoot.getChildren().iterator();
-                while (rootIterator.hasNext()) {
-                    Node node = rootIterator.next();
-                    if (node instanceof LockPane) {
-                        rootIterator.remove();
-                    }
-                }
-                Iterator<Node> boxIterator = sandBoxPane.getChildren().iterator();
-                while (boxIterator.hasNext()) {
-                    Node node = boxIterator.next();
-                    if (node instanceof Box) {
-                        ((Box) node).totalXForce = 0;
-                        ((Box) node).totalYForce = 0;
-                    }
-                }
-
-
-                sandBoxRoot.setStyle("-fx-background-color: white");
-                vectorDisplayView.setImage(
-                        new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
-
-                System.out.println("unlocked");
-
-            } else { // Add vectors
-                isDisplayingVectors = true;
-                for (PhysicsObject physObj : physicsObjectList) {
-                    if (physObj instanceof Box) {
-                        // Cast the physObj to Box to access Box-specific methods
-                        Box box = (Box) physObj;
-                        updateVectors(box);
-                    }
-                }
-                LockPane locker = new LockPane(sandBoxPane.getWidth(), sandBoxRoot.getHeight());
-                locker.setTranslateX(editorPane.getWidth());
-                sandBoxRoot.getChildren().add(locker);
-                sandBoxRoot.setStyle("-fx-background-color: #8d9393");
-                vectorDisplayView.setImage(
-                        new Image(getClass().getResourceAsStream("/images/vectorDisplayCrossed.png")));
-                System.out.println("Locked");
-            }
+            toggleVectorsMode();
 
             // Play vector button sound
             vectorSoundPlayer.playSound("src/main/resources/sounds/Vectors.wav");
         });
 
-        // Add event handler to remove the large rectangle when Escape is pressed
-        scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ESCAPE && helpBox != null) {
-                sandBoxRoot.getChildren().remove(helpBox);
-                helpBox = null;
+        // Add comprehensive key handler for all shortcuts
+        sandBoxPane.getScene().setOnKeyPressed(event -> {
+            switch (event.getCode()) {
+                case I:
+                    toggleHelpBox();
+                    infoSoundPlayer.playSound("src/main/resources/sounds/Info.wav");
+                    break;
+                case D:
+                    toggleDeleteMode();
+                    break;
+                case R:
+                    resetSimulation();
+                    resetSoundPlayer.playSound("src/main/resources/sounds/Reset.wav");
+                    break;
+                case M:
+                    showMenu();
+                    menuSoundPlayer.playSound("src/main/resources/sounds/Menu.wav");
+                    break;
+                case V:
+                    toggleVectorsMode();
+                    vectorSoundPlayer.playSound("src/main/resources/sounds/Vectors.wav");
+                    break;
             }
         });
+
+        // Remove the old key handler to avoid duplication
+        sandBoxPane.setOnKeyPressed(null);
+
+        // Make the pane focusable
+        sandBoxPane.setFocusTraversable(true);
+    }
+
+    private void toggleDeleteMode() {
+        deletionMode = !deletionMode;
+
+        if (deletionMode) {
+            // Visual indication that delete mode is active
+            deleteBT.getStyleClass().remove("delete-button");
+            deleteBT.getStyleClass().add("delete-button-active");
+            sandBoxPane.setCursor(Cursor.CROSSHAIR);
+        } else {
+            // Return to normal mode
+            deleteBT.getStyleClass().remove("delete-button-active");
+            deleteBT.getStyleClass().add("delete-button");
+            sandBoxPane.setCursor(Cursor.DEFAULT);
+        }
+    }
+
+    private void resetSimulation() {
+        sandBoxPane.getChildren().clear();
+        gravityField.setText("9.8");
+        physicsObjectList.clear();
+        planes.clear();
+        planeListBox.getChildren().clear();  // Clear the plane list
+        isDisplayingVectors = false;
+
+        // Removing the lock
+        Iterator<Node> rootIterator = sandBoxRoot.getChildren().iterator();
+        while (rootIterator.hasNext()) {
+            Node node = rootIterator.next();
+            if (node instanceof LockPane) {
+                rootIterator.remove();
+            }
+        }
+        sandBoxRoot.setStyle("-fx-background-color: white");
+        vectorDisplayView.setImage(
+                new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+    }
+
+    private void showMenu() {
+        // Play menu button sound - sound is played where method is called
+        GUI app = new GUI();
+        app.start(new Stage());
+        ((Stage) sandBoxPane.getScene().getWindow()).close();
+    }
+
+    private void toggleVectorsMode() {
+        if (isDisplayingVectors) { // Remove vectors
+            isDisplayingVectors = false;
+
+            Iterator<Node> paneIterator = sandBoxPane.getChildren().iterator();
+            while (paneIterator.hasNext()) {
+                Node node = paneIterator.next();
+                if (node instanceof VectorDisplay) {
+                    paneIterator.remove();
+                }
+            }
+            Iterator<Node> rootIterator = sandBoxRoot.getChildren().iterator();
+            while (rootIterator.hasNext()) {
+                Node node = rootIterator.next();
+                if (node instanceof LockPane) {
+                    rootIterator.remove();
+                }
+            }
+            Iterator<Node> boxIterator = sandBoxPane.getChildren().iterator();
+            while (boxIterator.hasNext()) {
+                Node node = boxIterator.next();
+                if (node instanceof Box) {
+                    ((Box) node).totalXForce = 0;
+                    ((Box) node).totalYForce = 0;
+                }
+            }
+
+            sandBoxRoot.setStyle("-fx-background-color: white");
+            vectorDisplayView.setImage(
+                    new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+
+        } else { // Add vectors
+            isDisplayingVectors = true;
+            for (PhysicsObject physObj : physicsObjectList) {
+                if (physObj instanceof Box) {
+                    // Cast the physObj to Box to access Box-specific methods
+                    Box box = (Box) physObj;
+                    updateVectors(box);
+                }
+            }
+            LockPane locker = new LockPane(sandBoxPane.getWidth(), sandBoxRoot.getHeight());
+            locker.setTranslateX(((VBox)sandBoxRoot.getLeft()).getWidth());
+            sandBoxRoot.getChildren().add(locker);
+            sandBoxRoot.setStyle("-fx-background-color: #8d9393");
+            vectorDisplayView.setImage(
+                    new Image(getClass().getResourceAsStream("/images/vectorDisplayCrossed.png")));
+        }
     }
 
     private void addDragHandlers(Node button, Pane sandBoxPane, String shapeType) {
@@ -644,6 +672,17 @@ public class Sandbox extends Application {
         VectorMath.calculateNetVector(box);
     }
 
+    // Extract the toggle functionality to a reusable method
+    private void toggleHelpBox() {
+        if (helpBox == null) {
+            helpBox = createHelpDialogue(); // Create the help box
+            sandBoxPane.getChildren().add(helpBox); // Add it to the pane
+        } else {
+            sandBoxPane.getChildren().remove(helpBox); // Remove it from the pane
+            helpBox = null; // Reset the helpBox variable to null
+        }
+    }
+
     private void restrictTextFieldToNumbers(TextField textField) {
         textField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d*(\\.\\d*)?")) {
@@ -651,6 +690,7 @@ public class Sandbox extends Application {
             }
         });
     }
+
     private void deleteElement(Node clickedNode) {
         // Check if the clicked node is directly a node we recognize
         for (Object obj : new ArrayList<>(physicsObjectList)) {
@@ -808,6 +848,9 @@ public class Sandbox extends Application {
         HBox helpBox = new HBox();
         helpBox.setAlignment(Pos.CENTER);
 
+        // Set high z-order to ensure help stays on top
+        helpBox.setViewOrder(-1000);  // Lower values appear on top
+
         // Define dimensions
         double boxWidth = 900;
         double boxHeight = 400;
@@ -825,9 +868,11 @@ public class Sandbox extends Application {
         contentBox.setAlignment(Pos.TOP_CENTER);
 
         // Create title
-        Label title = new Label("Help Information");
+        Text title = new Text("Help Information");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 25));
-        title.setPadding(new Insets(0, 0, 10, 0));
+        title.setFill(Color.BLACK);
+        // Add drop shadow to make title more visible
+        title.setEffect(new javafx.scene.effect.DropShadow(5, Color.WHITE));
 
         // Create text area for help content
         TextArea textArea = new TextArea();
@@ -835,6 +880,8 @@ public class Sandbox extends Application {
         textArea.setEditable(false);
         textArea.setPrefWidth(boxWidth - 60);
         textArea.setPrefHeight(boxHeight - 100);
+        // Ensure text area is on top
+        textArea.setViewOrder(-1001);
 
         // Load content from file
         InputStream inputStream = Sandbox.class.getClassLoader().getResourceAsStream("helpText.txt");
@@ -857,9 +904,22 @@ public class Sandbox extends Application {
         StackPane centerPane = new StackPane(background, contentBox);
         helpBox.getChildren().add(centerPane);
 
+        // Add a semi-transparent overlay to block interaction with elements beneath
+        Rectangle overlay = new Rectangle();
+        overlay.widthProperty().bind(sandBoxPane.widthProperty());
+        overlay.heightProperty().bind(sandBoxPane.heightProperty());
+        overlay.setFill(Color.rgb(0, 0, 0, 0.3));
+        overlay.setViewOrder(-999);  // Just behind the help box
+
         // Center the help box in the sandbox pane
         helpBox.layoutXProperty().bind(sandBoxPane.widthProperty().subtract(boxWidth).divide(2));
         helpBox.layoutYProperty().bind(sandBoxPane.heightProperty().subtract(boxHeight).divide(2));
+
+        // Create container that includes both overlay and help box
+        Group helpGroup = new Group();
+        helpGroup.getChildren().addAll(overlay, helpBox);
+
+        // Removed the close button code that was here
 
         return helpBox;
     }

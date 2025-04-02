@@ -21,7 +21,36 @@
 .menu-button:hover {
     -fx-background-color: linear-gradient(to top, #4ca0d5, #4c7cd5);
 }
-
+.delete-button {
+    /*-fx-background-color: linear-gradient(to bottom, #ff8c00, #ff4500);*/
+    -fx-background-color: linear-gradient(to bottom, #4ca0d5, #4c7cd5);
+    -fx-text-fill: #abe2ff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 5px 15px;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-border-color: darkgray;
+    -fx-border-width: 2px;
+}
+.delete-button:hover {
+    -fx-background-color: linear-gradient(to top, #4ca0d5, #4c7cd5);
+}
+.delete-button-active {
+    /*-fx-background-color: linear-gradient(to bottom, #ff8c00, #ff4500);*/
+    -fx-background-color: linear-gradient(to bottom, #000000, #ffffff);
+    -fx-text-fill: #000000;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 5px 15px;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-border-color: darkgray;
+    -fx-border-width: 2px;
+}
+.delete-button-active:hover {
+    -fx-background-color: linear-gradient(to top, #000000, #ffffff);
+}
 
 .editor-pane {
     -fx-spacing: 50px;

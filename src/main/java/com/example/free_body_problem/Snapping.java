@@ -191,6 +191,34 @@ public class Snapping {
                 target.connectedRopes.put(rope, true);
                 rope.setStartConnection(target);
             }
+        } else if (target instanceof Plane) {
+            // Handle Plane nodes
+            Plane plane = (Plane) target;
+            Line planeLine = plane.getLine();
+
+            // Find the closest point on the plane to the rope start
+            double[] closestPoint = findClosestPointOnLine(px, py, planeLine);
+
+            // Calculate distance to the plane
+            double distance = Math.sqrt(Math.pow(px - closestPoint[0], 2) + Math.pow(py - closestPoint[1], 2));
+
+            if (distance <= SNAP_THRESHOLD) {
+                // If we're snapping to a new object, remove connection from the old one
+                if (currentStartConnection != null && currentStartConnection != target) {
+                    currentStartConnection.connectedRopes.remove(rope);
+                }
+
+                // Update rope position to the closest point on the plane
+                rope.getLine().setStartX(closestPoint[0]);
+                rope.getLine().setStartY(closestPoint[1]);
+
+                // Store the connection in both objects
+                target.connectedRopes.put(rope, true);
+                rope.setStartConnection(target);
+
+                System.out.println("YOOO");
+            }
+
         }
     }
 
@@ -259,6 +287,32 @@ public class Snapping {
                 rope.setEndConnection(target);
             }
         }
+        else if (target instanceof Plane) {
+        // Handle Plane nodes
+        Plane plane = (Plane) target;
+        Line planeLine = plane.getLine();
+
+        // Find the closest point on the plane to the rope end
+        double[] closestPoint = findClosestPointOnLine(px, py, planeLine);
+
+        // Calculate distance to the plane
+        double distance = Math.sqrt(Math.pow(px - closestPoint[0], 2) + Math.pow(py - closestPoint[1], 2));
+
+        if (distance <= SNAP_THRESHOLD) {
+            // If we're snapping to a new object, remove connection from the old one
+            if (currentEndConnection != null && currentEndConnection != target) {
+                currentEndConnection.connectedRopes.remove(rope);
+            }
+
+            // Update rope position to the closest point on the plane
+            rope.getLine().setEndX(closestPoint[0]);
+            rope.getLine().setEndY(closestPoint[1]);
+
+            // Store the connection in both objects
+            target.connectedRopes.put(rope, false);
+            rope.setEndConnection(target);
+        }
+    }
     }
 
     public static void snapPlaneEnds(Line plane1, Line plane2) {

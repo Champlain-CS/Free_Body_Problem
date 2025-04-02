@@ -12,13 +12,21 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.geometry.Pos;
 
-public class Plane {
+import java.util.ArrayList;
+import java.util.List;
+
+public class Plane extends  PhysicsObject {
     private Line line;
     private Circle startHandle;
     private Circle endHandle;
     private static final double SNAP_ANGLE_THRESHOLD = 5;
     private boolean isTransformMode = true;
     private double[] dragOffset;
+    private List<Pulley> connectedPulleys = new ArrayList<>();
+    public List<Rope> connectedRopes;
+    public List<Boolean> ropeStartSnapped;
+    public List<Boolean> ropeEndSnapped;
+
 
     private Sandbox sandbox;
 
@@ -85,6 +93,15 @@ public class Plane {
         line.endXProperty().addListener((obs, oldVal, newVal) -> updateAngleDisplay());
         line.endYProperty().addListener((obs, oldVal, newVal) -> updateAngleDisplay());
     }
+
+    public void addConnectedPulley(Pulley pulley) {
+        connectedPulleys.add(pulley);
+    }
+
+    public void removeConnectedPulley(Pulley pulley) {
+        connectedPulleys.remove(pulley);
+    }
+
 
     public void updateAngleDisplay() {
         double angle = calculatePlaneAngle();
@@ -179,6 +196,7 @@ public class Plane {
                 line.setStartY(startY);
                 startHandle.setCenterX(startX);
                 startHandle.setCenterY(startY);
+
             }
 
             // Snap to other planes
@@ -265,6 +283,22 @@ public class Plane {
         });
     }
 
+    public void addKeyListener() {
+        line.getScene().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.R) {
+                Sandbox sandbox = this.sandbox;
+                boolean allSameMode = sandbox.areAllPlanesInSameMode();
+                boolean newMode = !isTransformMode;
+                if (!allSameMode) {
+                    newMode = !newMode;
+                }
+                for (Plane plane : sandbox.getPlanes()) {
+                    plane.setTransformMode(newMode);
+                }
+            }
+        });
+    }
+
     public boolean isTransformMode() {
         return isTransformMode;
     }
@@ -298,6 +332,17 @@ public class Plane {
         }
         return angle;
     }
+
+
+    public double getCenterX() {
+        return (line.getStartX() + line.getEndX()) / 2;
+    }
+
+    @Override
+    public double getCenterY() {
+        return (line.getStartY() + line.getEndY()) / 2;
+    }
+
 
 
 }

@@ -617,6 +617,8 @@ public class Sandbox extends Application {
     private Plane createPlane(double startX, double startY, double endX, double endY, Color color) {
         Plane newPlane = new Plane(startX, startY, endX, endY, color, this);
         planes.add(newPlane);
+        physicsObjectList.add(newPlane);
+
         sandBoxPane.getChildren().add(newPlane.getLine());
         newPlane.addLineResizeListener();
         newPlane.addDragListener();

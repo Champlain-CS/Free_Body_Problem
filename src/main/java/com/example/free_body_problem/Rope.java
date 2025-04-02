@@ -18,6 +18,7 @@ public class Rope extends PhysicsObject {
     public Boolean endSnapped = false;
     private List<PhysicsObject> physicsObjectList;
     private boolean isOnHandle = false;
+    public double tension = 0;
 
     // Add these new fields to track connections
     private PhysicsObject startConnection;
@@ -127,6 +128,7 @@ public class Rope extends PhysicsObject {
 
         startHandle.setOnMouseReleased(event -> {
             isOnHandle = false;
+
         });
 
         endHandle.setOnMousePressed(event -> {

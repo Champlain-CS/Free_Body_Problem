@@ -300,4 +300,9 @@ public class Box extends PhysicsObject {
             }
         });
     }
+
+    public void resetNetVectorComponents() {
+        totalXForce =0;
+        totalYForce =0;
+    }
 }

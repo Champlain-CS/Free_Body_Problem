@@ -80,18 +80,25 @@ public final class VectorMath {
         }
         normalMag = magnitude;
 
+
         VectorDisplay normalVector = new VectorDisplay(newPositionX, newPositionY,
                 magnitude, angle-90, "Normal", Color.RED);
         box.normalVector = normalVector;
         Sandbox.sandBoxPane.getChildren().add(normalVector);
         System.out.println("Normal Vector updated for " + box);
 
+
         box.totalYForce += magnitude * Math.cos(Math.toRadians(angle));
 
-        if(angle <= 90)
-            box.totalXForce += magnitude * Math.sin(Math.toRadians(angle));
-        else
-            box.totalXForce -= magnitude * Math.sin(Math.toRadians(angle));
+        double totalXForce = magnitude * Math.sin(Math.toRadians(angle));
+        box.totalXForce += totalXForce;
+
+
+        // Components
+        VectorDisplay normalY = new VectorDisplay(newPositionX, newPositionY, magnitude * Math.cos(Math.toRadians(angle)),
+                270, "Ny", Color.DARKRED);
+        VectorDisplay normalX = new VectorDisplay(newPositionX, newPositionY, totalXForce, 0, "Nx", Color.DARKRED);
+        //Sandbox.sandBoxPane.getChildren().addAll(normalY, normalX);
     }
 
     public static void calculateFrictionVector(Box box) {
@@ -136,13 +143,19 @@ public final class VectorMath {
         Sandbox.sandBoxPane.getChildren().add(frictionVector);
         System.out.println("Friction Vector updated for " + box);
 
-        //Sending component magnitudes for net vector
-        box.totalYForce += magnitude * Math.sin(Math.toRadians(angle));
 
-        if(rawBoxAngle <= 90)
-            box.totalXForce -= magnitude * Math.cos(Math.toRadians(angle));
-        else
-            box.totalXForce += magnitude * Math.cos(Math.toRadians(angle));
+        //Sending component magnitudes for net vector
+        double totalXForce = magnitude * Math.cos(Math.toRadians(angle));
+        box.totalXForce += totalXForce;
+
+        double totalYForce = -magnitude * Math.sin(Math.toRadians(angle));
+        box.totalYForce += totalYForce;
+
+        // Components
+        VectorDisplay frictionX = new VectorDisplay(newPositionX, newPositionY, totalXForce, 0, "Fx", Color.DARKGREEN);
+        VectorDisplay frictionY = new VectorDisplay(newPositionX, newPositionY, totalYForce,
+                270, "Fy", Color.DARKGREEN);
+        //Sandbox.sandBoxPane.getChildren().addAll(frictionX, frictionY);
     }
 
     public static void calculateNetVector(Box box) {
@@ -153,32 +166,26 @@ public final class VectorMath {
         double yComponent = box.totalYForce;
 
         double magnitude = Math.sqrt(xComponent*xComponent + yComponent*yComponent);
-        double boxAngle = box.getRectangle().getRotate();
+        double boxAngle = box.getRectangle().getRotate()+90;
         double netAngle;
 
         //Angle calculation for all 4 cases
-        double phi = Math.toDegrees(Math.atan(yComponent/xComponent))-90; //Angle between net vector and x component (used as reference)
+        double phi = Math.toDegrees(Math.atan(yComponent/xComponent))+180; //Angle between net vector and x component (used as reference)
+        System.out.println("phi = " + phi);
 
-        if(boxAngle <= 90) {
+        //Net angle adjustment
+        if(0 <= boxAngle && boxAngle < 90) {
             netAngle = phi;
         }
-        else if(boxAngle <= 180) {
-            netAngle = 90 + phi;
+        else if(90 <= boxAngle && boxAngle < 180) {
+            netAngle = 180 - phi;
         }
-        else if (boxAngle <= 270) {
+        else if (180 <= boxAngle && boxAngle < 270) {
             netAngle = 180 + phi;
         }
         else {
             netAngle = 360 - phi;
         }
-
-        VectorDisplay xComponentVector = new VectorDisplay(positionCenterX, positionCenterY,
-                xComponent, 270, "x", Color.GRAY);
-        VectorDisplay yComponentVector = new VectorDisplay(positionCenterX, positionCenterY,
-                yComponent, 0, "y", Color.GRAY);
-        Sandbox.sandBoxPane.getChildren().add(xComponentVector);
-        Sandbox.sandBoxPane.getChildren().add(yComponentVector);
-
 
         VectorDisplay netVector = new VectorDisplay(positionCenterX, positionCenterY,
                 magnitude, netAngle, "Net", Color.BLACK);
@@ -187,5 +194,11 @@ public final class VectorMath {
         System.out.println("Net Vector updated for " + box + " at " + netAngle + "degrees");
 
 
+        // Components
+        VectorDisplay xComponentVector = new VectorDisplay(positionCenterX, positionCenterY,
+                xComponent, 0, "x", Color.GRAY);
+        VectorDisplay yComponentVector = new VectorDisplay(positionCenterX, positionCenterY,
+                yComponent, 270, "y", Color.GRAY);
+        //Sandbox.sandBoxPane.getChildren().addAll(xComponentVector, yComponentVector);
     }
 }

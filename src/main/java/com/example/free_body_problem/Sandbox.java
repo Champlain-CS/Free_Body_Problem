@@ -391,27 +391,12 @@ public class Sandbox extends Application {
             if (isDisplayingVectors) { // Remove vectors
                 isDisplayingVectors = false;
 
-                Iterator<Node> paneIterator = sandBoxPane.getChildren().iterator();
-                while (paneIterator.hasNext()) {
-                    Node node = paneIterator.next();
-                    if (node instanceof VectorDisplay) {
-                        paneIterator.remove();
-                    }
-                }
-                Iterator<Node> rootIterator = sandBoxRoot.getChildren().iterator();
-                while (rootIterator.hasNext()) {
-                    Node node = rootIterator.next();
-                    if (node instanceof LockPane) {
-                        rootIterator.remove();
-                    }
-                }
-                Iterator<Node> boxIterator = sandBoxPane.getChildren().iterator();
-                while (boxIterator.hasNext()) {
-                    Node node = boxIterator.next();
-                    if (node instanceof Box) {
-                        ((Box) node).totalXForce = 0;
-                        ((Box) node).totalYForce = 0;
-                    }
+                sandBoxPane.getChildren().removeIf(node -> node instanceof VectorDisplay);
+                sandBoxRoot.getChildren().removeIf(node -> node instanceof LockPane);
+
+                for (PhysicsObject obj : physicsObjectList) {
+                    if(obj instanceof Box)
+                        ((Box) obj).resetNetVectorComponents();
                 }
 
 

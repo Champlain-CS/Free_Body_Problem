@@ -380,6 +380,7 @@ public class Sandbox extends Application {
 
         resetBT.setOnMouseClicked(event -> {
             resetSimulation();
+            resetSoundPlayer.playSound("src/main/resources/sounds/Reset.wav");
         });
 
         // Set up the stage

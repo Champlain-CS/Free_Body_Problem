@@ -191,34 +191,6 @@ public class Snapping {
                 target.connectedRopes.put(rope, true);
                 rope.setStartConnection(target);
             }
-        } else if (target instanceof Plane) {
-            // Handle Plane nodes
-            Plane plane = (Plane) target;
-            Line planeLine = plane.getLine();
-
-            // Find the closest point on the plane to the rope start
-            double[] closestPoint = findClosestPointOnLine(px, py, planeLine);
-
-            // Calculate distance to the plane
-            double distance = Math.sqrt(Math.pow(px - closestPoint[0], 2) + Math.pow(py - closestPoint[1], 2));
-
-            if (distance <= SNAP_THRESHOLD) {
-                // If we're snapping to a new object, remove connection from the old one
-                if (currentStartConnection != null && currentStartConnection != target) {
-                    currentStartConnection.connectedRopes.remove(rope);
-                }
-
-                // Update rope position to the closest point on the plane
-                rope.getLine().setStartX(closestPoint[0]);
-                rope.getLine().setStartY(closestPoint[1]);
-
-                // Store the connection in both objects
-                target.connectedRopes.put(rope, true);
-                rope.setStartConnection(target);
-
-                System.out.println("YOOO");
-            }
-
         }
     }
 
@@ -287,32 +259,6 @@ public class Snapping {
                 rope.setEndConnection(target);
             }
         }
-        else if (target instanceof Plane) {
-        // Handle Plane nodes
-        Plane plane = (Plane) target;
-        Line planeLine = plane.getLine();
-
-        // Find the closest point on the plane to the rope end
-        double[] closestPoint = findClosestPointOnLine(px, py, planeLine);
-
-        // Calculate distance to the plane
-        double distance = Math.sqrt(Math.pow(px - closestPoint[0], 2) + Math.pow(py - closestPoint[1], 2));
-
-        if (distance <= SNAP_THRESHOLD) {
-            // If we're snapping to a new object, remove connection from the old one
-            if (currentEndConnection != null && currentEndConnection != target) {
-                currentEndConnection.connectedRopes.remove(rope);
-            }
-
-            // Update rope position to the closest point on the plane
-            rope.getLine().setEndX(closestPoint[0]);
-            rope.getLine().setEndY(closestPoint[1]);
-
-            // Store the connection in both objects
-            target.connectedRopes.put(rope, false);
-            rope.setEndConnection(target);
-        }
-    }
     }
 
     public static void snapPlaneEnds(Line plane1, Line plane2) {
@@ -338,6 +284,30 @@ public class Snapping {
         } else if (distance(endX1, endY1, endX2, endY2) <= SNAP_THRESHOLD) {
             plane1.setEndX(endX2);
             plane1.setEndY(endY2);
+        }
+    }
+
+    public static void snapToRoofIfIntersecting(Circle handle, boolean isStartHandle, Roof roof, Rope rope) {
+        // Convert both bounds to scene coordinates
+        javafx.geometry.Bounds roofBounds = roof.localToScene(roof.getBoundsInLocal());
+        javafx.geometry.Bounds handleBounds = handle.localToScene(handle.getBoundsInLocal());
+
+        if (roofBounds.intersects(handleBounds)) {
+            // Get the bottom of the roof in the handle's parent coordinate system
+            Point2D roofBottomInScene = new Point2D(roofBounds.getMinX() + roofBounds.getWidth()/2, roofBounds.getMaxY());
+            Point2D roofBottomInHandleParent = handle.getParent().sceneToLocal(roofBottomInScene);
+
+            double newY = roofBottomInHandleParent.getY();
+
+            if (isStartHandle) {
+                rope.getLine().setStartY(newY);
+                handle.setCenterY(newY);
+                rope.setStartConnection(roof);
+            } else {
+                rope.getLine().setEndY(newY);
+                handle.setCenterY(newY);
+                rope.setEndConnection(roof);
+            }
         }
     }
 

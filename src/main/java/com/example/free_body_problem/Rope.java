@@ -113,14 +113,20 @@ public class Rope extends PhysicsObject {
         });
 
         startHandle.setOnMouseDragged(event -> {
-            // Only update positions if not snapped
-            if (startConnection == null) {
-                line.setStartX(event.getX());
-                line.setStartY(event.getY());
-                startHandle.setCenterX(event.getX());
-                startHandle.setCenterY(event.getY());
+            // Always update positions, but still check for snapping
+            line.setStartX(event.getX());
+            line.setStartY(event.getY());
+            startHandle.setCenterX(event.getX());
+            startHandle.setCenterY(event.getY());
+
+            // If we were snapped, break the connection temporarily while dragging
+            if (startConnection != null) {
+                startConnection.connectedRopes.remove(this);
+                startConnection = null;
+                startSnapped = false;
             }
 
+            // Check for new snapping opportunities
             for (PhysicsObject physicsObject : physicsObjectList) {
                 Snapping.snapRopeStart(physicsObject, this);
             }
@@ -128,7 +134,9 @@ public class Rope extends PhysicsObject {
 
         startHandle.setOnMouseReleased(event -> {
             isOnHandle = false;
-
+            Roof roof = Sandbox.getRoof(); // Or however you access your roof object
+            // Assuming you have a reference to the roof object in your Sandbox class
+            Snapping.snapToRoofIfIntersecting(startHandle, true, roof, this);
         });
 
         endHandle.setOnMousePressed(event -> {
@@ -136,14 +144,20 @@ public class Rope extends PhysicsObject {
         });
 
         endHandle.setOnMouseDragged(event -> {
-            // Only update positions if not snapped
-            if (endConnection == null) {
-                line.setEndX(event.getX());
-                line.setEndY(event.getY());
-                endHandle.setCenterX(event.getX());
-                endHandle.setCenterY(event.getY());
+            // Always update positions, but still check for snapping
+            line.setEndX(event.getX());
+            line.setEndY(event.getY());
+            endHandle.setCenterX(event.getX());
+            endHandle.setCenterY(event.getY());
+
+            // If we were snapped, break the connection temporarily while dragging
+            if (endConnection != null) {
+                endConnection.connectedRopes.remove(this);
+                endConnection = null;
+                endSnapped = false;
             }
 
+            // Check for new snapping opportunities
             for (PhysicsObject physicsObject : physicsObjectList) {
                 Snapping.snapRopeEnd(physicsObject, this);
             }
@@ -151,6 +165,9 @@ public class Rope extends PhysicsObject {
 
         endHandle.setOnMouseReleased(event -> {
             isOnHandle = false;
+            Roof roof = Sandbox.getRoof(); // Or however you access your roof object
+            // Assuming you have a reference to the roof object in your Sandbox class
+            Snapping.snapToRoofIfIntersecting(endHandle, false, roof, this);
         });
 
         // Keep your property listeners

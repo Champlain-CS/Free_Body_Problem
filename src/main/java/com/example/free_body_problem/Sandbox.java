@@ -37,7 +37,7 @@ public class Sandbox extends Application {
     private boolean dragging = false; // Flag to indicate if a shape is being dragged
     private HBox helpBox;
     private boolean isDisplayingVectors = false;
-
+    public static Roof sandBoxRoof;
     static TextField gravityField;
     static TextField coefficientField;
     public static Pane sandBoxPane;
@@ -71,11 +71,7 @@ public class Sandbox extends Application {
         sandBoxRoot.setCenter(sandBoxPane);
         sandBoxRoot.setStyle("-fx-background-color: white");
 
-        ImageView infoDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/infoDisplay.png")));
-        infoDisplayView.setPreserveRatio(true);
-        infoDisplayView.setFitHeight(50);
-        infoDisplayView.setPickOnBounds(true);
-        sandBoxRoot.setRight(infoDisplayView);
+
 
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
@@ -87,6 +83,7 @@ public class Sandbox extends Application {
         deleteBT.setOnMouseClicked(e -> {
             toggleDeleteMode();
         });
+        addRoofToSandbox();
         // Back to Menu Button
         Button menuBT = new Button("MENU");
         menuBT.getStyleClass().add("menu-button"); // Apply CSS class
@@ -225,8 +222,13 @@ public class Sandbox extends Application {
         leftSpacer.setMinWidth(175);
         HBox.setHgrow(rightSpacer, Priority.ALWAYS);
 
+        ImageView infoDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/infoDisplay.png")));
+        infoDisplayView.setPreserveRatio(true);
+        infoDisplayView.setFitHeight(50);
+        infoDisplayView.setPickOnBounds(true);
+
         // Add elements to the bottom bar
-        bottomBar.getChildren().addAll(leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT, deleteBT);
+        bottomBar.getChildren().addAll(infoDisplayView,leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT, deleteBT);
 
         // Pane for world settings
         VBox editorPane = new VBox();
@@ -481,6 +483,7 @@ public class Sandbox extends Application {
                 rootIterator.remove();
             }
         }
+        addRoofToSandbox();
         sandBoxRoot.setStyle("-fx-background-color: white");
         vectorDisplayView.setImage(
                 new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
@@ -688,6 +691,7 @@ public class Sandbox extends Application {
         return planes;
     }
 
+
     public boolean areAllPlanesInSameMode() {
         if (planes.isEmpty()) return true;
         boolean firstPlaneMode = planes.get(0).isTransformMode();
@@ -711,6 +715,11 @@ public class Sandbox extends Application {
         Circle circle = new Circle(radius, color);
         circle.setStroke(Color.BLACK);
         return circle;
+    }
+
+    public static Roof getRoof(){
+        return sandBoxRoof;
+
     }
 
     // Helper method to create a line button
@@ -1021,5 +1030,25 @@ public class Sandbox extends Application {
         // Removed the close button code that was here
 
         return helpBox;
+    }
+
+    private void addRoofToSandbox() {
+        // Create a roof that spans the width of the sandbox
+        double roofHeight = 50; // Height of the roof
+        double roofY = 0; // Position at the top of the sandbox
+
+        Roof roof = new Roof(0, roofY, sandBoxPane.getWidth(), roofHeight, Color.DARKGRAY);
+
+        // Add the ENTIRE Roof object (which is a PhysicsObject) to the sandbox
+        sandBoxPane.getChildren().add(roof);  // Changed from roof.getRoof() to just roof
+
+        // Add to the physics object list to enable interactions
+        physicsObjectList.add(roof);
+        sandBoxRoof = roof;
+
+        // Make the roof adapt to sandbox width changes
+        sandBoxPane.widthProperty().addListener((obs, oldVal, newVal) -> {
+            roof.adjustToSandboxWidth(newVal.doubleValue());
+        });
     }
 }

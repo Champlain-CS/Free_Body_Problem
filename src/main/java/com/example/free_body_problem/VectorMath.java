@@ -203,22 +203,28 @@ public final class VectorMath {
                 xComponent, 0, "NetX", Color.GRAY);
         VectorDisplay yComponentVector = new VectorDisplay(positionCenterX, positionCenterY,
                 yComponent, 270, "NetY", Color.GRAY);
+        System.out.println("yComponent rotation: " + yComponentVector.getRotation());
         Sandbox.sandBoxPane.getChildren().addAll(
                 adaptComponentOrientation(xComponentVector),
                 adaptComponentOrientation(yComponentVector));
     }
 
 
-    private static VectorDisplay adaptComponentOrientation(VectorDisplay original) {
-        System.out.println(original.getForceName().getText() + " length:" + original.getLength());
+    private static VectorDisplay adaptComponentOrientation(VectorDisplay vector) {
+        if (vector.getTrueLength() < 0) {
+            // flip the sign of the true length while maintaining visual length
+            vector.setLength(-1 * vector.getTrueLength());
+            vector.setRotation((vector.getRotation() + 180) % 360);
 
-        if (original.getLength() < 0) {
-            original.setLength(-1 * original.getLength());
-            System.out.println(original.getForceName().getText() + " new length:" + original.getLength());
-            original.setRotation((original.getRotation() + 180) % 360);
-            original.forceText.setRotate(180);
+            double originalRotation = vector.getRotation();
+            double originalTextRotation = vector.forceText.getRotate();
+
+            if (originalRotation % 360 >= 90 && originalRotation % 360 < 270) {
+                // Only flip text if vector was pointing left
+                vector.forceText.setRotate((originalTextRotation + 180) % 360);
+            }
         }
 
-        return original;  // Now returns the modified original
+        return vector;
     }
 }

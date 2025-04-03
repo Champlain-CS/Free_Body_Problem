@@ -1,12 +1,14 @@
 package com.example.free_body_problem;
 
 import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 
@@ -26,8 +28,9 @@ public class VectorDisplay extends Pane {
 
     // Logarithmic scaling constants
     private static final double MIN_VISIBLE_LENGTH = 15;
-    private static final double MAX_VISIBLE_LENGTH = 200;
-    private static final double SCALE_FACTOR = (MAX_VISIBLE_LENGTH - MIN_VISIBLE_LENGTH) / Math.log10(1000);
+    private static final double MAX_VISIBLE_LENGTH = 150;
+    private static final double SCALE_FACTOR = 0.3;
+    private static final double STRETCH_FACTOR = 10000;
 
     public VBox forceText;
     private DecimalFormat df = new DecimalFormat("#.###");
@@ -61,15 +64,27 @@ public class VectorDisplay extends Pane {
         arrowhead.setScaleX(1.2);
         arrowhead.setScaleY(1.2);
 
-        // Configure text (show trueLength)
-        forceName.setFill(color);
-        forceName.setFont(new Font(16));
-        forceName.setEffect(new DropShadow(4, Color.WHITE));
 
-        forceMagnitude.setFill(color);
-        forceMagnitude.setFont(new Font(12));
-        forceMagnitude.setEffect(new DropShadow(3, Color.WHITE));
+
+        forceName.setFill(Color.WHITE);  // Keep white text
+        forceName.setFont(new Font(16));  // Original font size
+        forceName.setEffect(new DropShadow(4, color));  // Vector-colored shadow instead of white
+
+        forceMagnitude.setFill(Color.WHITE);  // Keep white text
+        forceMagnitude.setFont(new Font(12));  // Original font size
+        forceMagnitude.setEffect(new DropShadow(3, color));  // Vector-colored shadow
         forceMagnitude.setText(df.format(trueLength) + " N");
+
+        // Configure the VBox container
+        forceText.setStyle(
+                "-fx-background-color: rgba(0,0,0,0.1);" +  // Semi-transparent dark background
+                        "-fx-background-radius: 2;" +               // Rounded corners
+                        "-fx-padding: 2px 4px;"                     // Internal padding
+        );
+
+
+
+
 
         // Configure rotation
         rotate.setAngle(angle);
@@ -109,12 +124,18 @@ public class VectorDisplay extends Pane {
     }
 
     private double calculateVisualLength(double magnitude) {
-        if (magnitude <= 0) return 0;
+        // Take absolute value for length calculation
+        double absMagnitude = Math.abs(magnitude);
 
-        double logValue = Math.log10(magnitude + 1); // +1 to avoid log(0)
-        double visualLength = MIN_VISIBLE_LENGTH + (SCALE_FACTOR * logValue);
+        if (absMagnitude <= 0) return 0;
 
-        return Math.min(visualLength, MAX_VISIBLE_LENGTH);
+        // Modified logarithmic scaling
+        double scaledLength = MIN_VISIBLE_LENGTH +
+                (MAX_VISIBLE_LENGTH - MIN_VISIBLE_LENGTH) *
+                        Math.log10(1 + SCALE_FACTOR * absMagnitude) /
+                        Math.log10(1 + SCALE_FACTOR * STRETCH_FACTOR);
+
+        return Math.min(scaledLength, MAX_VISIBLE_LENGTH);
     }
 
     public void setLength(double newTrueLength) {
@@ -146,5 +167,12 @@ public class VectorDisplay extends Pane {
 
     public double getRotation() {
         return rotate.getAngle();
+    }
+
+    private String toHex(Color color) {
+        return String.format("#%02x%02x%02x",
+                (int)(color.getRed() * 255),
+                (int)(color.getGreen() * 255),
+                (int)(color.getBlue() * 255));
     }
 }

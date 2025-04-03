@@ -54,6 +54,10 @@ public class Sandbox extends Application {
     private CheckBox frictionVectorCB;
     private CheckBox netForceVectorCB;
 
+    private CheckBox normalComponentsCB;
+    private CheckBox frictionComponentsCB;
+    private CheckBox netForceComponentsCB;
+
     // Instantiate SoundPlayer
     private SoundPlayer soundPlayer = new SoundPlayer();
 
@@ -241,7 +245,8 @@ public class Sandbox extends Application {
         // Create a scroll pane for plane list
         ScrollPane planeScrollPane = new ScrollPane();
         planeScrollPane.setFitToWidth(true);
-        planeScrollPane.setPrefHeight(200);
+        planeScrollPane.setMinHeight(50);
+        planeScrollPane.setPrefHeight(50);
         planeScrollPane.getStyleClass().add("plane-scroll-pane");
 
         // Create a VBox to hold the list of planes
@@ -324,48 +329,72 @@ public class Sandbox extends Application {
         normalVectorCB.getStyleClass().add("vector-checkbox");
         normalVectorCB.setSelected(true);
 
+        normalComponentsCB = new CheckBox("Normal Components");
+        normalComponentsCB.getStyleClass().add("vector-checkbox");
+
         frictionVectorCB = new CheckBox("Friction");
         frictionVectorCB.getStyleClass().add("vector-checkbox");
         frictionVectorCB.setSelected(true);
 
+        frictionComponentsCB = new CheckBox("Friction Components");
+        frictionComponentsCB.getStyleClass().add("vector-checkbox");
+
         netForceVectorCB = new CheckBox("Net Force");
         netForceVectorCB.getStyleClass().add("vector-checkbox");
-        netForceVectorCB.setSelected(true);
 
-        // Pack checkboxes in a VBox with appropriate padding
-        VBox vectorCheckboxes = new VBox(10);
+        netForceComponentsCB = new CheckBox("Net Force Components");
+        netForceComponentsCB.getStyleClass().add("vector-checkbox");
+
+
+
+        // Pack checkboxes in a gridPane with appropriate padding
+        GridPane vectorCheckboxes = new GridPane();
         vectorCheckboxes.setPadding(new Insets(5, 10, 10, 20));
-        vectorCheckboxes.getChildren().addAll(
-                gravityVectorCB,
-                normalVectorCB,
-                frictionVectorCB,
-                netForceVectorCB
-        );
+        vectorCheckboxes.setHgap(10);
+        vectorCheckboxes.setVgap(5);
+
+        vectorCheckboxes.add(gravityVectorCB, 0, 0);
+        vectorCheckboxes.add(normalVectorCB, 0, 1);
+        vectorCheckboxes.add(normalComponentsCB, 1, 1);
+        vectorCheckboxes.add(frictionVectorCB, 0, 2);
+        vectorCheckboxes.add(frictionComponentsCB,1, 2);
+        vectorCheckboxes.add(netForceVectorCB, 0, 3);
+        vectorCheckboxes.add(netForceComponentsCB, 1, 3);
+
 
         // Add event handlers to checkboxes to update vector display
         gravityVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors) {
+            if (isDisplayingVectors)
                 updateAllVectors();
-            }
         });
 
         normalVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors) {
+            if (isDisplayingVectors)
                 updateAllVectors();
-            }
+        });
+        normalComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (isDisplayingVectors)
+                updateAllVectors();
         });
 
         frictionVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors) {
+            if (isDisplayingVectors)
                 updateAllVectors();
-            }
+        });
+        frictionComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (isDisplayingVectors)
+                updateAllVectors();
         });
 
         netForceVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors) {
+            if (isDisplayingVectors)
                 updateAllVectors();
-            }
         });
+        netForceComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (isDisplayingVectors)
+                updateAllVectors();
+        });
+
 
         // Add elements to the editor pane
         editorPane.getChildren().addAll(
@@ -757,7 +786,9 @@ public class Sandbox extends Application {
             VectorMath.calculateFrictionVector(box);
         }
 
-        // Remove vectors that shouldn't be displayed based on checkbox selections
+        VectorMath.calculateNetVector(box);
+
+
         iterator = sandBoxPane.getChildren().iterator();
         while (iterator.hasNext()) {
             Node node = iterator.next();
@@ -765,19 +796,23 @@ public class Sandbox extends Application {
                 VectorDisplay vectorDisplay = (VectorDisplay) node;
                 String vectorName = vectorDisplay.getForceName().getText();
 
+                // Remove vectors if their main checkbox is unchecked
                 if ((!gravityVectorCB.isSelected() && vectorName.equals("Gravity")) ||
                         (!normalVectorCB.isSelected() && vectorName.equals("Normal")) ||
                         (!frictionVectorCB.isSelected() && vectorName.equals("Friction")) ||
                         (!netForceVectorCB.isSelected() && vectorName.equals("Net"))) {
                     iterator.remove();
                 }
+
+                // Remove components if their component checkbox is unchecked
+                if ((!normalComponentsCB.isSelected() && (vectorName.equals("Nx") || vectorName.equals("Ny"))) ||
+                        (!frictionComponentsCB.isSelected() && (vectorName.equals("Fx") || vectorName.equals("Fy"))) ||
+                        (!netForceComponentsCB.isSelected() && (vectorName.equals("NetX") || vectorName.equals("NetY")))) {
+                    iterator.remove();
+                }
             }
         }
 
-        // Always calculate net force for physics, but only display if selected
-        if (netForceVectorCB.isSelected()) {
-            VectorMath.calculateNetVector(box);
-        }
     }
 
     // Extract the toggle functionality to a reusable method
@@ -1034,7 +1069,7 @@ public class Sandbox extends Application {
 
     private void addRoofToSandbox() {
         // Create a roof that spans the width of the sandbox
-        double roofHeight = 50; // Height of the roof
+        double roofHeight = 25; // Height of the roof
         double roofY = 0; // Position at the top of the sandbox
 
         Roof roof = new Roof(0, roofY, sandBoxPane.getWidth(), roofHeight, Color.DARKGRAY);

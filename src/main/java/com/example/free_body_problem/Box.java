@@ -65,7 +65,7 @@ public class Box extends PhysicsObject {
         rotateHandle = createHandle(x + width, y + height / 2);
 
         textField = new TextField();
-        textField.setText("5");
+        textField.setText("10");
         textField.setAlignment(Pos.CENTER);
         textField.getStyleClass().add("textField");
 

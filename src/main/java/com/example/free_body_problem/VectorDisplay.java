@@ -17,68 +17,82 @@ public class VectorDisplay extends Pane {
     private final Polygon arrowhead;
     private final Rotate rotate;
     private double length;
+    private double trueLength;
     private final Text forceName;
     private final Text forceMagnitude;
-    private VBox forceText;
     private double endX, endY;
     private Color color;
     private double angle;
-    private final double MAX_LENGTH = 100;
 
-    private DecimalFormat df = new DecimalFormat("#.####");
+    // Logarithmic scaling constants
+    private static final double MIN_VISIBLE_LENGTH = 15;
+    private static final double MAX_VISIBLE_LENGTH = 200;
+    private static final double SCALE_FACTOR = (MAX_VISIBLE_LENGTH - MIN_VISIBLE_LENGTH) / Math.log10(1000);
 
+    public VBox forceText;
+    private DecimalFormat df = new DecimalFormat("#.###");
 
-    public VectorDisplay(double startX, double startY, double length, double angle, String name, Color color) {
-        this.length = length;
-        if(length>MAX_LENGTH)
-            this.length = MAX_LENGTH;
+    public VectorDisplay(double startX, double startY, double trueLength, double angle, String name, Color color) {
+        // Initialize fields first
+        this.line = new Line();
+        this.arrowhead = new Polygon();
+        this.rotate = new Rotate();
+        this.forceName = new Text(name);
+        this.forceMagnitude = new Text();
+        this.forceText = new VBox(forceName, forceMagnitude);
 
+        // Set true length and calculate visual length
+        this.trueLength = trueLength;  // Fixed parameter name (was using wrong variable)
+        this.length = calculateVisualLength(trueLength);
         this.color = color;
         this.angle = angle;
 
-
-        // Line for arrow shaft
-        line = new Line(startX, startY, startX + this.length, startY);
+        // Configure line
+        line.setStartX(startX);
+        line.setStartY(startY);
+        line.setEndX(startX + this.length);
+        line.setEndY(startY);
         line.setStroke(color);
-        line.setStrokeWidth(5);
+        line.setStrokeWidth(3);
 
-        // Arrow head (Triangle)
-        arrowhead = new Polygon();
+        // Configure arrowhead
         arrowhead.setFill(color);
         arrowhead.setStroke(color);
-        arrowhead.setScaleX(2);
-        arrowhead.setScaleY(2);
+        arrowhead.setScaleX(1.2);
+        arrowhead.setScaleY(1.2);
 
-
-
-        //Force Name (Text)
-        forceName = new Text(name);
+        // Configure text (show trueLength)
         forceName.setFill(color);
         forceName.setFont(new Font(16));
-        forceName.setEffect(new DropShadow(4, color.WHITE));
+        forceName.setEffect(new DropShadow(4, Color.WHITE));
 
-        //Force Magnitude (Text)
-        forceMagnitude = new Text(df.format(length) + " N");
         forceMagnitude.setFill(color);
         forceMagnitude.setFont(new Font(12));
-        forceMagnitude.setEffect(new DropShadow(3, color.WHITE));
+        forceMagnitude.setEffect(new DropShadow(3, Color.WHITE));
+        forceMagnitude.setText(df.format(trueLength) + " N");
 
-        forceText = new VBox(forceName, forceMagnitude);
-        updateVector();
-
-        // Rotation transform (around the start of the arrow)
-        rotate = new Rotate(angle, startX, startY);
+        // Configure rotation
+        rotate.setAngle(angle);
+        rotate.setPivotX(startX);
+        rotate.setPivotY(startY);
         this.getTransforms().add(rotate);
 
-        getChildren().addAll(line, arrowhead, forceText);
-
+        // Add components if length > 0
+        if (this.length > 0) {
+            updateVector();
+            getChildren().addAll(line, arrowhead, forceText);
+        } else {
+            getChildren().clear();
+        }
     }
 
     private void updateVector() {
-        // Updating Arrowhead
+        if (length <= 0) {
+            getChildren().clear();
+            return;
+        }
 
-        //Adding a little offset to the endX to remove clipping of the shaft in the arrow head
-        endX = line.getEndX()+ 2;
+        endX = line.getEndX() + 2;
         endY = line.getEndY();
         double arrowSize = 10;
 
@@ -88,21 +102,29 @@ public class VectorDisplay extends Pane {
                 endX - arrowSize, endY + arrowSize / 2
         );
 
-        // Updating text
         forceText.setLayoutX(endX);
-        forceText.setLayoutY(endY+5);
-
-        forceText.setRotate(0-angle);
+        forceText.setLayoutY(endY + 5);
+        forceText.setRotate(0 - angle);
+        forceMagnitude.setText(df.format(trueLength) + " N");
     }
 
+    private double calculateVisualLength(double magnitude) {
+        if (magnitude <= 0) return 0;
 
-    public void setLength(double newLength) {
-        length = newLength;
-        if(newLength > MAX_LENGTH)
-            length = MAX_LENGTH;
+        double logValue = Math.log10(magnitude + 1); // +1 to avoid log(0)
+        double visualLength = MIN_VISIBLE_LENGTH + (SCALE_FACTOR * logValue);
 
-        line.setEndX(line.getStartX() + newLength);
-        updateVector();
+        return Math.min(visualLength, MAX_VISIBLE_LENGTH);
+    }
+
+    public void setLength(double newTrueLength) {
+        this.trueLength = newTrueLength;
+        this.length = calculateVisualLength(newTrueLength);
+
+        if (newTrueLength == 0) {
+            getChildren().clear();
+            return;
+        }
     }
 
     public void setRotation(double angle) {
@@ -115,8 +137,13 @@ public class VectorDisplay extends Pane {
     }
 
     public double getLength() {
-        return length;
+        return length;  // Returns visual length
     }
+
+    public double getTrueLength() {
+        return trueLength;  // Returns original unaltered magnitude
+    }
+
     public double getRotation() {
         return rotate.getAngle();
     }

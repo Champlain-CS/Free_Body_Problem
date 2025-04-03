@@ -16,7 +16,8 @@ public class LockPane extends Pane {
         ImageView padlock = new ImageView(new Image(getClass().getResourceAsStream("/images/lock.png")));
         padlock.setPreserveRatio(true);
         padlock.setFitWidth(50);
-        padlock.setTranslateY(10);
+        padlock.setTranslateY(30);
+
 
         getChildren().addAll(rectangle, padlock);
     }

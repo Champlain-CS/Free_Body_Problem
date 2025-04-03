@@ -98,7 +98,9 @@ public final class VectorMath {
         VectorDisplay normalY = new VectorDisplay(newPositionX, newPositionY, magnitude * Math.cos(Math.toRadians(angle)),
                 270, "Ny", Color.DARKRED);
         VectorDisplay normalX = new VectorDisplay(newPositionX, newPositionY, totalXForce, 0, "Nx", Color.DARKRED);
-        //Sandbox.sandBoxPane.getChildren().addAll(normalY, normalX);
+        Sandbox.sandBoxPane.getChildren().addAll(
+                adaptComponentOrientation(normalX),
+                adaptComponentOrientation(normalY));
     }
 
     public static void calculateFrictionVector(Box box) {
@@ -155,7 +157,9 @@ public final class VectorMath {
         VectorDisplay frictionX = new VectorDisplay(newPositionX, newPositionY, totalXForce, 0, "Fx", Color.DARKGREEN);
         VectorDisplay frictionY = new VectorDisplay(newPositionX, newPositionY, totalYForce,
                 270, "Fy", Color.DARKGREEN);
-        //Sandbox.sandBoxPane.getChildren().addAll(frictionX, frictionY);
+        Sandbox.sandBoxPane.getChildren().addAll(
+                adaptComponentOrientation(frictionX),
+                adaptComponentOrientation(frictionY));
     }
 
     public static void calculateNetVector(Box box) {
@@ -196,9 +200,25 @@ public final class VectorMath {
 
         // Components
         VectorDisplay xComponentVector = new VectorDisplay(positionCenterX, positionCenterY,
-                xComponent, 0, "x", Color.GRAY);
+                xComponent, 0, "NetX", Color.GRAY);
         VectorDisplay yComponentVector = new VectorDisplay(positionCenterX, positionCenterY,
-                yComponent, 270, "y", Color.GRAY);
-        //Sandbox.sandBoxPane.getChildren().addAll(xComponentVector, yComponentVector);
+                yComponent, 270, "NetY", Color.GRAY);
+        Sandbox.sandBoxPane.getChildren().addAll(
+                adaptComponentOrientation(xComponentVector),
+                adaptComponentOrientation(yComponentVector));
+    }
+
+
+    private static VectorDisplay adaptComponentOrientation(VectorDisplay original) {
+        System.out.println(original.getForceName().getText() + " length:" + original.getLength());
+
+        if (original.getLength() < 0) {
+            original.setLength(-1 * original.getLength());
+            System.out.println(original.getForceName().getText() + " new length:" + original.getLength());
+            original.setRotation((original.getRotation() + 180) % 360);
+            original.forceText.setRotate(180);
+        }
+
+        return original;  // Now returns the modified original
     }
 }

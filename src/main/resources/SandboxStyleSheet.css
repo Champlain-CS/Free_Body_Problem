@@ -141,4 +141,66 @@
 }
 
 
+.volume-popup {
+    -fx-background-color: #f8f8f8;
+    -fx-background-radius: 8px;  /* Rounded corners */
+    -fx-border-radius: 8px;      /* For border rounding */
+    -fx-border-color: #d0d0d0;
+    -fx-border-width: 1px;
+    -fx-padding: 4px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 6, 0.2, 0, 2);
+}
+
+/* Volume Slider Styling */
+.volume-slider {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-color: transparent;
+}
+
+/* Track (the background of the slider) */
+.volume-slider .track {
+    -fx-background-color: #e0e0e0;
+    -fx-background-radius: 2px;
+    -fx-pref-width: 4px; /* Makes the track thinner */
+}
+
+/* Thumb (the draggable part) */
+.volume-slider .thumb {
+    -fx-background-color: #2a5ebe;
+    -fx-background-radius: 50%; /* Circular thumb */
+    -fx-pref-width: 12px;
+    -fx-pref-height: 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 2, 0.5, 0, 1);
+}
+
+/* Target the track's "focused" state specifically */
+.volume-slider:focused .track {
+    -fx-background-color: #e0e0e0;         /* Force default color even when focused */
+}
+
+/* Optional: Ensure thumb doesn't change on focus */
+.volume-slider .thumb:focused {
+    -fx-background-color: #606060;         /* Lock thumb color */
+}
+
+/* Hover effect on thumb */
+.volume-slider .thumb:hover {
+    -fx-background-color: #224a94;
+    -fx-scale-x: 1.2;
+    -fx-scale-y: 1.2;
+}
+
+/* Filled portion of the track (progress) */
+.volume-slider .colored-track {
+    -fx-background-color: #5c5c5c;
+    -fx-background-radius: 2px;
+}
+
+.menu-item {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+
 

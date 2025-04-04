@@ -33,3 +33,33 @@
     -fx-background-image: url("images/stoneAlt.png");
     -fx-background-size: cover;
 }
+
+
+
+/* Custom Title Bar */
+.title-bar {
+    -fx-background-color: #2a2a2a; /* Dark header */
+    -fx-padding: 5px 10px;
+    -fx-alignment: center;
+}
+
+.title-text {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.close-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-padding: 0 5px;
+}
+
+.close-button:hover {
+    -fx-background-color: #e81123;
+}
+
+.minimize-button:hover, .maximize-button:hover {
+    -fx-background-color: #404040;
+}

@@ -1,8 +1,10 @@
 package com.example.free_body_problem;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -10,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -20,6 +23,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
@@ -32,7 +36,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.awt.*;
+import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
@@ -54,6 +58,7 @@ public class Sandbox extends Application {
     private BorderPane sandBoxRoot;
     private ImageView vectorDisplayView;
     private VBox menuPane;
+    private boolean isMusicPlaying = true;
 
     // Checkboxes for vector display control
     private CheckBox gravityVectorCB;
@@ -235,8 +240,8 @@ public class Sandbox extends Application {
 
         ImageView axesDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/Axes.png")));
         axesDisplayView.setPreserveRatio(true);
-        axesDisplayView.setFitHeight(70);
-        axesDisplayView.setTranslateX(sandBoxPane.getPrefWidth()*2);
+        axesDisplayView.setFitHeight(85);
+        axesDisplayView.setTranslateX(290);
         axesDisplayView.setTranslateY(sandBoxRoof.getHeight() + 5);
         axesDisplayView.setViewOrder(500);
         sandBoxRoot.getChildren().add(axesDisplayView);
@@ -246,8 +251,63 @@ public class Sandbox extends Application {
         infoDisplayView.setFitHeight(50);
         infoDisplayView.setPickOnBounds(true);
 
+
+        // Little mute button in-app
+        ImageView muteButton = new ImageView();
+        muteButton.setPreserveRatio(true);
+        muteButton.setFitHeight(50);
+        muteButton.setPickOnBounds(true);
+
+        Image muteInactive = new Image(getClass().getResourceAsStream("/images/speaker.png"));
+        Image muteActive = new Image(getClass().getResourceAsStream("/images/speakerCrossed.png"));
+        muteButton.setImage(muteInactive);
+
+        if(GUI.backgroundMusicPlayer != null) {
+            double originalVolume = GUI.backgroundMusicPlayer.getVolume();
+
+            ContextMenu volumeMenu = new ContextMenu();
+            MenuItem sliderItem = new MenuItem();
+            Slider volumeSlider = new Slider(0, 1, GUI.backgroundMusicPlayer.getVolume());
+            sliderItem.setGraphic(volumeSlider);
+            sliderItem.setStyle("-fx-padding: 5px;");
+            volumeMenu.getItems().add(sliderItem);
+
+            volumeMenu.getStyleClass().add("volume-popup");
+            sliderItem.setStyle("-fx-background-color: #f8f8f8");
+            volumeSlider.getStyleClass().add("volume-slider");
+            volumeSlider.setFocusTraversable(false);
+
+            volumeSlider.setValue(originalVolume);
+            volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+                SoundPlayer.setVolume(newValue.doubleValue()); // Update volume
+                if (GUI.backgroundMusicPlayer != null) {
+                    GUI.backgroundMusicPlayer.setVolume(newValue.doubleValue());
+                }
+            });
+
+            muteButton.setOnMouseEntered(e -> {
+                volumeMenu.show(muteButton, Side.TOP, 0, 0);
+            });
+
+
+            muteButton.setOnMouseClicked(e -> {
+                if(muteButton.getImage() == muteInactive) {
+                    muteButton.setImage(muteActive);
+                    GUI.backgroundMusicPlayer.setVolume(0);
+                }
+                else if(muteButton.getImage() == muteActive) {
+                    muteButton.setImage(muteInactive);
+                    GUI.backgroundMusicPlayer.setVolume(volumeSlider.getValue());
+                }
+            });
+        }
+
+
+
+
+
         // Add elements to the bottom bar
-        bottomBar.getChildren().addAll(infoDisplayView,leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT, deleteBT);
+        bottomBar.getChildren().addAll(infoDisplayView, muteButton, leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT, deleteBT);
 
         // Pane for world settings
         VBox editorPane = new VBox();

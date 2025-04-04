@@ -11,13 +11,12 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.stage.StageStyle;
 
 import java.io.File;
 
@@ -26,14 +25,51 @@ public class GUI extends Application {
     StackPane optionsRoot = new StackPane();
     StackPane creditsRoot = new StackPane();
 
+    double xOffset, yOffset;
+
     // Instantiate SoundPlayer
-    private SoundPlayer soundPlayer = new SoundPlayer();
-    private static MediaPlayer backgroundMusicPlayer;
+    private SoundPlayer menuSoundPlayer = new SoundPlayer();
+    public static MediaPlayer backgroundMusicPlayer;
 
     public void start(Stage primaryStage) {
+        primaryStage.initStyle(StageStyle.UNDECORATED);
+        // Create a custom title bar
+        HBox titleBar = new HBox();
+        titleBar.getStyleClass().add("title-bar");
+        titleBar.setMinWidth(Region.USE_PREF_SIZE);
+
+        Label title = new Label("Free Body Problem");
+        title.getStyleClass().add("title-text");
+
+        // Spacer to push buttons to the right
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Button closeBtn = new Button("✕");
+
+        // Add style classes
+        closeBtn.getStyleClass().add("close-button");
+
+        // Add event handlers
+        closeBtn.setOnAction(e -> primaryStage.close());
+        titleBar.getChildren().addAll(title, spacer, closeBtn);
+
+        // Make the window draggable
+        titleBar.setOnMousePressed(e -> {
+            xOffset = e.getSceneX();
+            yOffset = e.getSceneY();
+        });
+
+        titleBar.setOnMouseDragged(e -> {
+            primaryStage.setX(e.getScreenX() - xOffset);
+            primaryStage.setY(e.getScreenY() - yOffset);
+        });
+
+
+
+
+
         primaryStage.setTitle("Free Body Problem");
         primaryStage.setResizable(false);
-        primaryStage.setMaximized(true);
 
         // Load and play background music
         String musicFilePath = "src/main/resources/sounds/Music.wav";
@@ -52,9 +88,9 @@ public class GUI extends Application {
         }
 
         // Main Menu
-        mainMenuRoot.setSpacing(75);
-        mainMenuRoot.setPadding(new Insets(70, 100, 100, 150));
         mainMenuRoot.setId("menuID");
+
+        titleBar.prefWidthProperty().bind(mainMenuRoot.widthProperty());
 
         Label nameLabel = new Label("Free Body Problem");
         nameLabel.getStyleClass().add("titleStyle");
@@ -74,7 +110,7 @@ public class GUI extends Application {
         startBT.getStyleClass().add("buttonStyle");
         startBT.setOnMouseEntered(e -> startBT.getStyleClass().add("buttonHover"));
         startBT.setOnMouseClicked(e -> {
-            soundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
+            menuSoundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
             Sandbox app = new Sandbox();
             app.start(new Stage());
             primaryStage.close();
@@ -84,7 +120,7 @@ public class GUI extends Application {
         optionsBT.getStyleClass().add("buttonStyle");
         optionsBT.setOnMouseEntered(e -> optionsBT.getStyleClass().add("buttonHover"));
         optionsBT.setOnMouseClicked(e -> {
-            soundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
+            menuSoundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
             primaryStage.getScene().setRoot(optionsRoot);
         });
 
@@ -92,7 +128,7 @@ public class GUI extends Application {
         creditsBT.getStyleClass().add("buttonStyle");
         creditsBT.setOnMouseEntered(e -> creditsBT.getStyleClass().add("buttonHover"));
         creditsBT.setOnMouseClicked(e -> {
-            soundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
+            menuSoundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
             primaryStage.getScene().setRoot(creditsRoot);
             creditsRoot.requestFocus();
         });
@@ -102,7 +138,13 @@ public class GUI extends Application {
         HBox buttonsAndLogo = new HBox();
         buttonsAndLogo.setSpacing(30);
         buttonsAndLogo.getChildren().addAll(buttonBox, logoView);
-        mainMenuRoot.getChildren().addAll(nameLabel, buttonsAndLogo);
+
+        VBox mainMenuContent = new VBox();
+        mainMenuContent.getChildren().addAll(nameLabel, buttonsAndLogo);
+        mainMenuContent.setPadding(new Insets(70, 100, 100, 120));
+        mainMenuContent.setSpacing(75);
+
+        mainMenuRoot.getChildren().addAll(titleBar, mainMenuContent);
         mainMenuRoot.getStylesheets().add("MainMenuStyleSheet.css");
 
         // Options Menu
@@ -133,7 +175,7 @@ public class GUI extends Application {
         });
         HBox musicVolumeBox = new HBox();
         musicVolumeBox.setSpacing(30);
-        musicVolumeBox.setAlignment(Pos.CENTER);
+        musicVolumeBox.setAlignment(Pos.TOP_CENTER);
         musicVolumeBox.getChildren().addAll(musicVolumeLabel, musicVolumeSlider);
 
         Label effectsVolumeLabel = new Label("Effect Volume");

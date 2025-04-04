@@ -19,7 +19,6 @@ public class SoundPlayer {
             mediaPlayer.setVolume(volume); // Set the volume
             mediaPlayer.setOnError(() -> System.err.println("Error playing sound: " + mediaPlayer.getError().getMessage()));
             mediaPlayer.play();
-            System.out.println("Playing sound: " + soundFilePath);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -41,7 +41,6 @@ public final class VectorMath {
                 magnitude, 90, "Gravity", Color.BLUE);
         box.gravityVector = gravityVector;
         Sandbox.sandBoxPane.getChildren().add(gravityVector);
-        System.out.println("Gravity Vector updated for " + box);
 
         box.totalYForce -= magnitude; //always down
     }

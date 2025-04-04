@@ -5,6 +5,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -310,7 +311,58 @@ public class Snapping {
             }
         }
     }
+    public static void alignPulleyWithBox(Pulley pulley, Box box, Rope rope) {
+        // Check if both objects are connected by this rope
+        boolean pulleyConnected = (rope.getStartConnection() == pulley || rope.getEndConnection() == pulley);
+        boolean boxConnected = (rope.getStartConnection() == box || rope.getEndConnection() == box);
 
+        if (!pulleyConnected || !boxConnected) {
+            return; // Both objects must be connected by the rope
+        }
+
+        // Get box properties
+        double boxCenterX = box.getCenterX();
+        double boxCenterY = box.getCenterY();
+        double boxRotation = box.getRectangle().getRotate();
+        double boxRotationRadians = Math.toRadians(boxRotation);
+
+        // Get current pulley position
+        double pulleyX = pulley.getCenterX();
+        double pulleyY = pulley.getCenterY();
+
+        // Calculate the vector from box to pulley
+        double dx = pulleyX - boxCenterX;
+        double dy = pulleyY - boxCenterY;
+
+        // Calculate distance from box to pulley
+        double distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate the direction vector along the box's x-axis (considering rotation)
+        double dirX = Math.cos(boxRotationRadians);
+        double dirY = Math.sin(boxRotationRadians);
+
+        // Calculate new position for pulley along the box's rotated x-axis
+        double newPulleyX = boxCenterX + distance * dirX;
+        double newPulleyY = boxCenterY + distance * dirY;
+
+        // Calculate the translation needed
+        double deltaX = newPulleyX - pulleyX;
+        double deltaY = newPulleyY - pulleyY;
+
+        // Move all circles in the pulley group
+        for (Node node : pulley.circleGroup.getChildren()) {
+            if (node instanceof Circle) {
+                Circle circle = (Circle) node;
+                circle.setCenterX(circle.getCenterX() + deltaX);
+                circle.setCenterY(circle.getCenterY() + deltaY);
+            }
+        }
+
+        // Update any ropes connected to the pulley
+        pulley.updateConnectedRopes();
+
+        System.out.println("Pulley aligned with box at angle: " + boxRotation);
+    }
     private static double distance(double x1, double y1, double x2, double y2) {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     }

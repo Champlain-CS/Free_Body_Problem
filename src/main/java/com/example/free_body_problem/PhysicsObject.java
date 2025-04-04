@@ -15,6 +15,8 @@ import java.util.List;
 public abstract  class PhysicsObject extends Group {
     // Common properties for physics objects
     protected HashMap<Rope, Boolean> connectedRopes;
+    public int numberOfRopes  = 0;
+
 
 
     public PhysicsObject() {
@@ -42,8 +44,10 @@ public abstract  class PhysicsObject extends Group {
                 rope.getLine().setEndY(getCenterY());
             }
             //print the hashmap elemenets
-            System.out.println(rope + " connected: " + connectedRopes.get(rope));
         }
+        numberOfRopes = connectedRopes.size();
     }
+
+
 
 }

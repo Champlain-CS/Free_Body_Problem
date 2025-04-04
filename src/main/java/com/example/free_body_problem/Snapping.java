@@ -164,10 +164,15 @@ public class Snapping {
                 }
 
                 // Update rope position and connections
+
+
                 rope.getLine().setStartX(centerX);
                 rope.getLine().setStartY(centerY);
                 target.connectedRopes.put(rope, true);
                 rope.setStartConnection(target);
+                target.updateConnectedRopes();
+
+
             }
         } else if (target instanceof Pulley) {
             // Handle Group nodes (Pulley)
@@ -235,6 +240,9 @@ public class Snapping {
                 rope.getLine().setEndY(centerY);
                 target.connectedRopes.put(rope, false);
                 rope.setEndConnection(target);
+                target.updateConnectedRopes();
+
+
             }
         } else if (target instanceof Pulley) {
             // Handle Group nodes (Pulley)

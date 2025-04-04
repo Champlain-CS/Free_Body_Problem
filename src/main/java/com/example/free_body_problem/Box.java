@@ -16,6 +16,9 @@ import javafx.geometry.Pos;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import static java.lang.Math.abs;
 
 public class Box extends PhysicsObject {
     public Rectangle rectangle;
@@ -33,6 +36,7 @@ public class Box extends PhysicsObject {
     public boolean snappedToPlane = false;
     public Plane snappedPlane;
     boolean isSnapped = false;
+
 
     protected VectorDisplay gravityVector;
     protected VectorDisplay normalVector;
@@ -152,8 +156,6 @@ public class Box extends PhysicsObject {
 
         rectangle.setOnMouseDragged(event -> {
             double[] initialPress = (double[]) rectangle.getUserData();
-
-            // Calculate total distance from initial press position
             double totalDragDistance = Math.sqrt(
                     Math.pow(event.getSceneX() - initialPress[0], 2) +
                             Math.pow(event.getSceneY() - initialPress[1], 2)
@@ -161,61 +163,64 @@ public class Box extends PhysicsObject {
 
             // If box is snapped and we've dragged far enough, unsnap it
             if (isSnapped && totalDragDistance >= 50) {
-                // Unsnap the box
                 isSnapped = false;
                 snappedToPlane = false;
                 snappedPlane = null;
-                rectangle.setRotate(0); // Reset rotation
-                resizeHandle.setFill(Color.RED); // Reset handle color
+                rectangle.setRotate(0);
+                resizeHandle.setFill(Color.RED);
 
-                // Calculate the offset from center to where the mouse was initially pressed
                 double mouseOffsetX = initialPress[0] - (rectangle.getX() + rectangle.getWidth() / 2);
                 double mouseOffsetY = initialPress[1] - (rectangle.getY() + rectangle.getHeight() / 2);
 
-                // Set the box position maintaining the same relative mouse position
-                rectangle.setX(event.getSceneX() - mouseOffsetX - rectangle.getWidth() / 2);
-                rectangle.setY(event.getSceneY() - mouseOffsetY - rectangle.getHeight() / 2);
+                // Calculate new position with bounds checking
+                double newX = event.getSceneX() - mouseOffsetX - rectangle.getWidth() / 2;
+                double newY = event.getSceneY() - mouseOffsetY - rectangle.getHeight() / 2;
 
-                // Update the handle positions
+                // Constrain to parent bounds
+                newX = Math.max(0, Math.min(newX, parentContainer.getWidth() - rectangle.getWidth()));
+                newY = Math.max(0, Math.min(newY, parentContainer.getHeight() - rectangle.getHeight()));
+                applyRopeConstraints(newX);
+                rectangle.setX(newX);
+                rectangle.setY(newY);
+
                 updateHandlePositions();
-
-                // Store new reference point for future drag calculations
                 rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
-                return; // Skip the rest of the method for this drag event
+                return;
             }
 
-            // Only continue with drag if not snapped
             if (!isSnapped) {
                 double offsetX = event.getSceneX() - initialPress[0];
                 double offsetY = event.getSceneY() - initialPress[1];
 
-                // Update reference for next drag event
-                initialPress[0] = event.getSceneX();
-                initialPress[1] = event.getSceneY();
-                rectangle.setUserData(initialPress);
+                // Calculate proposed new position
+                double newX = rectangle.getX() + offsetX;
+                double newY = rectangle.getY() + offsetY;
 
-                lastDragDelta = Math.sqrt(offsetX*offsetX + offsetY*offsetY);
+                // Constrain to parent bounds
+                newX = Math.max(0, Math.min(newX, parentContainer.getWidth() - rectangle.getWidth()));
+                newY = Math.max(0, Math.min(newY, parentContainer.getHeight() - rectangle.getHeight()));
+                newX = applyRopeConstraints(newX);
+                // Only update if position has changed
+                if (newX != rectangle.getX() || newY != rectangle.getY()) {
+                    rectangle.setX(newX);
+                    rectangle.setY(newY);
 
-                // Move the box
-                rectangle.setX(rectangle.getX() + offsetX);
-                rectangle.setY(rectangle.getY() + offsetY);
+                    initialPress[0] = event.getSceneX();
+                    initialPress[1] = event.getSceneY();
+                    rectangle.setUserData(initialPress);
+                    lastDragDelta = Math.sqrt(offsetX*offsetX + offsetY*offsetY);
 
-                // Update handle positions
-                updateHandlePositions();
-
-                // Update all connected ropes
-                updateConnectedRopes();
-
-                // Check for snapping to planes
-                Snapping.snapBoxToPlane(this, planeList);
-
-                // Update handle positions again after potential snapping
-                updateHandlePositions();
+                    updateHandlePositions();
+                    updateConnectedRopes();
+                    Snapping.snapBoxToPlane(this, planeList);
+                    updateHandlePositions();
+                }
             }
         });
 
         rectangle.setOnMouseReleased(event -> {
-            lastDragDelta = null; // Reset when done dragging
+            lastDragDelta = null;
+            setBoxUnderRope();
         });
     }
 
@@ -243,7 +248,9 @@ public class Box extends PhysicsObject {
 
                 massField.setLayoutX(this.getCenterX() - massField.getWidth() / 2);
                 massField.setLayoutY(this.getCenterY() - massField.getHeight() / 2);
+
             }
+
         });
 
         // Update cursor based on snap status
@@ -254,6 +261,7 @@ public class Box extends PhysicsObject {
                 resizeHandle.setCursor(Cursor.DEFAULT);
             }
         });
+
     }
 
     private void updateHandlePositions() {
@@ -346,5 +354,114 @@ public class Box extends PhysicsObject {
     public void resetNetVectorComponents() {
         totalXForce =0;
         totalYForce =0;
+    }
+
+    public void setPosition(double x, double y) {
+        // Apply basic container constraints first
+        double constrainedX = Math.max(0, Math.min(x, parentContainer.getWidth() - rectangle.getWidth()));
+        double constrainedY = Math.max(0, Math.min(y, parentContainer.getHeight() - rectangle.getHeight()));
+
+        // Then apply rope constraints if needed
+        if (connectedRopes.size() > 1) {
+            enforceConstraints();
+            return; // Constraints already applied in enforceConstraints()
+        }
+
+        rectangle.setX(constrainedX);
+        rectangle.setY(constrainedY);
+        updateHandlePositions();
+        updateConnectedRopes();
+    }
+
+    public void setBoxUnderRope() {
+        if (connectedRopes.size() == 1 && !isSnapped) {
+            // Get the rope that's connected to the box
+            Map.Entry<Rope, Boolean> hashMap = connectedRopes.entrySet().iterator().next();
+            Rope rope = hashMap.getKey();
+            Boolean start = hashMap.getValue();
+
+            // Get both ends of the rope
+            double startY = rope.getLine().getStartY();
+            double endY = rope.getLine().getEndY();
+            double distance = abs(startY - endY);
+
+            // Determine which end is higher (lower y value)
+
+            // If y values are equal, no change needed
+
+            // Position the box under the connected end
+            if (start) {
+                if (startY < endY) {
+                    startY += distance*2;
+                }
+                setPosition(rope.getLine().getEndX() - getRectangle().getWidth() / 2, startY);
+
+            } else {
+                if (startY > endY) {
+                    endY += distance*2;
+                }
+                setPosition(rope.getLine().getStartX() - getRectangle().getWidth() / 2, endY);
+            }
+            updateConnectedRopes();
+        }
+    }
+
+    private double applyRopeConstraints(double newX) {
+        if (connectedRopes.size() > 1) {
+            double minX = Double.MAX_VALUE;
+            double maxX = Double.MIN_VALUE;
+
+            // Find the leftmost and rightmost connection points
+            for (Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
+                Rope rope = entry.getKey();
+                boolean isStartConnected = entry.getValue();
+
+                double ropeX;
+                if (isStartConnected) {
+                    ropeX = rope.getLine().getEndX();
+                } else {
+                    ropeX = rope.getLine().getStartX();
+                }
+
+                // The box can't move past the connection point
+                if (ropeX < minX) {
+                    minX = ropeX;
+                }
+                if (ropeX > maxX) {
+                    maxX = ropeX;
+                }
+            }
+            maxX -= rectangle.getWidth()/2;
+            // Constrain the box position based on the rope connections
+            return  Math.max(minX - rectangle.getWidth()/2, Math.min(newX, maxX));
+        }
+        return newX;
+    }
+
+    public void enforceConstraints() {
+        if (connectedRopes.size() > 1) {
+            double minX = Double.MAX_VALUE;
+            double maxX = Double.MIN_VALUE;
+
+            // Find boundary constraints from connected ropes
+            for (Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
+                Rope rope = entry.getKey();
+                boolean isStartConnected = entry.getValue();
+
+                // Get the non-connected end position
+                double ropeX = isStartConnected ?
+                        rope.getLine().getEndX() :
+                        rope.getLine().getStartX();
+
+                if (ropeX < minX) minX = ropeX;
+                if (ropeX > maxX) maxX = ropeX;
+            }
+
+            // Apply constraints
+            double constrainedX = Math.max(minX, Math.min(rectangle.getX(), maxX));
+            if (constrainedX != rectangle.getX()) {
+                setPosition(constrainedX, rectangle.getY());
+            }
+        }
     }
 }

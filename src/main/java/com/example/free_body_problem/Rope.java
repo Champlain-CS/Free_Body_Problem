@@ -58,6 +58,11 @@ public class Rope extends PhysicsObject {
         return startSnapped;
     }
 
+    public double getTension() {
+        return tension;
+    }
+
+
     public void setStartSnapped(Boolean startSnapped) {
         this.startSnapped = startSnapped;
     }
@@ -134,9 +139,14 @@ public class Rope extends PhysicsObject {
 
         startHandle.setOnMouseReleased(event -> {
             isOnHandle = false;
-            Roof roof = Sandbox.getRoof(); // Or however you access your roof object
-            // Assuming you have a reference to the roof object in your Sandbox class
+            Roof roof = Sandbox.getRoof();
             Snapping.snapToRoofIfIntersecting(startHandle, true, roof, this);
+
+            if (startConnection instanceof Box) {
+                Box box = (Box) startConnection;
+                box.setBoxUnderRope();
+                box.enforceConstraints(); // Enforce after positioning
+            }
         });
 
         endHandle.setOnMousePressed(event -> {
@@ -165,9 +175,14 @@ public class Rope extends PhysicsObject {
 
         endHandle.setOnMouseReleased(event -> {
             isOnHandle = false;
-            Roof roof = Sandbox.getRoof(); // Or however you access your roof object
-            // Assuming you have a reference to the roof object in your Sandbox class
+            Roof roof = Sandbox.getRoof();
             Snapping.snapToRoofIfIntersecting(endHandle, false, roof, this);
+
+            if (endConnection instanceof Box) {
+                Box box = (Box) endConnection;
+                box.setBoxUnderRope();
+                box.enforceConstraints(); // Enforce after positioning
+            }
         });
 
         // Keep your property listeners
@@ -198,11 +213,22 @@ public class Rope extends PhysicsObject {
             if (!isOnHandle) {
                 // Modified to only disconnect if dragging the entire rope
                 if (startConnection != null) {
+
+
                     startConnection.connectedRopes.remove(this);
+                    if (startConnection instanceof Box) {
+                        Box box = (Box) startConnection;
+                        box.setBoxUnderRope();
+                    }
                     startConnection = null;
                 }
-                if (endConnection != null) {
+                    if (endConnection != null) {
                     endConnection.connectedRopes.remove(this);
+
+                        if (endConnection instanceof Box) {
+                            Box box = (Box) endConnection;
+                            box.setBoxUnderRope();
+                        }
                     endConnection = null;
                 }
                 startSnapped = false;
@@ -225,6 +251,8 @@ public class Rope extends PhysicsObject {
                 line.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
             }
         });
+
+
     }
     @Override
     public double getCenterX() {

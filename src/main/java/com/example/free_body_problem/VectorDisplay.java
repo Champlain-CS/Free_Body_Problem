@@ -168,11 +168,4 @@ public class VectorDisplay extends Pane {
     public double getRotation() {
         return rotate.getAngle();
     }
-
-    private String toHex(Color color) {
-        return String.format("#%02x%02x%02x",
-                (int)(color.getRed() * 255),
-                (int)(color.getGreen() * 255),
-                (int)(color.getBlue() * 255));
-    }
 }

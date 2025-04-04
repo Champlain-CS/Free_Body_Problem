@@ -8,6 +8,11 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -27,8 +32,10 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.InputStream;
 import java.util.*;
+import java.util.List;
 
 public class Sandbox extends Application {
     private List<Plane> planes = new ArrayList<>();
@@ -225,6 +232,14 @@ public class Sandbox extends Application {
         HBox.setHgrow(leftSpacer, Priority.ALWAYS);
         leftSpacer.setMinWidth(175);
         HBox.setHgrow(rightSpacer, Priority.ALWAYS);
+
+        ImageView axesDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/Axes.png")));
+        axesDisplayView.setPreserveRatio(true);
+        axesDisplayView.setFitHeight(70);
+        axesDisplayView.setTranslateX(sandBoxPane.getPrefWidth()*2);
+        axesDisplayView.setTranslateY(sandBoxRoof.getHeight() + 5);
+        axesDisplayView.setViewOrder(500);
+        sandBoxRoot.getChildren().add(axesDisplayView);
 
         ImageView infoDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/infoDisplay.png")));
         infoDisplayView.setPreserveRatio(true);

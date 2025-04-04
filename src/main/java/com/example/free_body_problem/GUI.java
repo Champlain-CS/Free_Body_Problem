@@ -32,6 +32,8 @@ public class GUI extends Application {
     public static MediaPlayer backgroundMusicPlayer;
 
     public void start(Stage primaryStage) {
+        primaryStage.setMaxHeight(650);
+
         primaryStage.initStyle(StageStyle.UNDECORATED);
         // Create a custom title bar
         HBox titleBar = new HBox();
@@ -52,17 +54,6 @@ public class GUI extends Application {
         // Add event handlers
         closeBtn.setOnAction(e -> primaryStage.close());
         titleBar.getChildren().addAll(title, spacer, closeBtn);
-
-        // Make the window draggable
-        titleBar.setOnMousePressed(e -> {
-            xOffset = e.getSceneX();
-            yOffset = e.getSceneY();
-        });
-
-        titleBar.setOnMouseDragged(e -> {
-            primaryStage.setX(e.getScreenX() - xOffset);
-            primaryStage.setY(e.getScreenY() - yOffset);
-        });
 
 
 
@@ -89,22 +80,33 @@ public class GUI extends Application {
 
         // Main Menu
         mainMenuRoot.setId("menuID");
-
         titleBar.prefWidthProperty().bind(mainMenuRoot.widthProperty());
+
+        // Make the window draggable
+        mainMenuRoot.setOnMousePressed(e -> {
+            xOffset = e.getSceneX();
+            yOffset = e.getSceneY();
+        });
+
+        mainMenuRoot.setOnMouseDragged(e -> {
+            primaryStage.setX(e.getScreenX() - xOffset);
+            primaryStage.setY(e.getScreenY() - yOffset);
+        });
+
 
         Label nameLabel = new Label("Free Body Problem");
         nameLabel.getStyleClass().add("titleStyle");
         nameLabel.setEffect(new DropShadow());
 
         ImageView logoView = new ImageView(new Image(getClass().getResourceAsStream("/images/logoAlt.png")));
-        logoView.setFitHeight(450);
-        logoView.setFitWidth(450);
+        logoView.setFitHeight(350);
+        logoView.setFitWidth(350);
         logoView.setTranslateX(150);
         logoView.setTranslateY(-50);
         logoView.setEffect(new DropShadow());
 
         VBox buttonBox = new VBox();
-        buttonBox.setSpacing(20);
+        buttonBox.setSpacing(15);
 
         Button startBT = new Button("START");
         startBT.getStyleClass().add("buttonStyle");
@@ -142,13 +144,27 @@ public class GUI extends Application {
         VBox mainMenuContent = new VBox();
         mainMenuContent.getChildren().addAll(nameLabel, buttonsAndLogo);
         mainMenuContent.setPadding(new Insets(70, 100, 100, 120));
-        mainMenuContent.setSpacing(75);
+        mainMenuContent.setSpacing(60);
 
         mainMenuRoot.getChildren().addAll(titleBar, mainMenuContent);
         mainMenuRoot.getStylesheets().add("MainMenuStyleSheet.css");
 
+
+
         // Options Menu
         optionsRoot.setId("root");
+
+        // Make the window draggable
+        optionsRoot.setOnMousePressed(e -> {
+            xOffset = e.getSceneX();
+            yOffset = e.getSceneY();
+        });
+
+        optionsRoot.setOnMouseDragged(e -> {
+            primaryStage.setX(e.getScreenX() - xOffset);
+            primaryStage.setY(e.getScreenY() - yOffset);
+        });
+
 
         Rectangle optionsBox = new Rectangle();
         optionsBox.setHeight(500);
@@ -209,8 +225,22 @@ public class GUI extends Application {
             }
         });
 
+
+
+
         // Credits
         creditsRoot.setId("root");
+
+        // Make the window draggable
+        creditsRoot.setOnMousePressed(e -> {
+            xOffset = e.getSceneX();
+            yOffset = e.getSceneY();
+        });
+
+        creditsRoot.setOnMouseDragged(e -> {
+            primaryStage.setX(e.getScreenX() - xOffset);
+            primaryStage.setY(e.getScreenY() - yOffset);
+        });
 
         Rectangle creditsBase = new Rectangle();
         creditsBase.setHeight(500);

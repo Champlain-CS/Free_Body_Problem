@@ -390,13 +390,13 @@ public class Box extends PhysicsObject {
             // If y values are equal, no change needed
 
             // Position the box under the connected end
-            if (start && rope.getEndSnapped() == false) {
+            if (start && rope.getEndSnapped() == false && !(rope.getEndConnection() instanceof Box)) {
                 if (startY < endY) {
                     startY += distance*2;
                 }
                 setPosition(rope.getLine().getEndX() - getRectangle().getWidth() / 2, startY);
 
-            } else if (!start && rope.getStartSnapped() == false) {
+            } else if (!start && !(rope.getStartConnection() instanceof Box)) {
                 if (startY > endY) {
                     endY += distance*2;
                 }

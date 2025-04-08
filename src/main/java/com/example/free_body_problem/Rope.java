@@ -147,6 +147,11 @@ public class Rope extends PhysicsObject {
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
             }
+            if (endConnection instanceof Box) {
+                Box box = (Box) endConnection;
+                box.setBoxUnderRope();
+                box.enforceConstraints(); // Enforce after positioning
+            }
         });
 
         endHandle.setOnMousePressed(event -> {
@@ -180,6 +185,12 @@ public class Rope extends PhysicsObject {
 
             if (endConnection instanceof Box) {
                 Box box = (Box) endConnection;
+                box.setBoxUnderRope();
+                box.enforceConstraints(); // Enforce after positioning
+            }
+
+            if (startConnection instanceof Box) {
+                Box box = (Box) startConnection;
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
             }

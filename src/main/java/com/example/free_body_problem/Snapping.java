@@ -157,7 +157,7 @@ public class Snapping {
             double dy = Math.max(minY - py, Math.max(0, py - maxY));
             double distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (distance <= SNAP_THRESHOLD) {
+            if (distance <= SNAP_THRESHOLD && box.connectedRopes.size() < 2) {
                 // If we're snapping to a new object, remove connection from the old one
                 if (currentStartConnection != null && currentStartConnection != target) {
                     currentStartConnection.connectedRopes.remove(rope);
@@ -229,7 +229,7 @@ public class Snapping {
             double dy = Math.max(minY - py, Math.max(0, py - maxY));
             double distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (distance <= SNAP_THRESHOLD) {
+            if (distance <= SNAP_THRESHOLD && box.connectedRopes.size() < 2) {
                 // If we're snapping to a new object, remove connection from the old one
                 if (currentEndConnection != null && currentEndConnection != target) {
                     currentEndConnection.connectedRopes.remove(rope);

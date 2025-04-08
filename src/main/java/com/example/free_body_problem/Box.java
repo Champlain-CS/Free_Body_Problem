@@ -390,13 +390,13 @@ public class Box extends PhysicsObject {
             // If y values are equal, no change needed
 
             // Position the box under the connected end
-            if (start) {
+            if (start && rope.getEndSnapped() == false) {
                 if (startY < endY) {
                     startY += distance*2;
                 }
                 setPosition(rope.getLine().getEndX() - getRectangle().getWidth() / 2, startY);
 
-            } else {
+            } else if (!start && rope.getStartSnapped() == false) {
                 if (startY > endY) {
                     endY += distance*2;
                 }
@@ -407,7 +407,8 @@ public class Box extends PhysicsObject {
     }
 
     private double applyRopeConstraints(double newX) {
-        if (connectedRopes.size() > 1) {
+
+        if (connectedRopes.size() > 1 ) {
             double minX = Double.MAX_VALUE;
             double maxX = Double.MIN_VALUE;
 
@@ -415,6 +416,8 @@ public class Box extends PhysicsObject {
             for (Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
                 Rope rope = entry.getKey();
                 boolean isStartConnected = entry.getValue();
+                System.out.println("Start" + rope.getStartSnapped());
+                System.out.println("End" + rope.getEndSnapped());
 
                 double ropeX;
                 if (isStartConnected) {

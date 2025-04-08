@@ -54,7 +54,7 @@ public class Rope extends PhysicsObject {
     }
 
     //Getter and setter for start and end snapped
-    public Boolean getStartSnapped() {
+    public boolean getStartSnapped() {
         return startSnapped;
     }
 
@@ -67,7 +67,7 @@ public class Rope extends PhysicsObject {
         this.startSnapped = startSnapped;
     }
 
-    public Boolean getEndSnapped() {
+    public boolean getEndSnapped() {
         return endSnapped;
     }
 
@@ -147,7 +147,7 @@ public class Rope extends PhysicsObject {
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
             }
-            if (endConnection instanceof Box) {
+            else if (endConnection instanceof Box) {
                 Box box = (Box) endConnection;
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
@@ -188,8 +188,7 @@ public class Rope extends PhysicsObject {
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
             }
-
-            if (startConnection instanceof Box) {
+            else if (startConnection instanceof Box) {
                 Box box = (Box) startConnection;
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning

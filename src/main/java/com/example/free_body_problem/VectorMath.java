@@ -7,6 +7,7 @@ import javafx.geometry.Point2D;
 public final class VectorMath {
     private Sandbox sandbox;
     private static double normalMag;
+    private static double weightMag;
 
     public VectorMath(Sandbox sandbox) {
         this.sandbox = sandbox;
@@ -36,6 +37,7 @@ public final class VectorMath {
         double newPositionY = rotatedVector.getY();
 
         double magnitude = massValue*gravityValue;
+        weightMag = magnitude;
 
         VectorDisplay gravityVector = new VectorDisplay(newPositionX, newPositionY,
                 magnitude, 90, "Gravity", Color.BLUE);
@@ -68,15 +70,11 @@ public final class VectorMath {
         double newPositionY = rotatedVector.getY();
 
 
-        double angle = box.rectangle.getRotate();
-        double magnitude;
 
-        if(angle == 0) {
-            magnitude = massValue * gravityValue;
-        }
-        else {
-            magnitude = (massValue * gravityValue) * Math.cos(Math.toRadians(angle));
-        }
+        // For a box on an inclined plane, normal force is perpendicular to the plane
+        double angle = box.rectangle.getRotate();
+        double magnitude = massValue * gravityValue * Math.cos(Math.toRadians(angle));
+
         normalMag = magnitude;
 
 
@@ -87,16 +85,21 @@ public final class VectorMath {
         System.out.println("Normal Vector updated for " + box);
 
 
-        box.totalYForce += magnitude * Math.cos(Math.toRadians(angle));
+        // The normal force is perpendicular to the surface
+        double normalAngleRad = Math.toRadians(angle);
+        double normalXComponent = magnitude * Math.sin(normalAngleRad);
+        double normalYComponent = magnitude * Math.cos(normalAngleRad);
 
-        double totalXForce = magnitude * Math.sin(Math.toRadians(angle));
-        box.totalXForce += totalXForce;
+        box.totalXForce += normalXComponent;
+        box.totalYForce += normalYComponent;
+
+        System.out.println("normal components: " + normalXComponent + " " + normalYComponent);
 
 
         // Components
-        VectorDisplay normalY = new VectorDisplay(newPositionX, newPositionY, magnitude * Math.cos(Math.toRadians(angle)),
-                270, "Ny", Color.DARKRED);
-        VectorDisplay normalX = new VectorDisplay(newPositionX, newPositionY, totalXForce, 0, "Nx", Color.DARKRED);
+        VectorDisplay normalX = new VectorDisplay(newPositionX, newPositionY, normalXComponent, 0, "Nx", Color.DARKRED);
+        VectorDisplay normalY = new VectorDisplay(newPositionX, newPositionY, normalYComponent, 270, "Ny", Color.DARKRED);
+
         Sandbox.sandBoxPane.getChildren().addAll(
                 adaptComponentOrientation(normalX),
                 adaptComponentOrientation(normalY));
@@ -104,27 +107,47 @@ public final class VectorMath {
 
     public static void calculateFrictionVector(Box box) {
         double coefficient = Double.parseDouble(Sandbox.coefficientField.getText());
-        double magnitude  = coefficient * normalMag;
-        double angle;
+
+        // Friction acts parallel to the inclined plane, opposing potential motion
+        // For a box on an inclined plane, friction points up the plane
+        double frictionAngle = box.rectangle.getRotate();
+        if(frictionAngle < 180) {
+            frictionAngle += 180;  // Point up the incline
+        } else {
+            frictionAngle -= 180;  // Point up the incline for angles > 180
+        }
+
+        double maxFriction = coefficient * normalMag;
+        double gravityAlongIncline = Math.abs(weightMag * Math.sin(Math.toRadians(frictionAngle)));
+
+        double magnitude;
+        if (gravityAlongIncline >= maxFriction) {
+            magnitude = maxFriction; // sliding
+            box.isSliding = true;
+        } else {
+            magnitude = gravityAlongIncline; // static equilibrium
+            box.isSliding = false;
+        }
+
+        System.out.println("friction magnitude: " + magnitude);
+
 
         double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
         double rotationAngle = box.getRectangle().getRotate();
 
-
         // Create a Point2D to represent the center of the rectangle
         Point2D center = new Point2D(positionCenterX, positionCenterY);
-        double rawBoxAngle = box.rectangle.getRotate();
 
         // The vector's original position relative to the center (before rotation)
         double vectorX;
         if(box.rectangle.getRotate() < 180) {
             vectorX = box.getRectangle().getX();
-            angle = box.rectangle.getRotate() + 180;
+            frictionAngle = box.rectangle.getRotate() + 180;
         }
         else {
             vectorX = box.getRectangle().getX() + box.getRectangle().getWidth();
-            angle = box.rectangle.getRotate();
+            frictionAngle = box.rectangle.getRotate();
         }
         double vectorY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
 
@@ -139,26 +162,62 @@ public final class VectorMath {
 
 
         VectorDisplay frictionVector = new VectorDisplay(
-                newPositionX, newPositionY, magnitude, angle, "Friction", Color.GREEN);
+                newPositionX, newPositionY, magnitude, frictionAngle, "Friction", Color.GREEN);
         box.frictionVector = frictionVector;
         Sandbox.sandBoxPane.getChildren().add(frictionVector);
         System.out.println("Friction Vector updated for " + box);
 
 
-        //Sending component magnitudes for net vector
-        double totalXForce = magnitude * Math.cos(Math.toRadians(angle));
-        box.totalXForce += totalXForce;
+        // The friction force is parallel to the surface
+        double frictionAngleRad = Math.toRadians(frictionAngle + 90); // Parallel to surface
+        double frictionXComponent = magnitude * Math.sin(frictionAngleRad);
+        double frictionYComponent = magnitude * Math.cos(frictionAngleRad);
 
-        double totalYForce = -magnitude * Math.sin(Math.toRadians(angle));
-        box.totalYForce += totalYForce;
+        box.totalXForce += frictionXComponent;
+        box.totalYForce += frictionYComponent;
+
+        System.out.println("friction components: " + frictionXComponent + " " + frictionYComponent);
 
         // Components
-        VectorDisplay frictionX = new VectorDisplay(newPositionX, newPositionY, totalXForce, 0, "Fx", Color.DARKGREEN);
-        VectorDisplay frictionY = new VectorDisplay(newPositionX, newPositionY, totalYForce,
-                270, "Fy", Color.DARKGREEN);
+        VectorDisplay frictionX = new VectorDisplay(newPositionX, newPositionY, frictionXComponent, 0, "Fx", Color.DARKGREEN);
+        VectorDisplay frictionY = new VectorDisplay(newPositionX, newPositionY, frictionYComponent, 270, "Fy", Color.DARKGREEN);
         Sandbox.sandBoxPane.getChildren().addAll(
                 adaptComponentOrientation(frictionX),
                 adaptComponentOrientation(frictionY));
+    }
+
+    public static void calculateCase1Tension(Box box) {
+        double gravityValue = Double.parseDouble(Sandbox.gravityField.getText());
+        double massValue = Double.parseDouble(box.getTextField().getText());
+
+        double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+        double rotationAngle = box.getRectangle().getRotate();
+
+        // Create a Point2D to represent the center of the rectangle
+        Point2D center = new Point2D(positionCenterX, positionCenterY);
+
+        // The vector's original position relative to the center (before rotation)
+        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double vectorY = box.getRectangle().getY();
+
+        // Rotate the vector point relative to the center
+        Rotate rotate = new Rotate(rotationAngle, center.getX(), center.getY());
+        Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
+
+        // Now, rotatedVector gives the new position of the vector after the box is rotated
+        double newPositionX = rotatedVector.getX();
+        double newPositionY = rotatedVector.getY();
+
+        double magnitude = gravityValue * massValue;
+
+        VectorDisplay tensionVector = new VectorDisplay(newPositionX, newPositionY,
+                magnitude, 270, "Tension", Color.PURPLE);
+        box.tensionVector1 = tensionVector;
+        Sandbox.sandBoxPane.getChildren().add(tensionVector);
+
+        box.totalYForce += magnitude; //always down
+
     }
 
     public static void calculateNetVector(Box box) {
@@ -167,6 +226,8 @@ public final class VectorMath {
 
         double xComponent = box.totalXForce;
         double yComponent = box.totalYForce;
+
+        System.out.println(xComponent + " " + yComponent);
 
         double magnitude = Math.sqrt(xComponent*xComponent + yComponent*yComponent);
         double boxAngle = box.getRectangle().getRotate()+90;
@@ -212,7 +273,7 @@ public final class VectorMath {
     private static VectorDisplay adaptComponentOrientation(VectorDisplay vector) {
         if (vector.getTrueLength() < 0) {
             // flip the sign of the true length while maintaining visual length
-            vector.setLength(-1 * vector.getTrueLength());
+            vector.setDisplayLength(-1 * vector.getTrueLength());
             vector.setRotation((vector.getRotation() + 180) % 360);
 
             double originalRotation = vector.getRotation();

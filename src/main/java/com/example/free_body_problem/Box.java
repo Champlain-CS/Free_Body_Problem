@@ -36,12 +36,14 @@ public class Box extends PhysicsObject {
     public boolean snappedToPlane = false;
     public Plane snappedPlane;
     boolean isSnapped = false;
+    boolean isSliding;
 
 
     protected VectorDisplay gravityVector;
     protected VectorDisplay normalVector;
     protected VectorDisplay frictionVector;
-    protected VectorDisplay tensionVector; //May need multiple, or we do max 1 rope per box
+    protected VectorDisplay tensionVector1;
+    protected VectorDisplay TensionVector2;
     protected VectorDisplay netVector;
     public List<Plane> planeList;
 

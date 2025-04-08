@@ -1,14 +1,12 @@
 package com.example.free_body_problem;
 
 import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 
@@ -18,7 +16,7 @@ public class VectorDisplay extends Pane {
     private final Line line;
     private final Polygon arrowhead;
     private final Rotate rotate;
-    private double length;
+    private double displayLength;
     private double trueLength;
     private final Text forceName;
     private final Text forceMagnitude;
@@ -46,14 +44,14 @@ public class VectorDisplay extends Pane {
 
         // Set true length and calculate visual length
         this.trueLength = trueLength;  // Fixed parameter name (was using wrong variable)
-        this.length = calculateVisualLength(trueLength);
+        this.displayLength = calculateVisualLength(trueLength);
         this.color = color;
         this.angle = angle;
 
         // Configure line
         line.setStartX(startX);
         line.setStartY(startY);
-        line.setEndX(startX + this.length);
+        line.setEndX(startX + this.displayLength);
         line.setEndY(startY);
         line.setStroke(color);
         line.setStrokeWidth(3);
@@ -93,7 +91,7 @@ public class VectorDisplay extends Pane {
         this.getTransforms().add(rotate);
 
         // Add components if length > 0
-        if (this.length > 0) {
+        if (this.displayLength > 0) {
             updateVector();
             getChildren().addAll(line, arrowhead, forceText);
         } else {
@@ -102,7 +100,7 @@ public class VectorDisplay extends Pane {
     }
 
     private void updateVector() {
-        if (length <= 0) {
+        if (displayLength <= 0) {
             getChildren().clear();
             return;
         }
@@ -138,9 +136,9 @@ public class VectorDisplay extends Pane {
         return Math.min(scaledLength, MAX_VISIBLE_LENGTH);
     }
 
-    public void setLength(double newTrueLength) {
+    public void setDisplayLength(double newTrueLength) {
         this.trueLength = newTrueLength;
-        this.length = calculateVisualLength(newTrueLength);
+        this.displayLength = calculateVisualLength(newTrueLength);
 
         if (newTrueLength == 0) {
             getChildren().clear();
@@ -157,8 +155,8 @@ public class VectorDisplay extends Pane {
         return forceName;
     }
 
-    public double getLength() {
-        return length;  // Returns visual length
+    public double getDisplayLength() {
+        return displayLength;  // Returns visual length
     }
 
     public double getTrueLength() {

@@ -851,18 +851,29 @@ public class Sandbox extends Application {
 
         // Calculate ALL forces regardless of checkbox selections
         // This ensures physics remains consistent
+
+        // Always calculated gravity
         VectorMath.calculateGravityVector(box);
 
+        //Calculate normal if on a plane
         if (box.isSnapped) {
             VectorMath.calculateNormalVector(box);
         }
 
+        //Calculate friction if box has an angle
         if (box.isSnapped && box.rectangle.getRotate() != 0) {
             VectorMath.calculateFrictionVector(box);
         }
 
+        //Tension case 1: 1 rope, 1 box
+        if(box.connectedRopes.size() == 1 && !box.isSnapped) {
+            VectorMath.calculateCase1Tension(box);
+        }
+
         VectorMath.calculateNetVector(box);
 
+
+        System.out.println();
 
         iterator = sandBoxPane.getChildren().iterator();
         while (iterator.hasNext()) {

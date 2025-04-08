@@ -9,11 +9,8 @@ import java.util.List;
 
 public class Pulley extends PhysicsObject {
     public Group circleGroup;
-    // List to store multiple connected ropes
-    public List<Rope> connectedRopes;
-    // Lists to track which end of each rope is connected
-    public List<Boolean> ropeStartSnapped;
-    public List<Boolean> ropeEndSnapped;
+
+
 
     public Pulley(double x, double y, double outerRadius, double innerRadius, Color outerColor, Color innerColor) {
         Circle outerCircle = new Circle(x, y, outerRadius, outerColor);
@@ -44,26 +41,7 @@ public class Pulley extends PhysicsObject {
     }
 
     // Add a rope to the pulley's connected ropes
-    public void addRope(Rope rope, boolean isStartSnapped) {
-        connectedRopes.add(rope);
-        if (isStartSnapped) {
-            ropeStartSnapped.add(true);
-            ropeEndSnapped.add(false);
-        } else {
-            ropeStartSnapped.add(false);
-            ropeEndSnapped.add(true);
-        }
-    }
 
-    // Remove a rope from the pulley
-    public void removeRope(Rope rope) {
-        int index = connectedRopes.indexOf(rope);
-        if (index != -1) {
-            connectedRopes.remove(index);
-            ropeStartSnapped.remove(index);
-            ropeEndSnapped.remove(index);
-        }
-    }
 
     public void addDragListener() {
         circleGroup.setOnMousePressed(event -> {

@@ -255,7 +255,7 @@ public class Snapping {
             double dy = py - centerY;
             double distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (distance <= SNAP_THRESHOLD) {
+            if (distance <= SNAP_THRESHOLD && pulley.connectedRopes.size() < 2) {
                 // If we're snapping to a new object, remove connection from the old one
                 if (currentEndConnection != null && currentEndConnection != target) {
                     currentEndConnection.connectedRopes.remove(rope);

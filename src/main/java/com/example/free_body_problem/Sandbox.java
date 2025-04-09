@@ -1,7 +1,6 @@
 package com.example.free_body_problem;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
@@ -23,7 +22,6 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
-import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
@@ -36,16 +34,14 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 
 public class Sandbox extends Application {
-    private List<Plane> planes = new ArrayList<>();
-    public ArrayList<PhysicsObject> physicsObjectList = new ArrayList<PhysicsObject>();
+    private final List<Plane> planes = new ArrayList<>();
+    public ArrayList<PhysicsObject> physicsObjectList = new ArrayList<>();
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
-    private boolean dragging = false; // Flag to indicate if a shape is being dragged
     private HBox helpBox;
     private boolean isDisplayingVectors = false;
     public static Roof sandBoxRoof;
@@ -57,8 +53,6 @@ public class Sandbox extends Application {
     private Button deleteBT;
     private BorderPane sandBoxRoot;
     private ImageView vectorDisplayView;
-    private VBox menuPane;
-    private boolean isMusicPlaying = true;
 
     // Checkboxes for vector display control
     private CheckBox gravityVectorCB;
@@ -71,7 +65,7 @@ public class Sandbox extends Application {
     private CheckBox netForceComponentsCB;
 
     // Instantiate SoundPlayer
-    private SoundPlayer soundPlayer = new SoundPlayer();
+    private final SoundPlayer soundPlayer = new SoundPlayer();
 
     @Override
     public void start(Stage primaryStage) {
@@ -147,7 +141,7 @@ public class Sandbox extends Application {
 
         // Add mouse event handlers for circleButton
         circleButton.setOnMouseClicked(event -> {
-            Pulley newPulley = new Pulley(100, 50, 25, 10, Color.GRAY, Color.BLACK);
+            Pulley newPulley = new Pulley(100, 50, 25, 10, Color.GRAY, Color.BLACK, sandBoxPane);
             sandBoxPane.getChildren().add(newPulley.getCircleGroup());
             newPulley.addDragListener();
         });
@@ -691,7 +685,7 @@ public class Sandbox extends Application {
                         soundPlayer.playSound("src/main/resources/sounds/Place.wav");
                         break;
                     case "circle":
-                        Pulley newPulley = new Pulley(event.getX(), event.getY(), 25, 10, Color.GRAY, Color.BLACK);
+                        Pulley newPulley = new Pulley(event.getX(), event.getY(), 25, 10, Color.GRAY, Color.BLACK, sandBoxPane);
                         sandBoxPane.getChildren().add(newPulley.getCircleGroup());
                         newPulley.addDragListener();
                         physicsObjectList.add(newPulley);

@@ -185,17 +185,18 @@ public class Snapping {
             double dy = py - centerY;
             double distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (distance <= SNAP_THRESHOLD) {
+            if (distance <= SNAP_THRESHOLD && pulley.connectedRopes.size() < 2) {
                 // If we're snapping to a new object, remove connection from the old one
                 if (currentStartConnection != null && currentStartConnection != target) {
                     currentStartConnection.connectedRopes.remove(rope);
                 }
-
                 // Update rope position and connections
                 rope.getLine().setStartX(centerX);
                 rope.getLine().setStartY(centerY);
                 target.connectedRopes.put(rope, true);
                 rope.setStartConnection(target);
+                target.updateConnectedRopes();
+
             }
         }
     }
@@ -266,6 +267,7 @@ public class Snapping {
                 rope.getLine().setEndY(centerY);
                 target.connectedRopes.put(rope, false);
                 rope.setEndConnection(target);
+                target.updateConnectedRopes();
             }
         }
     }

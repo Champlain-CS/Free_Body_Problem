@@ -153,7 +153,6 @@ public class Box extends PhysicsObject {
             // Store initial press position
             rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
             lastDragDelta = null; // Reset on new drag
-            alignConnectedPulleys();
         });
 
         rectangle.setOnMouseDragged(event -> {
@@ -315,44 +314,7 @@ public class Box extends PhysicsObject {
             }
         });
     }
-    public void alignConnectedPulleys() {
-        for (java.util.Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
-            Rope rope = entry.getKey();
-            PhysicsObject otherEnd;
 
-            // Check if the other end is a pulley
-            if (entry.getValue()) { // This box is at the start of the rope
-                otherEnd = rope.getEndConnection();
-            } else { // This box is at the end of the rope
-                otherEnd = rope.getStartConnection();
-            }
-
-            if (otherEnd instanceof Pulley) {
-                Snapping.alignPulleyWithBox((Pulley) otherEnd, this, rope);
-
-                // Handle the case where the pulley has multiple ropes connected
-                for (java.util.Map.Entry<Rope, Boolean> pulleyEntry : otherEnd.connectedRopes.entrySet()) {
-                    Rope otherRope = pulleyEntry.getKey();
-
-                    // Skip the rope we just processed
-                    if (otherRope == rope) continue;
-
-                    // Get the object at the other end of this rope
-                    PhysicsObject thirdObj = null;
-                    if (pulleyEntry.getValue()) { // Pulley is at the start of the rope
-                        thirdObj = otherRope.getEndConnection();
-                    } else { // Pulley is at the end of the rope
-                        thirdObj = otherRope.getStartConnection();
-                    }
-
-                    // If that object is also a box, align it with the pulley's new position
-                    if (thirdObj instanceof Box) {
-                        ((Box) thirdObj).updateConnectedRopes();
-                    }
-                }
-            }
-        }
-    }
     public void resetNetVectorComponents() {
         totalXForce =0;
         totalYForce =0;
@@ -392,13 +354,13 @@ public class Box extends PhysicsObject {
             // If y values are equal, no change needed
 
             // Position the box under the connected end
-            if (start && rope.getEndSnapped() == false && !(rope.getEndConnection() instanceof Box)) {
+            if (start && rope.getEndSnapped() == false || (rope.getEndConnection() instanceof Roof)) {
                 if (startY < endY) {
                     startY += distance*2;
                 }
                 setPosition(rope.getLine().getEndX() - getRectangle().getWidth() / 2, startY);
 
-            } else if (!start && !(rope.getStartConnection() instanceof Box)) {
+            } else if (!start && rope.getStartSnapped() == false || (rope.getStartConnection() instanceof Roof)) {
                 if (startY > endY) {
                     endY += distance*2;
                 }

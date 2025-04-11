@@ -19,6 +19,7 @@ public class Rope extends PhysicsObject {
     private List<PhysicsObject> physicsObjectList;
     private boolean isOnHandle = false;
     public double tension = 0;
+    private double orientation;
 
     // Add these new fields to track connections
     private PhysicsObject startConnection;
@@ -35,7 +36,6 @@ public class Rope extends PhysicsObject {
         line.setStrokeWidth(8);
         line.setStrokeLineCap(StrokeLineCap.ROUND);
 
-
         startHandle = createHandle(startX, startY);
         this.physicsObjectList = physicsObjectList;
 
@@ -51,6 +51,8 @@ public class Rope extends PhysicsObject {
         // Initialize connections as null
         this.startConnection = null;
         this.endConnection = null;
+
+        updateOrientationAttribute();
     }
 
     //Getter and setter for start and end snapped
@@ -152,6 +154,8 @@ public class Rope extends PhysicsObject {
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
             }
+
+            updateOrientationAttribute();
         });
 
         endHandle.setOnMousePressed(event -> {
@@ -193,6 +197,8 @@ public class Rope extends PhysicsObject {
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
             }
+
+            updateOrientationAttribute();
         });
 
         // Keep your property listeners
@@ -272,5 +278,21 @@ public class Rope extends PhysicsObject {
     @Override
     public double getCenterY() {
         return (line.getStartY() + line.getEndY()) / 2;
+    }
+
+    public void updateOrientationAttribute() {
+        double deltaX = line.getEndX() - line.getStartX();
+        double deltaY = line.getEndY() - line.getStartY();
+        double angleInRadians = Math.atan2(deltaY, deltaX);
+        double angleInDegrees = Math.toDegrees(angleInRadians);
+
+        if (angleInDegrees < 0) {
+            angleInDegrees += 360;
+        }
+        orientation = angleInDegrees;
+    }
+
+    public double getOrientation() {
+        return orientation;
     }
 }

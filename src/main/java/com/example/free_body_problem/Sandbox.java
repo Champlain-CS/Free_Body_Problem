@@ -34,7 +34,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 
@@ -479,8 +479,23 @@ public class Sandbox extends Application {
         SoundPlayer resetSoundPlayer = new SoundPlayer();
 
         resetBT.setOnMouseClicked(event -> {
-            resetSimulation();
-            resetSoundPlayer.playSound("src/main/resources/sounds/Reset.wav");
+            Alert warngAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            warngAlert.setTitle("Warning");
+            warngAlert.setHeaderText(null);
+            warngAlert.setContentText("Are you sure you want to reset your progress?");
+
+            ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+            ButtonType cancelButton = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            warngAlert.getButtonTypes().setAll(yesButton, cancelButton);
+
+            Optional<ButtonType> result = warngAlert.showAndWait();
+            if (result.isPresent() && result.get() == yesButton) {
+                resetSimulation();
+                resetSoundPlayer.playSound("src/main/resources/sounds/Reset.wav");
+            }
+
+
         });
 
         // Set up the stage
@@ -860,9 +875,14 @@ public class Sandbox extends Application {
         }
 
         //Tension case 1: 1 rope, 1 box
-        if(box.connectedRopes.size() == 1 && !box.isSnapped) {
-            VectorMath.calculateCase1Tension(box);
+        if(box.connectedRopes.size() == 1) {
+            Map.Entry<Rope, Boolean> hashMap = box.connectedRopes.entrySet().iterator().next();
+            Rope rope = hashMap.getKey();
+            VectorMath.calculateTension1Rope(box,rope);
         }
+
+
+
 
         VectorMath.calculateNetVector(box);
 
@@ -1165,5 +1185,28 @@ public class Sandbox extends Application {
         sandBoxPane.widthProperty().addListener((obs, oldVal, newVal) -> {
             roof.adjustToSandboxWidth(newVal.doubleValue());
         });
+    }
+
+    private void saveStateToFile(File file) {
+        SaveState saveState = new SaveState();
+        saveState.gravitySetting = Double.parseDouble(gravityField.getText());
+        saveState.frictionCoefficientSetting = Double.parseDouble(coefficientField.getText());
+        saveState.physicsObjects = physicsObjectList;
+
+
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            out.writeObject(saveState);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public SaveState loadSaveState(File file) {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+            return (SaveState)in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

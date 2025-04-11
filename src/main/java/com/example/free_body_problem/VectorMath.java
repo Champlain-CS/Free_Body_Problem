@@ -254,7 +254,6 @@ public final class VectorMath {
         VectorDisplay netVector = new VectorDisplay(positionCenterX, positionCenterY,
                 magnitude, netAngle, "Net", Color.BLACK);
         box.gravityVector = netVector;
-        System.out.println("Net vector angleIWUEFIWUHFWIUHWEIFHWIFHUWFH: " + netVector.getTrueLength());
         if (netVector.getTrueLength() < 0.0001) {
             netVector.arrowhead.setOpacity(0);
             netVector.line.setOpacity(0);

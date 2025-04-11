@@ -13,8 +13,8 @@ import javafx.scene.transform.Rotate;
 import java.text.DecimalFormat;
 
 public class VectorDisplay extends Pane {
-    private final Line line;
-    private final Polygon arrowhead;
+    final Line line;
+    final Polygon arrowhead;
     private final Rotate rotate;
     private double displayLength;
     private double trueLength;

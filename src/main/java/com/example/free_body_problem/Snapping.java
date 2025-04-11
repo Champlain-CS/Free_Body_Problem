@@ -172,6 +172,12 @@ public class Snapping {
                 rope.setStartConnection(target);
                 target.updateConnectedRopes();
 
+                if (rope.endSnapped && (rope.getEndConnection() instanceof Pulley)){
+                    Pulley pulley = (Pulley) rope.getEndConnection();
+                    pulley.updateBoxList();
+                }
+
+
 
             }
         } else if (target instanceof Pulley) {
@@ -196,6 +202,7 @@ public class Snapping {
                 target.connectedRopes.put(rope, true);
                 rope.setStartConnection(target);
                 target.updateConnectedRopes();
+                pulley.updateBoxList();
 
             }
         }
@@ -244,6 +251,13 @@ public class Snapping {
                 target.updateConnectedRopes();
 
 
+                if (rope.startSnapped && (rope.getStartConnection() instanceof Pulley)){
+                    Pulley pulley = (Pulley) rope.getStartConnection();
+                    pulley.updateBoxList();
+                }
+
+
+
             }
         } else if (target instanceof Pulley) {
             // Handle Group nodes (Pulley)
@@ -268,6 +282,8 @@ public class Snapping {
                 target.connectedRopes.put(rope, false);
                 rope.setEndConnection(target);
                 target.updateConnectedRopes();
+                pulley.updateBoxList();
+
             }
         }
     }

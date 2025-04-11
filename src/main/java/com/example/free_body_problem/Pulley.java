@@ -15,7 +15,9 @@ public class Pulley extends PhysicsObject {
     public Group circleGroup;
     private Pane parentContainer;
     private Double lastDragDelta = null;
-    private double radius; // Store the outer radius for boundary calculations
+    private double radius;
+    public List<Box> connectedBoxes = new ArrayList<>();
+// Store the outer radius for boundary calculations
 
     public Pulley(double x, double y, double outerRadius, double innerRadius, Color outerColor, Color innerColor, Pane parentContainer) {
         this.parentContainer = parentContainer;
@@ -37,11 +39,11 @@ public class Pulley extends PhysicsObject {
         addDragListener();
     }
 
-    public double getCenterX(){
+    public double getCenterX() {
         return circleGroup.getBoundsInParent().getCenterX();
     }
 
-    public double getCenterY(){
+    public double getCenterY() {
         return circleGroup.getBoundsInParent().getCenterY();
     }
 
@@ -99,7 +101,7 @@ public class Pulley extends PhysicsObject {
                 initialPress[0] = event.getSceneX();
                 initialPress[1] = event.getSceneY();
                 circleGroup.setUserData(initialPress);
-                lastDragDelta = Math.sqrt(offsetX*offsetX + offsetY*offsetY);
+                lastDragDelta = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
 
                 updateConnectedRopes();
             }
@@ -190,5 +192,26 @@ public class Pulley extends PhysicsObject {
                 setPosition(constrainedX, getCenterY());
             }
         }
+    }
+
+    public void updateBoxList() {
+        //check if the list is not empty
+        if (!connectedRopes.isEmpty()) {
+            connectedBoxes.clear();
+            for (Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
+                Rope rope = entry.getKey();
+                if (rope.getStartConnection() instanceof Box){
+                    Box ropeBox = (Box) rope.getStartConnection();
+                    connectedBoxes.add(ropeBox);
+                }
+                else if (rope.getEndConnection() instanceof Box){
+                    Box ropeBox = (Box) rope.getEndConnection();
+                    connectedBoxes.add(ropeBox);
+                }
+
+            }
+
+        }
+        System.out.println("Number of boxes is " + connectedBoxes.size());
     }
 }

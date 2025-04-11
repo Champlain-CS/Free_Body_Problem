@@ -224,22 +224,31 @@ public class Rope extends PhysicsObject {
                 // Modified to only disconnect if dragging the entire rope
                 if (startConnection != null) {
 
-
                     startConnection.connectedRopes.remove(this);
                     if (startConnection instanceof Box) {
                         Box box = (Box) startConnection;
                         box.setBoxUnderRope();
                     }
+                    else if (startConnection instanceof Pulley){
+                        Pulley pulley = (Pulley) startConnection;
+                        pulley.updateBoxList();
+                    }
                     startConnection = null;
                 }
+
+
                     if (endConnection != null) {
-                    endConnection.connectedRopes.remove(this);
+                        endConnection.connectedRopes.remove(this);
 
                         if (endConnection instanceof Box) {
                             Box box = (Box) endConnection;
                             box.setBoxUnderRope();
                         }
-                    endConnection = null;
+                        else if (endConnection instanceof Pulley){
+                            Pulley pulley = (Pulley) endConnection;
+                            pulley.updateBoxList();
+                        }
+                        endConnection = null;
                 }
                 startSnapped = false;
                 endSnapped = false;

@@ -331,8 +331,10 @@ public class Box extends PhysicsObject {
             return; // Constraints already applied in enforceConstraints()
         }
 
+
         rectangle.setX(constrainedX);
-        rectangle.setY(constrainedY);
+        rectangle.setY(constrainedY - 50);
+        rectangle.setRotate(0);
         updateHandlePositions();
         updateConnectedRopes();
     }
@@ -366,6 +368,7 @@ public class Box extends PhysicsObject {
                 }
                 setPosition(rope.getLine().getStartX() - getRectangle().getWidth() / 2, endY);
             }
+
             updateConnectedRopes();
         }
     }

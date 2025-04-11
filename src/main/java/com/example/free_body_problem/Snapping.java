@@ -87,6 +87,7 @@ public class Snapping {
                 boxObject.isSnapped = true;
                 boxObject.snappedToPlane = true;
                 boxObject.snappedPlane = obj;
+                obj.connectedBoxes.add(boxObject);
 
                 break; // Exit the loop once snapped to a plane
             }

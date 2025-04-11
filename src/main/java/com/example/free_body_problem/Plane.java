@@ -14,6 +14,7 @@ import javafx.geometry.Pos;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Plane extends  PhysicsObject {
     private Line line;
@@ -26,6 +27,7 @@ public class Plane extends  PhysicsObject {
     public List<Rope> connectedRopes;
     public List<Boolean> ropeStartSnapped;
     public List<Boolean> ropeEndSnapped;
+    public List<Box> connectedBoxes = new ArrayList<>();
 
 
     private Sandbox sandbox;
@@ -280,6 +282,16 @@ public class Plane extends  PhysicsObject {
 
             // Update the drag offset
             this.setDragOffset(new double[]{event.getSceneX(), event.getSceneY()});
+
+        });
+
+        line.setOnMouseReleased(event -> {
+            for (Box box: connectedBoxes){
+                box.isSnapped = false;
+                box.setBoxUnderRope();
+                System.out.println("Yes");
+            }
+            connectedBoxes.clear();
         });
     }
 
@@ -342,6 +354,8 @@ public class Plane extends  PhysicsObject {
     public double getCenterY() {
         return (line.getStartY() + line.getEndY()) / 2;
     }
+
+
 
 
 

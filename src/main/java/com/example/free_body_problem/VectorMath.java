@@ -12,6 +12,7 @@ public final class VectorMath {
     }
 
     public static void calculateGravityVector(Box box) {
+        System.out.println("Box at "+box.rectangle.getRotate()+" degrees");
         double gravityValue = Double.parseDouble(Sandbox.gravityField.getText());
         double massValue = Double.parseDouble(box.getTextField().getText());
 
@@ -210,14 +211,19 @@ public final class VectorMath {
         //Cases
         double magnitude = 0;
         double angle = 0;
+        double xTension = 0;
+        double yTension = 0;
 
         if(!box.snappedToPlane) {
             magnitude = box.gravityVector.getTrueLength();
             angle = 270;
+
+            xTension = 0;
+            yTension = magnitude;
         }
-        if(box.isSliding && ropeRotationAngle >= boxRotationAngle && ropeRotationAngle <= 270) {
-            double xTension = -1 * box.totalXForce;
-            double yTension = -1 * box.totalYForce;
+        if(box.isSliding && isRopeHigherThanBox(box, rope)) {
+            xTension = -1 * box.totalXForce;
+            yTension = -1 * box.totalYForce;
             magnitude = Math.sqrt(xTension * xTension + yTension * yTension);
             System.out.println("tension: " + magnitude);
             angle = ropeRotationAngle;
@@ -225,11 +231,21 @@ public final class VectorMath {
 
 
         VectorDisplay tensionVector = new VectorDisplay(newPositionX, newPositionY,
-                magnitude, angle, "Tension", Color.PURPLE);
+                magnitude, angle, "Tension", Color.DARKVIOLET);
         box.tensionVector1 = tensionVector;
         Sandbox.sandBoxPane.getChildren().add(tensionVector);
 
-        box.totalYForce += magnitude; //always down
+        box.totalXForce = 0; //Static equilibrium necessarily
+        box.totalYForce = 0;
+
+
+        VectorDisplay tensionX = new VectorDisplay(
+                newPositionX, newPositionY, xTension, 0, "Tx", Color.INDIGO);
+        VectorDisplay tensionY = new VectorDisplay(
+                newPositionX, newPositionY, yTension, 270, "Ty", Color.INDIGO);
+
+        Sandbox.sandBoxPane.getChildren().addAll(
+                adaptComponentOrientation(tensionX), adaptComponentOrientation(tensionY));
 
     }
 
@@ -247,30 +263,28 @@ public final class VectorMath {
         double netAngle;
 
         //Angle calculation for all 4 cases
-        double phi = Math.toDegrees(Math.atan(yComponent/xComponent))+180; //Angle between net vector and x component (used as reference)
-        System.out.println("phi = " + phi);
+        if(xComponent !=0 && yComponent !=0) {
+            double phi = Math.toDegrees(Math.atan(yComponent / xComponent)) + 180; //Angle between net vector and x component (used as reference)
+            System.out.println("phi = " + phi);
 
-        //Net angle adjustment
-        if(0 <= boxAngle && boxAngle < 90) {
-            netAngle = phi;
-        }
-        else if(90 <= boxAngle && boxAngle < 180) {
-            netAngle = 180 - phi;
-        }
-        else if (180 <= boxAngle && boxAngle < 270) {
-            netAngle = 180 + phi;
+            //Net angle adjustment
+            if (0 <= boxAngle && boxAngle < 90) {
+                netAngle = phi;
+            } else if (90 <= boxAngle && boxAngle < 180) {
+                netAngle = 180 - phi;
+            } else if (180 <= boxAngle && boxAngle < 270) {
+                netAngle = 180 + phi;
+            } else {
+                netAngle = 360 - phi;
+            }
         }
         else {
-            netAngle = 360 - phi;
+            netAngle = 0;
         }
 
         VectorDisplay netVector = new VectorDisplay(positionCenterX, positionCenterY,
                 magnitude, netAngle, "Net", Color.BLACK);
-        box.gravityVector = netVector;
-        if (netVector.getTrueLength() < 0.0001) {
-            netVector.arrowhead.setOpacity(0);
-            netVector.line.setOpacity(0);
-        }
+        box.netVector = netVector;
         Sandbox.sandBoxPane.getChildren().add(netVector);
         System.out.println("Net Vector updated for " + box + " at " + netAngle + "degrees");
 
@@ -285,7 +299,6 @@ public final class VectorMath {
                 adaptComponentOrientation(xComponentVector),
                 adaptComponentOrientation(yComponentVector));
     }
-
 
     private static VectorDisplay adaptComponentOrientation(VectorDisplay vector) {
         if (vector.getTrueLength() < 0) {
@@ -303,5 +316,23 @@ public final class VectorMath {
         }
 
         return vector;
+    }
+
+    private static boolean isRopeHigherThanBox(Box box, Rope rope) {
+        double ropeTopX;
+        if(rope.getLine().getStartY() < rope.getLine().getEndY()) {
+            ropeTopX = rope.getLine().getStartX();
+        }
+        else {
+            ropeTopX = rope.getLine().getEndX();
+        }
+
+        double boxAngle = box.getRectangle().getRotate();
+        if(boxAngle >= 0 && boxAngle < 90) {
+            return (ropeTopX < box.getRectangle().getX());
+        }
+        else {
+            return (ropeTopX > box.getRectangle().getX());
+        }
     }
 }

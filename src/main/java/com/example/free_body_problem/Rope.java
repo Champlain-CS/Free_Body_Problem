@@ -52,6 +52,12 @@ public class Rope extends PhysicsObject {
         this.startConnection = null;
         this.endConnection = null;
 
+        // Listeners for line points change to update orientation
+        line.startXProperty().addListener((obs, oldVal, newVal) -> updateOrientationAttribute());
+        line.startYProperty().addListener((obs, oldVal, newVal) -> updateOrientationAttribute());
+        line.endXProperty().addListener((obs, oldVal, newVal) -> updateOrientationAttribute());
+        line.endYProperty().addListener((obs, oldVal, newVal) -> updateOrientationAttribute());
+
         updateOrientationAttribute();
     }
 
@@ -137,6 +143,7 @@ public class Rope extends PhysicsObject {
             for (PhysicsObject physicsObject : physicsObjectList) {
                 Snapping.snapRopeStart(physicsObject, this);
             }
+            updateOrientationAttribute();
         });
 
         startHandle.setOnMouseReleased(event -> {
@@ -180,6 +187,7 @@ public class Rope extends PhysicsObject {
             for (PhysicsObject physicsObject : physicsObjectList) {
                 Snapping.snapRopeEnd(physicsObject, this);
             }
+            updateOrientationAttribute();
         });
 
         endHandle.setOnMouseReleased(event -> {
@@ -298,7 +306,11 @@ public class Rope extends PhysicsObject {
         if (angleInDegrees < 0) {
             angleInDegrees += 360;
         }
-        orientation = angleInDegrees;
+        if(line.getEndY() > line.getStartY())
+            orientation = (angleInDegrees + 180) %360;
+        else {
+            orientation = angleInDegrees %360;
+        }
     }
 
     public double getOrientation() {

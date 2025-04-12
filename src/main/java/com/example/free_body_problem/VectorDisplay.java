@@ -81,29 +81,25 @@ public class VectorDisplay extends Pane {
         );
 
 
-
-
-
         // Configure rotation
         rotate.setAngle(angle);
         rotate.setPivotX(startX);
         rotate.setPivotY(startY);
         this.getTransforms().add(rotate);
 
-        // Add components if length > 0
-        if (this.displayLength > 0) {
-            updateVector();
-            getChildren().addAll(line, arrowhead, forceText);
-        } else {
-            getChildren().clear();
+        updateVector();
+        getChildren().addAll(line, arrowhead, forceText);
+
+        // If the length is zero or very small, hide the line and arrowhead but keep the text
+        if (Math.abs(this.trueLength) < 0.001) {
+            line.setOpacity(0);
+            arrowhead.setOpacity(0);
+            forceText.setOpacity(1);
+            System.out.println("hiding " + this.forceName.getText() + " arrow");
         }
     }
 
     private void updateVector() {
-        if (displayLength <= 0) {
-            getChildren().clear();
-            return;
-        }
 
         endX = line.getEndX() + 2;
         endY = line.getEndY();
@@ -119,13 +115,18 @@ public class VectorDisplay extends Pane {
         forceText.setLayoutY(endY + 5);
         forceText.setRotate(0 - angle);
         forceMagnitude.setText(df.format(trueLength) + " N");
+
+        System.out.println("Text position for " + forceName.getText() +
+                ": X=" + forceText.getLayoutX() +
+                ", Y=" + forceText.getLayoutY());
     }
 
     private double calculateVisualLength(double magnitude) {
         // Take absolute value for length calculation
         double absMagnitude = Math.abs(magnitude);
 
-        if (absMagnitude <= 0) return 0;
+        if (absMagnitude <= 0.001)
+            return 0;
 
         // Modified logarithmic scaling
         double scaledLength = MIN_VISIBLE_LENGTH +
@@ -140,10 +141,18 @@ public class VectorDisplay extends Pane {
         this.trueLength = newTrueLength;
         this.displayLength = calculateVisualLength(newTrueLength);
 
-        if (newTrueLength == 0) {
-            getChildren().clear();
-            return;
+        // Update visibility of components based on magnitude
+        if (Math.abs(newTrueLength) < 0.001) {
+            line.setOpacity(0);
+            arrowhead.setOpacity(0);
+            forceText.setOpacity(1);
+        } else {
+            line.setOpacity(1);
+            arrowhead.setOpacity(1);
+            forceText.setOpacity(1);
         }
+
+        updateVector();
     }
 
     public void setRotation(double angle) {

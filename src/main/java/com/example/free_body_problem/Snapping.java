@@ -173,6 +173,8 @@ public class Snapping {
                 rope.setStartConnection(target);
                 target.updateConnectedRopes();
 
+                rope.updateOrientationAttribute();
+
                 if (rope.endSnapped && (rope.getEndConnection() instanceof Pulley)){
                     Pulley pulley = (Pulley) rope.getEndConnection();
                     pulley.updateBoxList();
@@ -204,6 +206,8 @@ public class Snapping {
                 rope.setStartConnection(target);
                 target.updateConnectedRopes();
                 pulley.updateBoxList();
+
+                rope.updateOrientationAttribute();
 
             }
         }
@@ -251,6 +255,8 @@ public class Snapping {
                 rope.setEndConnection(target);
                 target.updateConnectedRopes();
 
+                rope.updateOrientationAttribute();
+
 
                 if (rope.startSnapped && (rope.getStartConnection() instanceof Pulley)){
                     Pulley pulley = (Pulley) rope.getStartConnection();
@@ -284,6 +290,8 @@ public class Snapping {
                 rope.setEndConnection(target);
                 target.updateConnectedRopes();
                 pulley.updateBoxList();
+
+                rope.updateOrientationAttribute();
 
             }
         }
@@ -336,6 +344,7 @@ public class Snapping {
                 handle.setCenterY(newY);
                 rope.setEndConnection(roof);
             }
+            rope.updateOrientationAttribute();
         }
     }
     public static void alignPulleyWithBox(Pulley pulley, Box box, Rope rope) {

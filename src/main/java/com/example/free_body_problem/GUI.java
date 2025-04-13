@@ -63,7 +63,7 @@ public class GUI extends Application {
         primaryStage.setResizable(false);
 
         // Load and play background music
-        String musicFilePath = "src/main/resources/sounds/Music.wav";
+        String musicFilePath = "src/main/resources/sounds/FrenchVersion.wav";
         File musicFile = new File(musicFilePath);
         if (musicFile.exists()) {
             if (backgroundMusicPlayer != null) {

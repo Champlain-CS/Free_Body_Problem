@@ -58,10 +58,12 @@ public class Sandbox extends Application {
     private CheckBox gravityVectorCB;
     private CheckBox normalVectorCB;
     private CheckBox frictionVectorCB;
+    private CheckBox tensionVectorCB;
     private CheckBox netForceVectorCB;
 
     private CheckBox normalComponentsCB;
     private CheckBox frictionComponentsCB;
+    private CheckBox tensionComponentsCB;
     private CheckBox netForceComponentsCB;
 
     // Instantiate SoundPlayer
@@ -408,6 +410,13 @@ public class Sandbox extends Application {
         frictionComponentsCB = new CheckBox("Friction Components");
         frictionComponentsCB.getStyleClass().add("vector-checkbox");
 
+        tensionVectorCB = new CheckBox("Tension Force");
+        tensionVectorCB.getStyleClass().add("vector-checkbox");
+        tensionVectorCB.setSelected(true);
+
+        tensionComponentsCB = new CheckBox("Tension Components");
+        tensionComponentsCB.getStyleClass().add("vector-checkbox");
+
         netForceVectorCB = new CheckBox("Net Force");
         netForceVectorCB.getStyleClass().add("vector-checkbox");
 
@@ -423,12 +432,18 @@ public class Sandbox extends Application {
         vectorCheckboxes.setVgap(5);
 
         vectorCheckboxes.add(gravityVectorCB, 0, 0);
+
         vectorCheckboxes.add(normalVectorCB, 0, 1);
         vectorCheckboxes.add(normalComponentsCB, 1, 1);
+
         vectorCheckboxes.add(frictionVectorCB, 0, 2);
         vectorCheckboxes.add(frictionComponentsCB,1, 2);
-        vectorCheckboxes.add(netForceVectorCB, 0, 3);
-        vectorCheckboxes.add(netForceComponentsCB, 1, 3);
+
+        vectorCheckboxes.add(tensionVectorCB, 0, 3);
+        vectorCheckboxes.add(tensionComponentsCB, 1, 3);
+
+        vectorCheckboxes.add(netForceVectorCB, 0, 4);
+        vectorCheckboxes.add(netForceComponentsCB, 1, 4);
 
 
         // Add event handlers to checkboxes to update vector display
@@ -452,6 +467,15 @@ public class Sandbox extends Application {
         });
         frictionComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
             if (isDisplayingVectors)
+                updateAllVectors();
+        });
+
+        tensionVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (isDisplayingVectors)
+                updateAllVectors();
+        });
+        tensionComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if(isDisplayingVectors)
                 updateAllVectors();
         });
 
@@ -881,9 +905,6 @@ public class Sandbox extends Application {
             VectorMath.calculateTension1Rope(box,rope);
         }
 
-
-
-
         VectorMath.calculateNetVector(box);
 
 
@@ -900,6 +921,7 @@ public class Sandbox extends Application {
                 if ((!gravityVectorCB.isSelected() && vectorName.equals("Gravity")) ||
                         (!normalVectorCB.isSelected() && vectorName.equals("Normal")) ||
                         (!frictionVectorCB.isSelected() && vectorName.equals("Friction")) ||
+                        (!tensionVectorCB.isSelected() && vectorName.equals("Tension")) ||
                         (!netForceVectorCB.isSelected() && vectorName.equals("Net"))) {
                     iterator.remove();
                 }
@@ -907,6 +929,7 @@ public class Sandbox extends Application {
                 // Remove components if their component checkbox is unchecked
                 if ((!normalComponentsCB.isSelected() && (vectorName.equals("Nx") || vectorName.equals("Ny"))) ||
                         (!frictionComponentsCB.isSelected() && (vectorName.equals("Fx") || vectorName.equals("Fy"))) ||
+                        (!tensionComponentsCB.isSelected() && (vectorName.equals("Tx") || vectorName.equals("Ty"))) ||
                         (!netForceComponentsCB.isSelected() && (vectorName.equals("NetX") || vectorName.equals("NetY")))) {
                     iterator.remove();
                 }

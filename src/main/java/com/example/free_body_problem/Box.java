@@ -43,7 +43,7 @@ public class Box extends PhysicsObject {
     protected VectorDisplay normalVector;
     protected VectorDisplay frictionVector;
     protected VectorDisplay tensionVector1;
-    protected VectorDisplay TensionVector2;
+    protected VectorDisplay tensionVector2;
     protected VectorDisplay netVector;
     public List<Plane> planeList;
 

@@ -58,12 +58,14 @@ public class Sandbox extends Application {
     private CheckBox gravityVectorCB;
     private CheckBox normalVectorCB;
     private CheckBox frictionVectorCB;
-    private CheckBox tensionVectorCB;
+    private CheckBox tension1VectorCB;
+    private CheckBox tension2VectorCB;
     private CheckBox netForceVectorCB;
 
     private CheckBox normalComponentsCB;
     private CheckBox frictionComponentsCB;
-    private CheckBox tensionComponentsCB;
+    private CheckBox tension1ComponentsCB;
+    private CheckBox tension2ComponentsCB;
     private CheckBox netForceComponentsCB;
 
     // Instantiate SoundPlayer
@@ -237,7 +239,7 @@ public class Sandbox extends Application {
         ImageView axesDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/Axes.png")));
         axesDisplayView.setPreserveRatio(true);
         axesDisplayView.setFitHeight(85);
-        axesDisplayView.setTranslateX(290);
+        axesDisplayView.setTranslateX(310);
         axesDisplayView.setTranslateY(sandBoxRoof.getHeight() + 5);
         axesDisplayView.setViewOrder(500);
         sandBoxRoot.getChildren().add(axesDisplayView);
@@ -410,12 +412,19 @@ public class Sandbox extends Application {
         frictionComponentsCB = new CheckBox("Friction Components");
         frictionComponentsCB.getStyleClass().add("vector-checkbox");
 
-        tensionVectorCB = new CheckBox("Tension Force");
-        tensionVectorCB.getStyleClass().add("vector-checkbox");
-        tensionVectorCB.setSelected(true);
+        tension1VectorCB = new CheckBox("Tension Force (1)");
+        tension1VectorCB.getStyleClass().add("vector-checkbox");
+        tension1VectorCB.setSelected(true);
 
-        tensionComponentsCB = new CheckBox("Tension Components");
-        tensionComponentsCB.getStyleClass().add("vector-checkbox");
+        tension1ComponentsCB = new CheckBox("Tension Components (1)");
+        tension1ComponentsCB.getStyleClass().add("vector-checkbox");
+
+        tension2VectorCB = new CheckBox("Tension Force (2)");
+        tension2VectorCB.getStyleClass().add("vector-checkbox");
+        tension2VectorCB.setSelected(true);
+
+        tension2ComponentsCB = new CheckBox("Tension Components (2)");
+        tension2ComponentsCB.getStyleClass().add("vector-checkbox");
 
         netForceVectorCB = new CheckBox("Net Force");
         netForceVectorCB.getStyleClass().add("vector-checkbox");
@@ -439,11 +448,14 @@ public class Sandbox extends Application {
         vectorCheckboxes.add(frictionVectorCB, 0, 2);
         vectorCheckboxes.add(frictionComponentsCB,1, 2);
 
-        vectorCheckboxes.add(tensionVectorCB, 0, 3);
-        vectorCheckboxes.add(tensionComponentsCB, 1, 3);
+        vectorCheckboxes.add(tension1VectorCB, 0, 3);
+        vectorCheckboxes.add(tension1ComponentsCB, 1, 3);
 
-        vectorCheckboxes.add(netForceVectorCB, 0, 4);
-        vectorCheckboxes.add(netForceComponentsCB, 1, 4);
+        vectorCheckboxes.add(tension2VectorCB, 0, 4);
+        vectorCheckboxes.add(tension2ComponentsCB, 1, 4);
+
+        vectorCheckboxes.add(netForceVectorCB, 0, 5);
+        vectorCheckboxes.add(netForceComponentsCB, 1, 5);
 
 
         // Add event handlers to checkboxes to update vector display
@@ -470,11 +482,20 @@ public class Sandbox extends Application {
                 updateAllVectors();
         });
 
-        tensionVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+        tension1VectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
             if (isDisplayingVectors)
                 updateAllVectors();
         });
-        tensionComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+        tension1ComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if(isDisplayingVectors)
+                updateAllVectors();
+        });
+
+        tension2VectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (isDisplayingVectors)
+                updateAllVectors();
+        });
+        tension2ComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
             if(isDisplayingVectors)
                 updateAllVectors();
         });
@@ -902,7 +923,27 @@ public class Sandbox extends Application {
         if(box.connectedRopes.size() == 1) {
             Map.Entry<Rope, Boolean> hashMap = box.connectedRopes.entrySet().iterator().next();
             Rope rope = hashMap.getKey();
-            VectorMath.calculateTension1Rope(box,rope);
+            // Avoids calculating tension on unconnected ropes
+            if(rope.getEndConnection() instanceof Roof || rope.getStartConnection() instanceof Roof) {
+                VectorMath.calculateTension1Rope(box, rope);
+            }
+        }
+
+        //Tension case 2: 2 ropes, 1 box
+        if(box.connectedRopes.size() == 2) {
+            Iterator<Map.Entry<Rope, Boolean>> ropeIterator = box.connectedRopes.entrySet().iterator();
+
+            if (ropeIterator.hasNext()) {
+                Rope rope1 = ropeIterator.next().getKey();
+                Rope rope2 = ropeIterator.next().getKey();
+                Rope[] ropesInOrder = determineRopePositions(rope1, rope2);
+
+                // Making sure there are no pulley connections
+                if (!(rope1.getEndConnection() instanceof Pulley || rope1.getStartConnection() instanceof Pulley) &&
+                        !(rope2.getEndConnection() instanceof Pulley || rope2.getStartConnection() instanceof Pulley)) {
+                    VectorMath.calculateTension2Ropes(box, ropesInOrder[0], ropesInOrder[1]);
+                }
+            }
         }
 
         VectorMath.calculateNetVector(box);
@@ -921,7 +962,9 @@ public class Sandbox extends Application {
                 if ((!gravityVectorCB.isSelected() && vectorName.equals("Gravity")) ||
                         (!normalVectorCB.isSelected() && vectorName.equals("Normal")) ||
                         (!frictionVectorCB.isSelected() && vectorName.equals("Friction")) ||
-                        (!tensionVectorCB.isSelected() && vectorName.equals("Tension")) ||
+                        (!tension1VectorCB.isSelected() && vectorName.equals("Tension")) ||
+                        (!tension1VectorCB.isSelected() && vectorName.equals("T1")) ||
+                        (!tension2VectorCB.isSelected() && vectorName.equals("T2")) ||
                         (!netForceVectorCB.isSelected() && vectorName.equals("Net"))) {
                     iterator.remove();
                 }
@@ -929,7 +972,9 @@ public class Sandbox extends Application {
                 // Remove components if their component checkbox is unchecked
                 if ((!normalComponentsCB.isSelected() && (vectorName.equals("Nx") || vectorName.equals("Ny"))) ||
                         (!frictionComponentsCB.isSelected() && (vectorName.equals("Fx") || vectorName.equals("Fy"))) ||
-                        (!tensionComponentsCB.isSelected() && (vectorName.equals("Tx") || vectorName.equals("Ty"))) ||
+                        (!tension1ComponentsCB.isSelected() && (vectorName.equals("Tx") || vectorName.equals("Ty"))) ||
+                        (!tension1ComponentsCB.isSelected() && (vectorName.equals("T1x") || vectorName.equals("T1y"))) ||
+                        (!tension2ComponentsCB.isSelected() && (vectorName.equals("T2x") || vectorName.equals("T2y"))) ||
                         (!netForceComponentsCB.isSelected() && (vectorName.equals("NetX") || vectorName.equals("NetY")))) {
                     iterator.remove();
                 }
@@ -1208,6 +1253,45 @@ public class Sandbox extends Application {
         sandBoxPane.widthProperty().addListener((obs, oldVal, newVal) -> {
             roof.adjustToSandboxWidth(newVal.doubleValue());
         });
+    }
+
+    private Rope[] determineRopePositions(Rope rope1, Rope rope2) {
+        //Checking what point is higher (start or end) on both
+        boolean startHigherFor1 = false;
+        if(rope1.getLine().getStartY() > rope1.getLine().getEndY()) {
+            startHigherFor1 = true;
+        }
+        boolean startHigherFor2 = false;
+        if(rope2.getLine().getStartY() > rope2.getLine().getEndY()) {
+            startHigherFor2 = true;
+        }
+
+        //Checking which rope is to the right, which is to the left
+        boolean rope1ToTheRight = false;
+        if(startHigherFor1 && startHigherFor2 && rope1.getLine().getStartX() > rope2.getLine().getStartX()) {
+            rope1ToTheRight = true;
+        }
+        else if(!startHigherFor1 && startHigherFor2 && rope2.getLine().getEndX() > rope1.getLine().getStartX()) {
+            rope1ToTheRight = true;
+        }
+        else if(startHigherFor1 && !startHigherFor2 && rope1.getLine().getStartX() > rope2.getLine().getEndX()) {
+            rope1ToTheRight = true;
+        }
+        else if(!startHigherFor1 && !startHigherFor2 && rope1.getLine().getEndX() > rope2.getLine().getEndX()) {
+            rope1ToTheRight = true;
+        }
+
+        Rope[] ropesInOrder = new Rope[2];
+        if(rope1ToTheRight) {
+            ropesInOrder[0] = rope2;
+            ropesInOrder[1] = rope1;
+        }
+        else {
+            ropesInOrder[1] = rope1;
+            ropesInOrder[0] = rope2;
+        }
+
+        return ropesInOrder;
     }
 
     private void saveStateToFile(File file) {

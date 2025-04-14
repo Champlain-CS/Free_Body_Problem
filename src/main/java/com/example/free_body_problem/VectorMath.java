@@ -249,6 +249,96 @@ public final class VectorMath {
 
     }
 
+    public static void calculateTension2Ropes(Box box, Rope rightRope, Rope leftRope) {
+        double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+        double boxRotationAngle = box.getRectangle().getRotate();
+        // Putting orientations to "normal" math angles
+        double leftRopeRotationAngle = normalizeAngle(360 - leftRope.getOrientation());
+        double rightRopeRotationAngle = normalizeAngle(360 - rightRope.getOrientation());
+        System.out.println("box rotation " + boxRotationAngle +
+                "  left rope rotation " + leftRopeRotationAngle + " right rope rotation " + rightRopeRotationAngle);
+
+
+        // Create a Point2D to represent the center of the rectangle
+        Point2D center = new Point2D(positionCenterX, positionCenterY);
+
+        // The vector's original position relative to the center (before rotation)
+        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double vectorY = box.getRectangle().getY();
+
+        // Rotate the vector point relative to the center
+        Rotate rotate = new Rotate(boxRotationAngle, center.getX(), center.getY());
+        Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
+
+        // Now, rotatedVector gives the new position of the vector after the box is rotated
+        double newPositionX = rotatedVector.getX();
+        double newPositionY = rotatedVector.getY();
+
+
+        //Cases
+        double leftMagnitude = 0;
+        double rightMagnitude = 0;
+        double angle = 0;
+        double leftXTension = 0;
+        double leftYTension = 0;
+        double rightXTension = 0;
+        double rightYTension = 0;
+        boolean leftRopeStartHigher = leftRope.getLine().getStartY() > leftRope.getLine().getEndY();
+        boolean rightRopeStartHigher = rightRope.getLine().getStartY() > rightRope.getLine().getEndY();
+
+        if(box.isSliding) {
+
+
+        }
+
+        if(!box.snappedToPlane) {
+            double leftAngleAdapted = Math.toRadians(180 - leftRopeRotationAngle);
+            double rightAngleAdapted = Math.toRadians(rightRopeRotationAngle);
+
+            rightMagnitude = box.gravityVector.getTrueLength() /
+                    ((Math.cos(rightAngleAdapted)/Math.cos(leftAngleAdapted)) + Math.sin(rightAngleAdapted));
+            leftMagnitude = (rightMagnitude * Math.cos(rightAngleAdapted)) / Math.cos(leftAngleAdapted);
+
+            leftXTension = leftMagnitude * Math.cos(leftRopeRotationAngle);
+            leftYTension = leftMagnitude * Math.sin(leftRopeRotationAngle);
+            rightXTension = rightMagnitude * Math.cos(rightRopeRotationAngle);
+            rightYTension = rightMagnitude * Math.sin(rightRopeRotationAngle);
+
+            VectorDisplay leftTensionVector = new VectorDisplay(newPositionX, newPositionY,
+                    leftMagnitude, normalizeAngle(360 - leftRopeRotationAngle), "T1", Color.DARKVIOLET);
+            box.tensionVector1 = leftTensionVector;
+            Sandbox.sandBoxPane.getChildren().add(leftTensionVector);
+
+            VectorDisplay rightTensionVector = new VectorDisplay(newPositionX, newPositionY,
+                    rightMagnitude, normalizeAngle(360 - rightRopeRotationAngle), "T2", Color.DARKVIOLET);
+            box.tensionVector2 = rightTensionVector;
+            Sandbox.sandBoxPane.getChildren().add(rightTensionVector);
+
+            box.totalXForce = 0; //Static equilibrium necessarily
+            box.totalYForce = 0;
+
+
+            VectorDisplay leftTensionX = new VectorDisplay(
+                    newPositionX - 2, newPositionY, leftXTension, 0, "T1x", Color.INDIGO);
+            VectorDisplay leftTensionY = new VectorDisplay(
+                    newPositionX, newPositionY, leftYTension, 270, "T1y", Color.INDIGO);
+
+            VectorDisplay rightTensionX = new VectorDisplay(
+                    newPositionX + 2, newPositionY, rightXTension, 0, "T2x", Color.INDIGO);
+            VectorDisplay rightTensionY = new VectorDisplay(
+                    newPositionX, newPositionY, rightYTension, 270, "T2y", Color.INDIGO);
+
+
+            Sandbox.sandBoxPane.getChildren().addAll(
+                    adaptComponentOrientation(leftTensionX), adaptComponentOrientation(leftTensionY));
+            Sandbox.sandBoxPane.getChildren().addAll(
+                    adaptComponentOrientation(rightTensionX), adaptComponentOrientation(rightTensionY));
+
+
+        }
+    }
+
     public static void calculateNetVector(Box box) {
         double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
@@ -335,4 +425,9 @@ public final class VectorMath {
             return (ropeTopX > box.getRectangle().getX());
         }
     }
+
+    static double normalizeAngle(double angle) {
+        return (angle % 360 + 360) % 360;
+    }
+
 }

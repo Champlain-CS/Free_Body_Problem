@@ -298,6 +298,11 @@ public class Rope extends PhysicsObject {
     }
 
     public void updateOrientationAttribute() {
+        if (line.getStartY() > line.getEndY()) {
+            orientation += 180;
+            orientation %= 360;
+            return;
+        }
         double deltaX = line.getEndX() - line.getStartX();
         double deltaY = line.getEndY() - line.getStartY();
         double angleInRadians = Math.atan2(deltaY, deltaX);
@@ -310,6 +315,13 @@ public class Rope extends PhysicsObject {
             orientation = (angleInDegrees + 180) %360;
         else {
             orientation = angleInDegrees %360;
+        }
+    }
+
+    public void angleBetweenRopes(Rope otherRope) {
+        double angleBetween = Math.abs(this.orientation - otherRope.getOrientation());
+        if (angleBetween > 180) {
+            angleBetween = 360 - angleBetween;
         }
     }
 

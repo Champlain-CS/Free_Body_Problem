@@ -737,15 +737,15 @@ public class Sandbox extends Application {
                 String shape = db.getString();
                 switch (shape) {
                     case "rectangle":
-                        double rectWidth = 150;
-                        double rectHeight = 100;
+                        double rectWidth = 100;
+                        double rectHeight = 80;
                         Box newBox = new Box(event.getX() - rectWidth / 2, event.getY() - rectHeight / 2, rectWidth, rectHeight, Color.WHITE, sandBoxPane, planes);
                         physicsObjectList.add(newBox);
                         newBox.addDragListener();
                         soundPlayer.playSound("src/main/resources/sounds/Place.wav");
                         break;
                     case "circle":
-                        Pulley newPulley = new Pulley(event.getX(), event.getY(), 25, 10, Color.GRAY, Color.BLACK, sandBoxPane);
+                        Pulley newPulley = new Pulley(event.getX(), event.getY(), 40, 37, Color.BLACK, Color.GRAY,  sandBoxPane);
                         sandBoxPane.getChildren().add(newPulley.getCircleGroup());
                         newPulley.addDragListener();
                         physicsObjectList.add(newPulley);

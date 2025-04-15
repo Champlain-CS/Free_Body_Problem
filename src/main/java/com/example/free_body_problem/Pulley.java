@@ -2,9 +2,16 @@ package com.example.free_body_problem;
 
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.effect.Light;
+import javafx.scene.effect.Lighting;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.StrokeLineCap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,34 +23,116 @@ public class Pulley extends PhysicsObject {
     private Pane parentContainer;
     private Double lastDragDelta = null;
     private double radius;
+    private double grooveRadius; // Radius where the rope sits
     public List<Box> connectedBoxes = new ArrayList<>();
-// Store the outer radius for boundary calculations
 
-    public Pulley(double x, double y, double outerRadius, double innerRadius, Color outerColor, Color innerColor, Pane parentContainer) {
+    public Pulley(double x, double y, double outerRadius, double innerRadius, Color wheelColor, Color hubColor, Pane parentContainer) {
         this.parentContainer = parentContainer;
         this.radius = outerRadius;
+        this.grooveRadius = outerRadius - 2; // Groove is slightly inset from the edge
 
-        Circle outerCircle = new Circle(x, y, outerRadius, outerColor);
-        outerCircle.setStroke(null);
-
-        Circle innerCircle = new Circle(x, y, innerRadius, innerColor);
-        innerCircle.setStroke(null);
-
-        circleGroup = new Group(outerCircle, innerCircle);
-
-        // Set userData for all components
-        innerCircle.setUserData(this);
-        outerCircle.setUserData(this);
+        // Create the group that will hold all visual elements
+        circleGroup = new Group();
         circleGroup.setUserData(this);
+
+        // Create the main wheel with gradient for 3D effect
+        RadialGradient wheelGradient = new RadialGradient(
+                0, 0,
+                0.5, 0.5, 1,
+                true, CycleMethod.NO_CYCLE,
+                new Stop(0, wheelColor.brighter()),
+                new Stop(0.7, wheelColor),
+                new Stop(1, wheelColor.darker())
+        );
+
+        Circle wheelBody = new Circle(x, y, outerRadius, wheelGradient);
+        wheelBody.setUserData(this);
+
+        // Add lighting effect to the wheel
+        Lighting lighting = new Lighting();
+        Light.Distant light = new Light.Distant();
+        light.setAzimuth(-135.0);
+        light.setElevation(30.0);
+        lighting.setLight(light);
+        lighting.setSurfaceScale(5.0);
+        wheelBody.setEffect(lighting);
+
+        // Create the groove/channel where the rope sits
+        Circle groove = new Circle(x, y, grooveRadius, Color.TRANSPARENT);
+        groove.setStroke(Color.gray(0.2));
+        groove.setStrokeWidth(3);
+        groove.setUserData(this);
+
+        // Create central hub/axle
+        RadialGradient hubGradient = new RadialGradient(
+                0, 0,
+                0.5, 0.5, 1,
+                true, CycleMethod.NO_CYCLE,
+                new Stop(0, hubColor.brighter()),
+                new Stop(0.7, hubColor),
+                new Stop(1, hubColor.darker().darker())
+        );
+
+        Circle hub = new Circle(x, y, innerRadius, hubGradient);
+        hub.setUserData(this);
+
+        // Add spokes (typically 6-8 for a pulley)
+        int numberOfSpokes = 6;
+        for (int i = 0; i < numberOfSpokes; i++) {
+            double angle = Math.PI * 2 * i / numberOfSpokes;
+            double innerX = x + innerRadius * Math.cos(angle);
+            double innerY = y + innerRadius * Math.sin(angle);
+            double outerX = x + (grooveRadius - 1) * Math.cos(angle);
+            double outerY = y + (grooveRadius - 1) * Math.sin(angle);
+
+            Line spoke = new Line(innerX, innerY, outerX, outerY);
+            spoke.setStroke(Color.gray(0.4));
+            spoke.setStrokeWidth(2.5);
+            spoke.setStrokeLineCap(StrokeLineCap.ROUND);
+            spoke.setUserData(this);
+
+            circleGroup.getChildren().add(spoke);
+        }
+
+        // Adding components to the group in order (background to foreground)
+        circleGroup.getChildren().addAll(wheelBody, groove, hub);
+
+        // Add central dot/bolt
+        Circle centerBolt = new Circle(x, y, innerRadius/3, Color.gray(0.2));
+        circleGroup.getChildren().add(centerBolt);
 
         addDragListener();
     }
 
+    // Add getter for radius
+    public double getRadius() {
+        return radius;
+    }
+
+    // Add getter for groove radius where rope sits
+    public double getGrooveRadius() {
+        return grooveRadius;
+    }
+
     public double getCenterX() {
+        // Find the center of the first circle (wheel body)
+        for (Node node : circleGroup.getChildren()) {
+            if (node instanceof Circle) {
+                Circle circle = (Circle) node;
+                return circle.getCenterX();
+            }
+        }
         return circleGroup.getBoundsInParent().getCenterX();
     }
 
     public double getCenterY() {
+        // Find the center of the first circle (wheel body)
+        for (Node node : circleGroup.getChildren()) {
+            if (node instanceof Circle) {
+                Circle circle = (Circle) node;
+                return circle.getCenterY();
+            }
+        }
         return circleGroup.getBoundsInParent().getCenterY();
     }
 
@@ -59,6 +148,38 @@ public class Pulley extends PhysicsObject {
         this.lastDragDelta = delta;
     }
 
+    @Override
+    public void updateConnectedRopes() {
+        super.updateConnectedRopes();
+
+        // After updating connected ropes, make sure they attach to the correct sides
+        if (connectedRopes.size() > 0) {
+            int ropeIndex = 0;
+            for (Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
+                Rope rope = entry.getKey();
+                boolean isStartConnected = entry.getValue();
+
+                // Calculate the angle based on index (first rope left, second rope right)
+                double snapAngle = (ropeIndex == 0) ? Math.PI : 0; // 180° or 0°
+
+                // Calculate position on groove perimeter (where rope would actually sit)
+                double snapX = getCenterX() + grooveRadius * Math.cos(snapAngle);
+                double snapY = getCenterY() + grooveRadius * Math.sin(snapAngle);
+
+                // Update rope position based on which end is connected
+                if (isStartConnected) {
+                    rope.getLine().setStartX(snapX);
+                    rope.getLine().setStartY(snapY);
+                } else {
+                    rope.getLine().setEndX(snapX);
+                    rope.getLine().setEndY(snapY);
+                }
+
+                ropeIndex++;
+            }
+        }
+    }
+
     public void addDragListener() {
         circleGroup.setOnMousePressed(event -> {
             lastDragDelta = null;
@@ -70,10 +191,8 @@ public class Pulley extends PhysicsObject {
             double offsetX = event.getSceneX() - initialPress[0];
             double offsetY = event.getSceneY() - initialPress[1];
 
-            // Get the center position of the pulley (using first circle)
-            Circle firstCircle = (Circle) circleGroup.getChildren().get(0);
-            double centerX = firstCircle.getCenterX();
-            double centerY = firstCircle.getCenterY();
+            double centerX = getCenterX();
+            double centerY = getCenterY();
 
             // Calculate proposed new position
             double newX = centerX + offsetX;
@@ -91,11 +210,19 @@ public class Pulley extends PhysicsObject {
                 double deltaX = newX - centerX;
                 double deltaY = newY - centerY;
 
-                // Update the position of all circles in the group
+                // Update the position of all elements in the group
                 for (Node node : circleGroup.getChildren()) {
-                    Circle circle = (Circle) node;
-                    circle.setCenterX(circle.getCenterX() + deltaX);
-                    circle.setCenterY(circle.getCenterY() + deltaY);
+                    if (node instanceof Circle) {
+                        Circle circle = (Circle) node;
+                        circle.setCenterX(circle.getCenterX() + deltaX);
+                        circle.setCenterY(circle.getCenterY() + deltaY);
+                    } else if (node instanceof Line) {
+                        Line line = (Line) node;
+                        line.setStartX(line.getStartX() + deltaX);
+                        line.setStartY(line.getStartY() + deltaY);
+                        line.setEndX(line.getEndX() + deltaX);
+                        line.setEndY(line.getEndY() + deltaY);
+                    }
                 }
 
                 initialPress[0] = event.getSceneX();
@@ -123,15 +250,23 @@ public class Pulley extends PhysicsObject {
         // Then apply rope constraints if needed
         constrainedX = applyRopeConstraints(constrainedX);
 
-        // Calculate delta to move all circles
+        // Calculate delta to move all elements
         double deltaX = constrainedX - getCenterX();
         double deltaY = constrainedY - getCenterY();
 
-        // Update all circles in the group
+        // Update all elements in the group
         for (Node node : circleGroup.getChildren()) {
-            Circle circle = (Circle) node;
-            circle.setCenterX(circle.getCenterX() + deltaX);
-            circle.setCenterY(circle.getCenterY() + deltaY);
+            if (node instanceof Circle) {
+                Circle circle = (Circle) node;
+                circle.setCenterX(circle.getCenterX() + deltaX);
+                circle.setCenterY(circle.getCenterY() + deltaY);
+            } else if (node instanceof Line) {
+                Line line = (Line) node;
+                line.setStartX(line.getStartX() + deltaX);
+                line.setStartY(line.getStartY() + deltaY);
+                line.setEndX(line.getEndX() + deltaX);
+                line.setEndY(line.getEndY() + deltaY);
+            }
         }
 
         updateConnectedRopes();
@@ -164,7 +299,6 @@ public class Pulley extends PhysicsObject {
             }
 
             // Constrain the pulley position based on the rope connections
-            // Accounting for the radius in constraints
             return Math.max(minX, Math.min(newX, maxX));
         }
         return newX;
@@ -211,9 +345,7 @@ public class Pulley extends PhysicsObject {
                     Box ropeBox = (Box) rope.getEndConnection();
                     connectedBoxes.add(ropeBox);
                 }
-
             }
-
         }
         System.out.println("Number of boxes is " + connectedBoxes.size());
     }

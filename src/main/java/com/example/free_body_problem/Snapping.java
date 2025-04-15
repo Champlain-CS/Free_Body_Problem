@@ -142,7 +142,7 @@ public class Snapping {
         }
 
         if (target instanceof Box) {
-            // Handle Rectangle nodes
+            // Box snapping logic (unchanged)
             double centerX = target.getCenterX();
             double centerY = target.getCenterY();
             Box box = (Box) target;
@@ -165,8 +165,6 @@ public class Snapping {
                 }
 
                 // Update rope position and connections
-
-
                 rope.getLine().setStartX(centerX);
                 rope.getLine().setStartY(centerY);
                 target.connectedRopes.put(rope, true);
@@ -179,15 +177,13 @@ public class Snapping {
                     Pulley pulley = (Pulley) rope.getEndConnection();
                     pulley.updateBoxList();
                 }
-
-
-
             }
         } else if (target instanceof Pulley) {
-            // Handle Group nodes (Pulley)
+            // Handle pulley snapping with side positioning
             Pulley pulley = (Pulley) target;
             double centerX = pulley.getCenterX();
             double centerY = pulley.getCenterY();
+            double radius = pulley.getRadius();
 
             // Calculate direct distance to center
             double dx = px - centerX;
@@ -199,16 +195,32 @@ public class Snapping {
                 if (currentStartConnection != null && currentStartConnection != target) {
                     currentStartConnection.connectedRopes.remove(rope);
                 }
+
+                // Determine the snap position on the circle's perimeter
+                // based on existing connections
+                double snapAngle;
+
+                if (pulley.connectedRopes.isEmpty()) {
+                    // First connection - snap to left side
+                    snapAngle = Math.PI; // 180 degrees (left side)
+                } else {
+                    // Second connection - snap to right side
+                    snapAngle = 0; // 0 degrees (right side)
+                }
+
+                // Calculate position on the pulley's perimeter
+                double snapX = centerX + radius * Math.cos(snapAngle);
+                double snapY = centerY + radius * Math.sin(snapAngle);
+
                 // Update rope position and connections
-                rope.getLine().setStartX(centerX);
-                rope.getLine().setStartY(centerY);
+                rope.getLine().setStartX(snapX);
+                rope.getLine().setStartY(snapY);
                 target.connectedRopes.put(rope, true);
                 rope.setStartConnection(target);
                 target.updateConnectedRopes();
                 pulley.updateBoxList();
 
                 rope.updateOrientationAttribute();
-
             }
         }
     }
@@ -226,7 +238,7 @@ public class Snapping {
         }
 
         if (target instanceof Box) {
-            // Handle Rectangle nodes
+            // Box snapping logic (unchanged)
             Box box = (Box) target;
             Rectangle rect = box.getRectangle();
             double centerX = rect.getX() + rect.getWidth() / 2;
@@ -257,20 +269,17 @@ public class Snapping {
 
                 rope.updateOrientationAttribute();
 
-
                 if (rope.startSnapped && (rope.getStartConnection() instanceof Pulley)){
                     Pulley pulley = (Pulley) rope.getStartConnection();
                     pulley.updateBoxList();
                 }
-
-
-
             }
         } else if (target instanceof Pulley) {
-            // Handle Group nodes (Pulley)
+            // Handle pulley snapping with side positioning
             Pulley pulley = (Pulley) target;
             double centerX = pulley.getCenterX();
             double centerY = pulley.getCenterY();
+            double radius = pulley.getRadius();
 
             // Calculate direct distance to center
             double dx = px - centerX;
@@ -283,16 +292,31 @@ public class Snapping {
                     currentEndConnection.connectedRopes.remove(rope);
                 }
 
+                // Determine the snap position on the circle's perimeter
+                // based on existing connections
+                double snapAngle;
+
+                if (pulley.connectedRopes.isEmpty()) {
+                    // First connection - snap to left side
+                    snapAngle = Math.PI; // 180 degrees (left side)
+                } else {
+                    // Second connection - snap to right side
+                    snapAngle = 0; // 0 degrees (right side)
+                }
+
+                // Calculate position on the pulley's perimeter
+                double snapX = centerX + radius * Math.cos(snapAngle);
+                double snapY = centerY + radius * Math.sin(snapAngle);
+
                 // Update rope position and connections
-                rope.getLine().setEndX(centerX);
-                rope.getLine().setEndY(centerY);
+                rope.getLine().setEndX(snapX);
+                rope.getLine().setEndY(snapY);
                 target.connectedRopes.put(rope, false);
                 rope.setEndConnection(target);
                 target.updateConnectedRopes();
                 pulley.updateBoxList();
 
                 rope.updateOrientationAttribute();
-
             }
         }
     }

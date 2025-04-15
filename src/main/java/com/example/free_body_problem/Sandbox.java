@@ -412,14 +412,14 @@ public class Sandbox extends Application {
         frictionComponentsCB = new CheckBox("Friction Components");
         frictionComponentsCB.getStyleClass().add("vector-checkbox");
 
-        tension1VectorCB = new CheckBox("Tension Force (1)");
+        tension1VectorCB = new CheckBox("Tension (1)");
         tension1VectorCB.getStyleClass().add("vector-checkbox");
         tension1VectorCB.setSelected(true);
 
         tension1ComponentsCB = new CheckBox("Tension Components (1)");
         tension1ComponentsCB.getStyleClass().add("vector-checkbox");
 
-        tension2VectorCB = new CheckBox("Tension Force (2)");
+        tension2VectorCB = new CheckBox("Tension (2)");
         tension2VectorCB.getStyleClass().add("vector-checkbox");
         tension2VectorCB.setSelected(true);
 
@@ -893,15 +893,15 @@ public class Sandbox extends Application {
         Iterator<Node> iterator = sandBoxPane.getChildren().iterator();
         while (iterator.hasNext()) {
             Node node = iterator.next();
-            if (node instanceof VectorDisplay &&
-                    ((VectorDisplay)node).getUserData() == box) {
+            if (node instanceof VectorDisplay) {
                 iterator.remove();
             }
         }
 
-        // Reset force totals before recalculating
+        //Clearing total forces
         box.totalXForce = 0;
         box.totalYForce = 0;
+
 
         // Calculate ALL forces regardless of checkbox selections
         // This ensures physics remains consistent
@@ -919,18 +919,41 @@ public class Sandbox extends Application {
             VectorMath.calculateFrictionVector(box);
         }
 
+
+        // Cases with ropes
+
         //Tension case 1: 1 rope, 1 box
-        if(box.connectedRopes.size() == 1) {
-            Map.Entry<Rope, Boolean> hashMap = box.connectedRopes.entrySet().iterator().next();
-            Rope rope = hashMap.getKey();
-            // Avoids calculating tension on unconnected ropes
-            if (!(rope.getEndConnection() == null && rope.getStartConnection() == null)) {
+        if (box.connectedRopes.size() == 1) {
+            Map.Entry<Rope, Boolean> hashMap1 = box.connectedRopes.entrySet().iterator().next();
+            Rope rope = hashMap1.getKey();
+
+            // Only calculated tensions on roof-box connections
+            if ((rope.getEndConnection() instanceof Roof && rope.getStartConnection() instanceof Box)
+                    || (rope.getEndConnection() instanceof Box && rope.getStartConnection() instanceof Roof) ) {
                 VectorMath.calculateTension1Rope(box, rope);
+
+//                System.out.println("start: " + rope.getStartConnection() + " end: " + rope.getEndConnection());
+//                if(rope.getStartConnection() instanceof Pulley || rope.getEndConnection() instanceof Pulley) {
+//                    Pulley pulley;
+//                    if(rope.getStartConnection() instanceof Pulley)
+//                        pulley = (Pulley) rope.getStartConnection();
+//                    else {
+//                        pulley = (Pulley) rope.getEndConnection();
+//                    }
+//
+//                    if(pulley.connectedRopes.size() == 1) {
+//                        VectorMath.calculateTension1Rope(box, rope);
+//                    }
+//                }
+//                else {
+//                    VectorMath.calculateTension1Rope(box, rope);
+//                }
+
             }
         }
 
         //Tension case 2: 2 ropes, 1 box
-        if(box.connectedRopes.size() == 2) {
+        if (box.connectedRopes.size() == 2) {
             Iterator<Map.Entry<Rope, Boolean>> ropeIterator = box.connectedRopes.entrySet().iterator();
 
             if (ropeIterator.hasNext()) {
@@ -947,11 +970,40 @@ public class Sandbox extends Application {
             }
         }
 
+
+        //Pulley case
+        try {
+            Map.Entry<Rope, Boolean> hashMap2 = box.connectedRopes.entrySet().iterator().next();
+            Rope rope = hashMap2.getKey();
+            if ((rope.getStartConnection() instanceof Pulley) || (rope.getEndConnection() instanceof Pulley)) {
+                System.out.println("!!! box tension: " + box.tensionVector1);
+                if (box.tensionVector1 == null || !sandBoxPane.getChildren().contains(box.tensionVector1)) {
+                    Pulley connectionPulley;
+                    if (rope.getStartConnection() instanceof Pulley)
+                        connectionPulley = (Pulley) rope.getStartConnection();
+                    else {
+                        connectionPulley = (Pulley) rope.getEndConnection();
+                    }
+
+                    System.out.println("pulley: " + connectionPulley);
+
+                    if (connectionPulley.connectedBoxes.size() == 2) {
+                        Box box1 = connectionPulley.connectedBoxes.getFirst();
+                        Box box2 = connectionPulley.connectedBoxes.getLast();
+                        VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("no ropes attached to " + box);
+        }
+
+
+        //Net vector (always)
         VectorMath.calculateNetVector(box);
 
 
-        System.out.println();
-
+        //Checkboxes check
         iterator = sandBoxPane.getChildren().iterator();
         while (iterator.hasNext()) {
             Node node = iterator.next();
@@ -982,6 +1034,8 @@ public class Sandbox extends Application {
             }
         }
 
+
+        System.out.println();
     }
 
     // Extract the toggle functionality to a reusable method

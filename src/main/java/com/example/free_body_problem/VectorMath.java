@@ -4,6 +4,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.geometry.Point2D;
 
+import java.util.Map;
+
 public final class VectorMath {
     private Sandbox sandbox;
 
@@ -207,7 +209,6 @@ public final class VectorMath {
         double newPositionY = rotatedVector.getY();
 
 
-
         //Cases
         double magnitude = 0;
         double angle = 0;
@@ -315,7 +316,6 @@ public final class VectorMath {
             VectorDisplay rightTensionVector = new VectorDisplay(newPositionX, newPositionY,
                     rightMagnitude, normalizeAngle(360 - rightRopeRotationAngle), "T2", Color.DARKVIOLET);
             box.tensionVector2 = rightTensionVector;
-            Sandbox.sandBoxPane.getChildren().add(rightTensionVector);
 
             box.totalXForce = 0; //Static equilibrium necessarily
             box.totalYForce = 0;
@@ -341,7 +341,83 @@ public final class VectorMath {
         }
     }
 
-    public static void calculatePulleyTension(){
+    public static void calculatePulleyTension(Box box1, Box box2, Pulley connectionPulley){
+
+        double position1X = tensionVectorPositions(box1)[0];
+        double position1Y = tensionVectorPositions(box1)[1];
+        double position2X = tensionVectorPositions(box2)[0];
+        double position2Y = tensionVectorPositions(box2)[1];
+
+        Map.Entry<Rope, Boolean> hashMap1 = box1.connectedRopes.entrySet().iterator().next();
+        Rope rope1 = hashMap1.getKey();
+        Map.Entry<Rope, Boolean> hashMap2 = box2.connectedRopes.entrySet().iterator().next();
+        Rope rope2 = hashMap2.getKey();
+
+
+        // Cases
+        double magnitude =0;
+        double box1Angle =0;
+        double box2Angle =0;
+
+        double xTension1 =0;
+        double yTension1 =0;
+        double xTension2 =0;
+        double yTension2 =0;
+
+        double gravityValue = Double.parseDouble(Sandbox.gravityField.getText());
+        double tempNet1 = Double.parseDouble(box1.getTextField().getText()) * gravityValue;
+        double tempNet2 = Double.parseDouble(box2.getTextField().getText()) * gravityValue;
+
+
+        if(!box1.isSnapped && !box2.isSnapped) {
+            if (tempNet1 > tempNet2) {
+                magnitude = tempNet1 - tempNet2;
+                box1Angle = 270;
+                box2Angle = 270;
+            } else {
+                magnitude = tempNet2 - tempNet1;
+                box1Angle = 270;
+                box2Angle = 270;
+            }
+
+            xTension1 = 0;
+            yTension1 = magnitude;
+            xTension2 = 0;
+            yTension2 = magnitude;
+        }
+
+
+
+        VectorDisplay tensionVector1 = new VectorDisplay(position1X, position1Y,
+                magnitude, box1Angle, "Tension", Color.DARKVIOLET);
+        box1.tensionVector1 = tensionVector1;
+
+        VectorDisplay tensionVector2 = new VectorDisplay(position2X, position2Y,
+                magnitude, box2Angle, "Tension", Color.DARKVIOLET);
+        box2.tensionVector1 = tensionVector2;
+
+        Sandbox.sandBoxPane.getChildren().addAll(tensionVector1, tensionVector2);
+
+
+        VectorDisplay tension1X = new VectorDisplay(
+                position1X, position1Y, xTension1, 0, "Tx", Color.INDIGO);
+        VectorDisplay tension1Y = new VectorDisplay(
+                position1X, position1Y, yTension1, 270, "Ty", Color.INDIGO);
+
+        VectorDisplay tension2X = new VectorDisplay(
+                position2X, position2Y, xTension2, 0, "Tx", Color.INDIGO);
+        VectorDisplay tension2Y = new VectorDisplay(
+                position2X, position2Y, yTension2, 270, "Ty", Color.INDIGO);
+
+
+        Sandbox.sandBoxPane.getChildren().addAll(
+                adaptComponentOrientation(tension1X), adaptComponentOrientation(tension1Y));
+        Sandbox.sandBoxPane.getChildren().addAll(
+                adaptComponentOrientation(tension2X), adaptComponentOrientation(tension2Y));
+
+
+
+
 
     }
 
@@ -434,6 +510,30 @@ public final class VectorMath {
 
     static double normalizeAngle(double angle) {
         return (angle % 360 + 360) % 360;
+    }
+
+    private static double[] tensionVectorPositions(Box box) {
+        double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+        double boxRotationAngle = box.getRectangle().getRotate();
+
+        // Create a Point2D to represent the center of the rectangle
+        Point2D center = new Point2D(positionCenterX, positionCenterY);
+
+        // The vector's original position relative to the center (before rotation)
+        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double vectorY = box.getRectangle().getY();
+
+        // Rotate the vector point relative to the center
+        Rotate rotate = new Rotate(boxRotationAngle, center.getX(), center.getY());
+        Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
+
+        // Now, rotatedVector gives the new position of the vector after the box is rotated
+        double[] positions = new double[2];
+        positions[0] = rotatedVector.getX();
+        positions[1] = rotatedVector.getY();
+
+        return positions;
     }
 
 }

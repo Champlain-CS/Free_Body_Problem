@@ -292,6 +292,8 @@ public final class VectorMath {
 
         }
 
+
+
         if(!box.snappedToPlane) {
             double leftAngleAdapted = Math.toRadians(180 - leftRopeRotationAngle);
             double rightAngleAdapted = Math.toRadians(rightRopeRotationAngle);
@@ -337,6 +339,10 @@ public final class VectorMath {
 
 
         }
+    }
+
+    public static void calculatePulleyTension(){
+
     }
 
     public static void calculateNetVector(Box box) {

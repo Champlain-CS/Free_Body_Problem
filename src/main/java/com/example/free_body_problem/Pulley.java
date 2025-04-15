@@ -109,6 +109,9 @@ public class Pulley extends PhysicsObject {
 
         circleGroup.setOnMouseReleased(event -> {
             lastDragDelta = null;
+            for (Box box: connectedBoxes){
+                box.setBoxUnderRope();
+            }
         });
     }
 

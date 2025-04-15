@@ -924,7 +924,7 @@ public class Sandbox extends Application {
             Map.Entry<Rope, Boolean> hashMap = box.connectedRopes.entrySet().iterator().next();
             Rope rope = hashMap.getKey();
             // Avoids calculating tension on unconnected ropes
-            if(rope.getEndConnection() instanceof Roof || rope.getStartConnection() instanceof Roof) {
+            if (!(rope.getEndConnection() == null && rope.getStartConnection() == null)) {
                 VectorMath.calculateTension1Rope(box, rope);
             }
         }
@@ -943,6 +943,7 @@ public class Sandbox extends Application {
                         !(rope2.getEndConnection() instanceof Pulley || rope2.getStartConnection() instanceof Pulley)) {
                     VectorMath.calculateTension2Ropes(box, ropesInOrder[0], ropesInOrder[1]);
                 }
+
             }
         }
 

@@ -250,7 +250,7 @@ public final class VectorMath {
 
     }
 
-    public static void calculateTension2Ropes(Box box, Rope rightRope, Rope leftRope) {
+    public static void calculateTension2Ropes(Box box, Rope leftRope, Rope rightRope) {
         double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
         double boxRotationAngle = box.getRectangle().getRotate();
@@ -296,48 +296,57 @@ public final class VectorMath {
 
 
         if(!box.snappedToPlane) {
-            double leftAngleAdapted = Math.toRadians(180 - leftRopeRotationAngle);
-            double rightAngleAdapted = Math.toRadians(rightRopeRotationAngle);
+            // Convert angles to radians for calculations
+            double leftAngleRad = Math.toRadians(leftRopeRotationAngle);
+            double rightAngleRad = Math.toRadians(rightRopeRotationAngle);
 
-            rightMagnitude = box.gravityVector.getTrueLength() /
-                    ((Math.cos(rightAngleAdapted)/Math.cos(leftAngleAdapted)) + Math.sin(rightAngleAdapted));
-            leftMagnitude = (rightMagnitude * Math.cos(rightAngleAdapted)) / Math.cos(leftAngleAdapted);
+            // Calculate magnitudes (always positive)
+            rightMagnitude = Math.abs(box.gravityVector.getTrueLength() /
+                    ((Math.cos(rightAngleRad)/Math.cos(leftAngleRad)) + Math.sin(rightAngleRad)));
+            leftMagnitude = Math.abs((rightMagnitude * Math.cos(rightAngleRad)) / Math.cos(leftAngleRad));
 
-            leftXTension = leftMagnitude * Math.cos(leftRopeRotationAngle);
-            leftYTension = leftMagnitude * Math.sin(leftRopeRotationAngle);
-            rightXTension = rightMagnitude * Math.cos(rightRopeRotationAngle);
-            rightYTension = rightMagnitude * Math.sin(rightRopeRotationAngle);
+            // Physics components (signs matter for calculation)
+            leftXTension = -leftMagnitude * Math.cos(leftAngleRad);  // Negative for left pull
+            leftYTension = -leftMagnitude * Math.sin(leftAngleRad);   // Positive for upward
+            rightXTension = -rightMagnitude * Math.cos(rightAngleRad); // Positive for right
+            rightYTension = -rightMagnitude * Math.sin(rightAngleRad); // Positive for upward
 
+            // Create main tension vectors
             VectorDisplay leftTensionVector = new VectorDisplay(newPositionX, newPositionY,
-                    leftMagnitude, normalizeAngle(360 - leftRopeRotationAngle), "T1", Color.DARKVIOLET);
-            box.tensionVector1 = leftTensionVector;
-            Sandbox.sandBoxPane.getChildren().add(leftTensionVector);
+                    leftMagnitude, (180 - leftRopeRotationAngle) % 360, "T1", Color.DARKVIOLET);
 
             VectorDisplay rightTensionVector = new VectorDisplay(newPositionX, newPositionY,
-                    rightMagnitude, normalizeAngle(360 - rightRopeRotationAngle), "T2", Color.DARKVIOLET);
-            box.tensionVector2 = rightTensionVector;
+                    rightMagnitude, (180 - rightRopeRotationAngle) % 360, "T2", Color.DARKVIOLET);
 
-            box.totalXForce = 0; //Static equilibrium necessarily
-            box.totalYForce = 0;
-
-
+            // Create component vectors
             VectorDisplay leftTensionX = new VectorDisplay(
-                    newPositionX - 2, newPositionY, leftXTension, 0, "T1x", Color.INDIGO);
+                    newPositionX - 3, newPositionY, leftXTension, 0, "T1x", Color.INDIGO);
+
             VectorDisplay leftTensionY = new VectorDisplay(
-                    newPositionX, newPositionY, leftYTension, 270, "T1y", Color.INDIGO);
+                    newPositionX - 3, newPositionY, leftYTension, 270, "T1y", Color.INDIGO);
 
             VectorDisplay rightTensionX = new VectorDisplay(
-                    newPositionX + 2, newPositionY, rightXTension, 0, "T2x", Color.INDIGO);
+                    newPositionX + 3, newPositionY, rightXTension, 0, "T2x", Color.INDIGO);
+
             VectorDisplay rightTensionY = new VectorDisplay(
-                    newPositionX, newPositionY, rightYTension, 270, "T2y", Color.INDIGO);
+                    newPositionX + 3, newPositionY, rightYTension, 270, "T2y", Color.INDIGO);
 
 
             Sandbox.sandBoxPane.getChildren().addAll(
-                    adaptComponentOrientation(leftTensionX), adaptComponentOrientation(leftTensionY));
-            Sandbox.sandBoxPane.getChildren().addAll(
-                    adaptComponentOrientation(rightTensionX), adaptComponentOrientation(rightTensionY));
+                    leftTensionVector,
+                    rightTensionVector,
+                    adaptComponentOrientation(leftTensionX),
+                    adaptComponentOrientation(leftTensionY),
+                    adaptComponentOrientation(rightTensionX),
+                    adaptComponentOrientation(rightTensionY)
+            );
 
-
+            // Debug equilibrium checks
+            System.out.printf("X Balance: %.2f + %.2f = %.2f%n",
+                    leftXTension, rightXTension, leftXTension + rightXTension);
+            System.out.printf("Y Balance: %.2f + %.2f - %.2f = %.2f%n",
+                    leftYTension, rightYTension, box.gravityVector.getTrueLength(),
+                    leftYTension + rightYTension - box.gravityVector.getTrueLength());
         }
     }
 

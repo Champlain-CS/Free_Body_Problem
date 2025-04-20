@@ -227,7 +227,7 @@ public final class VectorMath {
             yTension = -1 * box.totalYForce;
             magnitude = Math.sqrt(xTension * xTension + yTension * yTension);
             System.out.println("tension: " + magnitude);
-            angle = ropeRotationAngle;
+            angle = ropeRotationAngle + 180;
         }
 
 
@@ -280,22 +280,19 @@ public final class VectorMath {
         //Cases
         double leftMagnitude = 0;
         double rightMagnitude = 0;
-        double angle = 0;
+        double leftAngle = 0;
+        double rightAngle = 0;
         double leftXTension = 0;
         double leftYTension = 0;
         double rightXTension = 0;
         double rightYTension = 0;
-        boolean leftRopeStartHigher = leftRope.getLine().getStartY() > leftRope.getLine().getEndY();
-        boolean rightRopeStartHigher = rightRope.getLine().getStartY() > rightRope.getLine().getEndY();
+        boolean leftRopeStartIsHigher = leftRope.getLine().getStartY() > leftRope.getLine().getEndY();
+        boolean rightRopeStartIsHigher = rightRope.getLine().getStartY() > rightRope.getLine().getEndY();
 
-        if(box.isSliding) {
+        boolean isLeftRopeChaining = leftRope.getStartConnection() instanceof Box && leftRope.getEndConnection() instanceof Box;
+        boolean isRightRopeChaining = rightRope.getStartConnection() instanceof Box && rightRope.getEndConnection() instanceof Box;
 
-
-        }
-
-
-
-        if(!box.snappedToPlane) {
+        if(!box.isSnapped && !isLeftRopeChaining && !isRightRopeChaining) {
             // Convert angles to radians for calculations
             double leftAngleRad = Math.toRadians(leftRopeRotationAngle);
             double rightAngleRad = Math.toRadians(rightRopeRotationAngle);
@@ -311,12 +308,16 @@ public final class VectorMath {
             rightXTension = -rightMagnitude * Math.cos(rightAngleRad); // Positive for right
             rightYTension = -rightMagnitude * Math.sin(rightAngleRad); // Positive for upward
 
+            leftAngle = calculateDisplayAngle(leftRope, leftRopeStartIsHigher);
+            rightAngle = calculateDisplayAngle(rightRope, rightRopeStartIsHigher);
+
+
             // Create main tension vectors
             VectorDisplay leftTensionVector = new VectorDisplay(newPositionX, newPositionY,
-                    leftMagnitude, (180 - leftRopeRotationAngle) % 360, "T1", Color.DARKVIOLET);
+                    leftMagnitude, rightAngle, "T1", Color.DARKVIOLET);
 
             VectorDisplay rightTensionVector = new VectorDisplay(newPositionX, newPositionY,
-                    rightMagnitude, (180 - rightRopeRotationAngle) % 360, "T2", Color.DARKVIOLET);
+                    rightMagnitude, leftAngle, "T2", Color.DARKVIOLET);
 
             // Create component vectors
             VectorDisplay leftTensionX = new VectorDisplay(
@@ -340,13 +341,6 @@ public final class VectorMath {
                     adaptComponentOrientation(rightTensionX),
                     adaptComponentOrientation(rightTensionY)
             );
-
-            // Debug equilibrium checks
-            System.out.printf("X Balance: %.2f + %.2f = %.2f%n",
-                    leftXTension, rightXTension, leftXTension + rightXTension);
-            System.out.printf("Y Balance: %.2f + %.2f - %.2f = %.2f%n",
-                    leftYTension, rightYTension, box.gravityVector.getTrueLength(),
-                    leftYTension + rightYTension - box.gravityVector.getTrueLength());
         }
     }
 
@@ -543,6 +537,22 @@ public final class VectorMath {
         positions[1] = rotatedVector.getY();
 
         return positions;
+    }
+
+    private static double calculateDisplayAngle(Rope rope, boolean startIsHigher) {
+        double deltaX = rope.getLine().getEndX() - rope.getLine().getStartX();
+        double deltaY = rope.getLine().getEndY() - rope.getLine().getStartY();
+
+        // Calculate raw angle in JavaFX coordinates (0° = right, clockwise)
+        double angle = Math.toDegrees(Math.atan2(deltaY, deltaX));
+        if (angle < 0) angle += 360;
+
+        // If the box is at the start, flip the angle to show tension direction
+        if (!startIsHigher) {
+            angle = (angle + 180) % 360;
+        }
+
+        return angle;
     }
 
 }

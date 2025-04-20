@@ -40,7 +40,7 @@ public class Rope extends PhysicsObject {
         this.physicsObjectList = physicsObjectList;
 
         //DEBUG
-        startHandle.setFill(Color.RED);
+        startHandle.setFill(Color.GREEN);
         endHandle = createHandle(endX, endY);
 
         line.setUserData(this);

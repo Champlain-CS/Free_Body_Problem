@@ -971,27 +971,25 @@ public class Sandbox extends Application {
 
 
         //Pulley case
-        try {
-            Map.Entry<Rope, Boolean> hashMap2 = box.connectedRopes.entrySet().iterator().next();
-            Rope rope = hashMap2.getKey();
-            if ((rope.getStartConnection() instanceof Pulley) || (rope.getEndConnection() instanceof Pulley)) {
-                System.out.println("!!! box tension: " + box.tensionVector1);
-                if (!sandBoxPane.getChildren().contains(box.tensionVector1)) {
-                    Pulley connectionPulley;
-                    if (rope.getStartConnection() instanceof Pulley)
-                        connectionPulley = (Pulley) rope.getStartConnection();
-                    else {
-                        connectionPulley = (Pulley) rope.getEndConnection();
-                    }
+        Map.Entry<Rope, Boolean> hashMap2 = box.connectedRopes.entrySet().iterator().next();
+        Rope rope = hashMap2.getKey();
+        if ((rope.getStartConnection() instanceof Pulley) || (rope.getEndConnection() instanceof Pulley)) {
+            System.out.println("!!! box tension: " + box.tensionVector1);
+            if (!sandBoxPane.getChildren().contains(box.tensionVector1)) {
+                Pulley connectionPulley;
+                if (rope.getStartConnection() instanceof Pulley)
+                    connectionPulley = (Pulley) rope.getStartConnection();
+                else {
+                    connectionPulley = (Pulley) rope.getEndConnection();
+                }
 
                     System.out.println("pulley: " + connectionPulley);
 
-                    if (connectionPulley.connectedBoxes.size() == 2) {
-//                        Box box1 = connectionPulley.connectedBoxes.getFirst();
-//                        Box box2 = connectionPulley.connectedBoxes.getLast();
-//                        System.out.println(box1 + " is 2 rope, 2 box with " + box2);
-//                        VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
-                    }
+                if (connectionPulley.connectedBoxes.size() == 2) {
+                    Box box1 = connectionPulley.connectedBoxes.getFirst();
+                    Box box2 = connectionPulley.connectedBoxes.getLast();
+                    System.out.println(box1 + " is 2 rope, 2 box with " + box2);
+                    VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
                 }
             }
         } catch (Exception e) {
@@ -1289,7 +1287,6 @@ public class Sandbox extends Application {
 
         return helpBox;
     }
-
 
     private void addRoofToSandbox() {
         // Create a roof that spans the width of the sandbox

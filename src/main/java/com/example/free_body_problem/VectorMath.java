@@ -345,7 +345,6 @@ public final class VectorMath {
     }
 
     public static void calculatePulleyTension(Box box1, Box box2, Pulley connectionPulley){
-
         double position1X = tensionVectorPositions(box1)[0];
         double position1Y = tensionVectorPositions(box1)[1];
         double position2X = tensionVectorPositions(box2)[0];
@@ -371,22 +370,34 @@ public final class VectorMath {
         double tempNet1 = Double.parseDouble(box1.getTextField().getText()) * gravityValue;
         double tempNet2 = Double.parseDouble(box2.getTextField().getText()) * gravityValue;
 
+        System.out.println("temp net 1: " + tempNet1 + ", temp net 2: " + tempNet2);
+
 
         if(!box1.isSnapped && !box2.isSnapped) {
             if (tempNet1 > tempNet2) {
                 magnitude = tempNet1 - tempNet2;
-                box1Angle = 270;
-                box2Angle = 270;
-            } else {
-                magnitude = tempNet2 - tempNet1;
-                box1Angle = 270;
-                box2Angle = 270;
             }
+            else if(tempNet1 == tempNet2) {
+                magnitude = tempNet1;
+            }
+            else {
+                magnitude = tempNet2 - tempNet1;
+            }
+
+            box1Angle = 270;
+            box2Angle = 270;
 
             xTension1 = 0;
             yTension1 = magnitude;
             xTension2 = 0;
             yTension2 = magnitude;
+
+            box1.totalYForce = magnitude - tempNet1;
+            box2.totalYForce = magnitude - tempNet2;
+            box1.totalXForce = 0;
+            box2.totalXForce = 0;
+
+            System.out.println("total Y force: " + box1.totalYForce);
         }
 
 
@@ -427,6 +438,8 @@ public final class VectorMath {
     public static void calculateNetVector(Box box) {
         double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+
+        System.out.println("total x force: " + box.totalXForce + "; total y force: " + box.totalYForce);
 
         double xComponent = box.totalXForce;
         double yComponent = box.totalYForce;

@@ -20,9 +20,7 @@ public class VectorDisplay extends Pane {
     private double trueLength;
     private final Text forceName;
     private final Text forceMagnitude;
-    private double endX, endY;
-    private Color color;
-    private double angle;
+    private final double angle;
 
     // Logarithmic scaling constants
     private static final double MIN_VISIBLE_LENGTH = 15;
@@ -31,7 +29,7 @@ public class VectorDisplay extends Pane {
     private static final double STRETCH_FACTOR = 10000;
 
     public VBox forceText;
-    private DecimalFormat df = new DecimalFormat("#.###");
+    private final DecimalFormat df = new DecimalFormat("#.###");
 
     public VectorDisplay(double startX, double startY, double trueLength, double angle, String name, Color color) {
         // Initialize fields first
@@ -45,7 +43,6 @@ public class VectorDisplay extends Pane {
         // Set true length and calculate visual length
         this.trueLength = trueLength;  // Fixed parameter name (was using wrong variable)
         this.displayLength = calculateVisualLength(trueLength);
-        this.color = color;
         this.angle = angle;
 
         // Configure line
@@ -101,8 +98,8 @@ public class VectorDisplay extends Pane {
 
     private void updateVector() {
 
-        endX = line.getEndX() + 2;
-        endY = line.getEndY();
+        double endX = line.getEndX() + 2;
+        double endY = line.getEndY();
         double arrowSize = 10;
 
         arrowhead.getPoints().setAll(
@@ -158,10 +155,6 @@ public class VectorDisplay extends Pane {
 
     public Text getForceName() {
         return forceName;
-    }
-
-    public double getDisplayLength() {
-        return displayLength;  // Returns visual length
     }
 
     public double getTrueLength() {

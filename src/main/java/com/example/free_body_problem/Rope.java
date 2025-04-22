@@ -11,21 +11,21 @@ import javafx.scene.shape.StrokeLineCap;
 import java.util.List;
 
 public class Rope extends PhysicsObject {
-    private Line line;
-    private Circle startHandle;
-    private Circle endHandle;
+    private final Line line;
+    private final Circle startHandle;
+    private final Circle endHandle;
     public Boolean startSnapped = false;
-    public Boolean endSnapped = false;
-    private List<PhysicsObject> physicsObjectList;
+    public Boolean endSnapped;
+    private final List<PhysicsObject> physicsObjectList;
     private boolean isOnHandle = false;
-    public double tension = 0;
     private double orientation;
 
     // Add these new fields to track connections
     private PhysicsObject startConnection;
     private PhysicsObject endConnection;
 
-    public Rope(double startX, double startY, double endX, double endY, Color color, Boolean startSnapped, Boolean endSnapped, List<PhysicsObject> physicsObjectList) {
+    public Rope(double startX, double startY, double endX, double endY, Boolean endSnapped, List<PhysicsObject> physicsObjectList) {
+        this.endSnapped = endSnapped;
         line = new Line(startX, startY, endX, endY);
         LinearGradient gradient = new LinearGradient(0, 0, 1, 1, true,
                 javafx.scene.paint.CycleMethod.REFLECT,
@@ -53,10 +53,10 @@ public class Rope extends PhysicsObject {
         this.endConnection = null;
 
         // Listeners for line points change to update orientation
-        line.startXProperty().addListener((obs, oldVal, newVal) -> updateOrientationAttribute());
-        line.startYProperty().addListener((obs, oldVal, newVal) -> updateOrientationAttribute());
-        line.endXProperty().addListener((obs, oldVal, newVal) -> updateOrientationAttribute());
-        line.endYProperty().addListener((obs, oldVal, newVal) -> updateOrientationAttribute());
+        line.startXProperty().addListener((_, _, _) -> updateOrientationAttribute());
+        line.startYProperty().addListener((_, _, _) -> updateOrientationAttribute());
+        line.endXProperty().addListener((_, _, _) -> updateOrientationAttribute());
+        line.endYProperty().addListener((_, _, _) -> updateOrientationAttribute());
 
         updateOrientationAttribute();
     }
@@ -66,21 +66,9 @@ public class Rope extends PhysicsObject {
         return startSnapped;
     }
 
-    public double getTension() {
-        return tension;
-    }
-
-
-    public void setStartSnapped(Boolean startSnapped) {
-        this.startSnapped = startSnapped;
-    }
 
     public boolean getEndSnapped() {
         return endSnapped;
-    }
-
-    public void setEndSnapped(Boolean endSnapped) {
-        this.endSnapped = endSnapped;
     }
 
     // Add getters and setters for the new connection fields
@@ -121,9 +109,7 @@ public class Rope extends PhysicsObject {
     }
 
     public void addLineResizeListener() {
-        startHandle.setOnMousePressed(event -> {
-            isOnHandle = true;
-        });
+        startHandle.setOnMousePressed(_ -> isOnHandle = true);
 
         startHandle.setOnMouseDragged(event -> {
             // Always update positions, but still check for snapping
@@ -146,18 +132,16 @@ public class Rope extends PhysicsObject {
             updateOrientationAttribute();
         });
 
-        startHandle.setOnMouseReleased(event -> {
+        startHandle.setOnMouseReleased(_ -> {
             isOnHandle = false;
             Roof roof = Sandbox.getRoof();
             Snapping.snapToRoofIfIntersecting(startHandle, true, roof, this);
 
-            if (startConnection instanceof Box) {
-                Box box = (Box) startConnection;
+            if (startConnection instanceof Box box) {
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
             }
-            else if (endConnection instanceof Box) {
-                Box box = (Box) endConnection;
+            else if (endConnection instanceof Box box) {
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
             }
@@ -165,9 +149,7 @@ public class Rope extends PhysicsObject {
             updateOrientationAttribute();
         });
 
-        endHandle.setOnMousePressed(event -> {
-            isOnHandle = true;
-        });
+        endHandle.setOnMousePressed(_ -> isOnHandle = true);
 
         endHandle.setOnMouseDragged(event -> {
             // Always update positions, but still check for snapping
@@ -190,18 +172,16 @@ public class Rope extends PhysicsObject {
             updateOrientationAttribute();
         });
 
-        endHandle.setOnMouseReleased(event -> {
+        endHandle.setOnMouseReleased(_ -> {
             isOnHandle = false;
             Roof roof = Sandbox.getRoof();
             Snapping.snapToRoofIfIntersecting(endHandle, false, roof, this);
 
-            if (endConnection instanceof Box) {
-                Box box = (Box) endConnection;
+            if (endConnection instanceof Box box) {
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
             }
-            else if (startConnection instanceof Box) {
-                Box box = (Box) startConnection;
+            else if (startConnection instanceof Box box) {
                 box.setBoxUnderRope();
                 box.enforceConstraints(); // Enforce after positioning
             }
@@ -210,21 +190,13 @@ public class Rope extends PhysicsObject {
         });
 
         // Keep your property listeners
-        line.startXProperty().addListener((obs, oldVal, newVal) -> {
-            startHandle.setCenterX(newVal.doubleValue());
-        });
+        line.startXProperty().addListener((_, _, newVal) -> startHandle.setCenterX(newVal.doubleValue()));
 
-        line.startYProperty().addListener((obs, oldVal, newVal) -> {
-            startHandle.setCenterY(newVal.doubleValue());
-        });
+        line.startYProperty().addListener((_, _, newVal) -> startHandle.setCenterY(newVal.doubleValue()));
 
-        line.endXProperty().addListener((obs, oldVal, newVal) -> {
-            endHandle.setCenterX(newVal.doubleValue());
-        });
+        line.endXProperty().addListener((_, _, newVal) -> endHandle.setCenterX(newVal.doubleValue()));
 
-        line.endYProperty().addListener((obs, oldVal, newVal) -> {
-            endHandle.setCenterY(newVal.doubleValue());
-        });
+        line.endYProperty().addListener((_, _, newVal) -> endHandle.setCenterY(newVal.doubleValue()));
     }
 
     public void addDragListener() {
@@ -238,12 +210,10 @@ public class Rope extends PhysicsObject {
                 // Modified to only disconnect if dragging the entire rope
                 if (startConnection != null) {
                     startConnection.connectedRopes.remove(this);
-                    if (startConnection instanceof Box) {
-                        Box box = (Box) startConnection;
+                    if (startConnection instanceof Box box) {
                         box.setBoxUnderRope();
                     }
-                    else if (startConnection instanceof Pulley){
-                        Pulley pulley = (Pulley) startConnection;
+                    else if (startConnection instanceof Pulley pulley){
                         pulley.updateBoxList();
                     }
                     startConnection = null;
@@ -251,12 +221,10 @@ public class Rope extends PhysicsObject {
 
                 if (endConnection != null) {
                     endConnection.connectedRopes.remove(this);
-                    if (endConnection instanceof Box) {
-                        Box box = (Box) endConnection;
+                    if (endConnection instanceof Box box) {
                         box.setBoxUnderRope();
                     }
-                    else if (endConnection instanceof Pulley){
-                        Pulley pulley = (Pulley) endConnection;
+                    else if (endConnection instanceof Pulley pulley){
                         pulley.updateBoxList();
                     }
                     endConnection = null;
@@ -283,10 +251,11 @@ public class Rope extends PhysicsObject {
         });
 
         // Add property listeners to update angles when rope positions change
-        this.getLine().startXProperty().addListener((obs, old, newVal) -> updateConnectedBoxAngles());
-        this.getLine().startYProperty().addListener((obs, old, newVal) -> updateConnectedBoxAngles());
-        this.getLine().endXProperty().addListener((obs, old, newVal) -> updateConnectedBoxAngles());
-        this.getLine().endYProperty().addListener((obs, old, newVal) -> updateConnectedBoxAngles());
+        this.getLine().startXProperty().addListener((_, _, _) -> updateConnectedBoxAngles());
+        this.getLine().startYProperty().addListener((_, _, _) -> updateConnectedBoxAngles());
+        this.getLine().endXProperty().addListener((_, _,
+                                                   _) -> updateConnectedBoxAngles());
+        this.getLine().endYProperty().addListener((_, _, _) -> updateConnectedBoxAngles());
     }
 
     // Move this method outside of addDragListener and to the class level
@@ -327,11 +296,6 @@ public class Rope extends PhysicsObject {
         }
 
         orientation = angleInDegrees;
-    }
-
-    public double angleBetweenRopes(Rope otherRope) {
-        double angleBetween = Math.abs(this.orientation - otherRope.getOrientation());
-        return angleBetween > 180 ? 360 - angleBetween : angleBetween;
     }
 
     public double getOrientation() {

@@ -1,16 +1,9 @@
 package com.example.free_body_problem;
 
 import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
 
-import java.util.ArrayList;
+
 import java.util.HashMap;
-import java.util.List;
 
 public abstract  class PhysicsObject extends Group {
     // Common properties for physics objects
@@ -21,7 +14,7 @@ public abstract  class PhysicsObject extends Group {
 
     public PhysicsObject() {
         // Initialize lists
-        connectedRopes = new HashMap<Rope, Boolean>();
+        connectedRopes = new HashMap<>();
     }
 
     // Abstract methods that child classes must implement

@@ -1,6 +1,5 @@
 package com.example.free_body_problem;
 
-import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -14,28 +13,23 @@ import javafx.geometry.Pos;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class Plane extends  PhysicsObject {
-    private Line line;
-    private Circle startHandle;
-    private Circle endHandle;
+    private final Line line;
+    private final Circle startHandle;
+    private final Circle endHandle;
     private static final double SNAP_ANGLE_THRESHOLD = 5;
-    private boolean isTransformMode = true;
+    private final boolean isTransformMode = true;
     private double[] dragOffset;
-    private List<Pulley> connectedPulleys = new ArrayList<>();
-    public List<Rope> connectedRopes;
-    public List<Boolean> ropeStartSnapped;
-    public List<Boolean> ropeEndSnapped;
+
     public List<Box> connectedBoxes = new ArrayList<>();
 
 
-    private Sandbox sandbox;
+    private final Sandbox sandbox;
 
     // New angle display elements
     private Text angleText;
     private TextField angleInputField;
-    private VBox angleBox;
 
     public Plane(double startX, double startY, double endX, double endY, Color color, Sandbox sandbox) {
         this.sandbox = sandbox;
@@ -45,8 +39,8 @@ public class Plane extends  PhysicsObject {
         line.setUserData(this);
         line.setStrokeLineCap(StrokeLineCap.ROUND);
 
-        startHandle = createHandle(startX, startY, Color.RED);
-        endHandle = createHandle(endX, endY, Color.RED);
+        startHandle = createHandle(startX, startY);
+        endHandle = createHandle(endX, endY);
 
         // Create angle display
         createAngleDisplay();
@@ -70,7 +64,7 @@ public class Plane extends  PhysicsObject {
         inputBox.setAlignment(Pos.CENTER);
 
         // Vertical box to contain both text display and input
-        angleBox = new VBox(5, angleText, inputBox);
+        VBox angleBox = new VBox(5, angleText, inputBox);
         angleBox.setAlignment(Pos.CENTER);
         angleBox.setTranslateX(200);
         angleBox.setTranslateY(50);
@@ -79,7 +73,7 @@ public class Plane extends  PhysicsObject {
         updateAngleDisplay();
 
         // Add listener to update angle when input is entered
-        angleInputField.setOnAction(event -> {
+        angleInputField.setOnAction(_ -> {
             try {
                 double inputAngle = Double.parseDouble(angleInputField.getText());
                 setPlaneAngle(inputAngle);
@@ -90,19 +84,12 @@ public class Plane extends  PhysicsObject {
         });
 
         // Add listeners to update angle display dynamically
-        line.startXProperty().addListener((obs, oldVal, newVal) -> updateAngleDisplay());
-        line.startYProperty().addListener((obs, oldVal, newVal) -> updateAngleDisplay());
-        line.endXProperty().addListener((obs, oldVal, newVal) -> updateAngleDisplay());
-        line.endYProperty().addListener((obs, oldVal, newVal) -> updateAngleDisplay());
+        line.startXProperty().addListener((_, _, _) -> updateAngleDisplay());
+        line.startYProperty().addListener((_, _, _) -> updateAngleDisplay());
+        line.endXProperty().addListener((_, _, _) -> updateAngleDisplay());
+        line.endYProperty().addListener((_, _, _) -> updateAngleDisplay());
     }
 
-    public void addConnectedPulley(Pulley pulley) {
-        connectedPulleys.add(pulley);
-    }
-
-    public void removeConnectedPulley(Pulley pulley) {
-        connectedPulleys.remove(pulley);
-    }
 
 
     public void updateAngleDisplay() {
@@ -142,9 +129,7 @@ public class Plane extends  PhysicsObject {
         endHandle.setCenterY(endY);
     }
 
-    public VBox getAngleBox() {
-        return angleBox;
-    }
+
 
     // Existing methods remain the same...
 
@@ -168,9 +153,9 @@ public class Plane extends  PhysicsObject {
         return dragOffset;
     }
 
-    private Circle createHandle(double x, double y, Color color) {
+    private Circle createHandle(double x, double y) {
         Circle handle = new Circle(x, y, Sandbox.HANDLE_RADIUS);
-        handle.setFill(color);
+        handle.setFill(Color.RED);
         return handle;
     }
 
@@ -243,27 +228,17 @@ public class Plane extends  PhysicsObject {
 
         });
 
-        line.startXProperty().addListener((obs, oldVal, newVal) -> {
-            startHandle.setCenterX(newVal.doubleValue());
-        });
+        line.startXProperty().addListener((_, _, newVal) -> startHandle.setCenterX(newVal.doubleValue()));
 
-        line.startYProperty().addListener((obs, oldVal, newVal) -> {
-            startHandle.setCenterY(newVal.doubleValue());
-        });
+        line.startYProperty().addListener((_, _, newVal) -> startHandle.setCenterY(newVal.doubleValue()));
 
-        line.endXProperty().addListener((obs, oldVal, newVal) -> {
-            endHandle.setCenterX(newVal.doubleValue());
-        });
+        line.endXProperty().addListener((_, _, newVal) -> endHandle.setCenterX(newVal.doubleValue()));
 
-        line.endYProperty().addListener((obs, oldVal, newVal) -> {
-            endHandle.setCenterY(newVal.doubleValue());
-        });
+        line.endYProperty().addListener((_, _, newVal) -> endHandle.setCenterY(newVal.doubleValue()));
     }
 
     public void addDragListener() {
-        line.setOnMousePressed(event -> {
-            this.setDragOffset(new double[]{event.getSceneX(), event.getSceneY()});
-        });
+        line.setOnMousePressed(event -> this.setDragOffset(new double[]{event.getSceneX(), event.getSceneY()}));
 
         line.setOnMouseDragged(event -> {
             double[] offset = this.getDragOffset();
@@ -285,7 +260,7 @@ public class Plane extends  PhysicsObject {
 
         });
 
-        line.setOnMouseReleased(event -> {
+        line.setOnMouseReleased(_ -> {
             for (Box box: connectedBoxes){
                 box.isSnapped = false;
                 box.setBoxUnderRope();
@@ -295,32 +270,6 @@ public class Plane extends  PhysicsObject {
         });
     }
 
-
-
-
-    public boolean isTransformMode() {
-        return isTransformMode;
-    }
-
-    public void setTransformMode(boolean mode) {
-        isTransformMode = mode;
-        updateHandleColors();
-    }
-
-    public void toggleTransformMode() {
-        isTransformMode = !isTransformMode;
-        updateHandleColors();
-    }
-
-    private void updateHandleColors() {
-        if (isTransformMode) {
-            startHandle.setFill(Color.RED);
-            endHandle.setFill(Color.RED);
-        } else {
-            startHandle.setFill(Color.BLUE);
-            endHandle.setFill(Color.BLUE);
-        }
-    }
 
     private double snapAngleToClosest(double angle) {
         double[] snapAngles = {0, 45, 90, 135, 180, 225, 270, 315, 360};
@@ -341,9 +290,6 @@ public class Plane extends  PhysicsObject {
     public double getCenterY() {
         return (line.getStartY() + line.getEndY()) / 2;
     }
-
-
-
 
 
 }

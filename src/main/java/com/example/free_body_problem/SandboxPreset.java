@@ -7,7 +7,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
@@ -49,7 +48,7 @@ public class SandboxPreset {
         tooltip.setShowDelay(Duration.millis(300));
         applyButton.setTooltip(tooltip);
 
-        applyButton.setOnAction(event -> {
+        applyButton.setOnAction(_ -> {
             String selectedPreset = presetSelector.getValue();
             if (!selectedPreset.equals("Select a preset...")) {
                 clearSandbox();
@@ -76,96 +75,8 @@ public class SandboxPreset {
         return presetControls;
     }
 
-    // Add a new method for creating buttons in editor pane
-    public VBox createPresetButtons() {
-        VBox buttonContainer = new VBox(10);
-        buttonContainer.setPadding(new Insets(5));
-        buttonContainer.setAlignment(Pos.CENTER);
-
-        Button inclinedPlaneButton = createPresetButton("Inclined Plane",
-                "Create an inclined plane with a box");
-        inclinedPlaneButton.setOnAction(event -> {
-            clearSandbox();
-            createInclinedPlaneScenario();
-            soundPlayer.playSound("src/main/resources/sounds/Place.wav");
-        });
-
-        Button simplePulleyButton = createPresetButton("Simple Pulley",
-                "Create a simple pulley system with two boxes");
-        simplePulleyButton.setOnAction(event -> {
-            clearSandbox();
-            createSimplePulleyScenario();
-            soundPlayer.playSound("src/main/resources/sounds/Place.wav");
-        });
-
-        Button atwoodButton = createPresetButton("Atwood Machine",
-                "Create an Atwood machine with pulley and weights");
-        atwoodButton.setOnAction(event -> {
-            clearSandbox();
-            createAtwoodMachineScenario();
-            soundPlayer.playSound("src/main/resources/sounds/Place.wav");
-        });
-
-        Button hangingBoxButton = createPresetButton("Hanging Box",
-                "Create a hanging box with a pulley");
-        hangingBoxButton.setOnAction(event -> {
-            clearSandbox();
-            hangingBoxScenario();
-            soundPlayer.playSound("src/main/resources/sounds/Place.wav");
-        });
-
-        buttonContainer.getChildren().addAll(
-                inclinedPlaneButton,
-                simplePulleyButton,
-                atwoodButton,
-                hangingBoxButton
-        );
-
-        return buttonContainer;
-    }
-
-    private Button createPresetButton(String text, String tooltipText) {
-        Button button = new Button(text);
-        button.setMaxWidth(Double.MAX_VALUE);
-        Tooltip tooltip = new Tooltip(tooltipText);
-        tooltip.setShowDelay(Duration.millis(300));
-        button.setTooltip(tooltip);
-        return button;
-    }
-
     private void clearSandbox() {
         sandbox.resetSimulation();
-    }
-
-    // Helper methods to handle object removal
-    private void removeBox(Box box) {
-        physicsObjectList.remove(box);
-        sandboxPane.getChildren().remove(box.getRectangle());
-    }
-
-    private void removePlane(Plane plane) {
-        physicsObjectList.remove(plane);
-        sandboxPane.getChildren().remove(plane.getLine());
-        planes.remove(plane);
-    }
-
-    private void removePulley(Pulley pulley) {
-        physicsObjectList.remove(pulley);
-        sandboxPane.getChildren().remove(pulley.getCircleGroup());
-    }
-
-    private void removeRope(Rope rope) {
-        physicsObjectList.remove(rope);
-        sandboxPane.getChildren().remove(rope.getLine());
-    }
-
-    // Helper method to create planes
-    private Plane createPlane(double startX, double startY, double endX, double endY, Color color) {
-        Plane plane = new Plane(startX, startY, endX, endY, color, sandbox);
-        sandboxPane.getChildren().add(plane.getLine());
-        physicsObjectList.add(plane);
-        planes.add(plane);
-        return plane;
     }
 
     private void createInclinedPlaneScenario() {
@@ -179,10 +90,6 @@ public class SandboxPreset {
 
         double startX = centerX - planeLength * Math.cos(angleRad) / 2;
         double startY = centerY + planeLength * Math.sin(angleRad) / 2;
-        double endX = centerX + planeLength * Math.cos(angleRad) / 2;
-        double endY = centerY - planeLength * Math.sin(angleRad) / 2;
-
-        Plane plane = createPlane(startX, startY, endX, endY, Color.BLACK);
 
         // Create a box on the plane
         double boxWidth = 80;
@@ -224,9 +131,9 @@ public class SandboxPreset {
 
         // Create ropes
         Rope leftRope = new Rope(centerX - 40, centerY, leftBox.getCenterX(), leftBox.getCenterY(),
-                Color.BROWN, false, false, physicsObjectList);
+                false, physicsObjectList);
         Rope rightRope = new Rope(centerX + 40, centerY, rightBox.getCenterX(), rightBox.getCenterY(),
-                Color.BROWN, false, false, physicsObjectList);
+                false, physicsObjectList);
 
         sandboxPane.getChildren().add(leftRope.getLine());
         sandboxPane.getChildren().add(rightRope.getLine());
@@ -273,9 +180,9 @@ public class SandboxPreset {
 
         // Create ropes
         Rope leftRope = new Rope(centerX - 40, centerY, leftBox.getCenterX(), leftBox.getCenterY(),
-                Color.BROWN, false, false, physicsObjectList);
+                false, physicsObjectList);
         Rope rightRope = new Rope(centerX + 40, centerY, rightBox.getCenterX(), rightBox.getCenterY(),
-                Color.BROWN, false, false, physicsObjectList);
+                false, physicsObjectList);
 
         sandboxPane.getChildren().add(leftRope.getLine());
         sandboxPane.getChildren().add(rightRope.getLine());
@@ -313,7 +220,7 @@ public class SandboxPreset {
 
         // Create a rope
         Rope rope = new Rope(centerX - 40, centerY, box.getCenterX(), box.getCenterY(),
-                Color.BROWN, false, false, physicsObjectList);
+                false, physicsObjectList);
         sandboxPane.getChildren().add(rope.getLine());
         rope.addLineResizeListener();
         rope.addDragListener();

@@ -987,10 +987,10 @@ public class Sandbox extends Application {
                     System.out.println("pulley: " + connectionPulley);
 
                     if (connectionPulley.connectedBoxes.size() == 2) {
-                        Box box1 = connectionPulley.connectedBoxes.getFirst();
-                        Box box2 = connectionPulley.connectedBoxes.getLast();
-                        System.out.println(box1 + " is 2 rope, 2 box with " + box2);
-                        VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
+//                        Box box1 = connectionPulley.connectedBoxes.getFirst();
+//                        Box box2 = connectionPulley.connectedBoxes.getLast();
+//                        System.out.println(box1 + " is 2 rope, 2 box with " + box2);
+//                        VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
                     }
                 }
             }
@@ -1137,7 +1137,7 @@ public class Sandbox extends Application {
         }
     }
 
-    private void deleteRopeObject(Rope rope) {
+    public void deleteRopeObject(Rope rope) {
         // First disconnect any connections the rope has
         if (rope.getStartConnection() != null) {
             rope.getStartConnection().connectedRopes.remove(rope);
@@ -1162,7 +1162,7 @@ public class Sandbox extends Application {
         soundPlayer.playSound("src/main/resources/sounds/Delete.wav");
     }
 
-    private void deleteBoxObject(Box box) {
+    public void deleteBoxObject(Box box) {
         sandBoxPane.getChildren().remove(box.getRectangle());
         if (box.getResizeHandle() != null) sandBoxPane.getChildren().remove(box.getResizeHandle());
         if (box.getRotateHandle() != null) sandBoxPane.getChildren().remove(box.getRotateHandle());
@@ -1190,13 +1190,13 @@ public class Sandbox extends Application {
         soundPlayer.playSound("src/main/resources/sounds/Delete.wav");
     }
 
-    private void deletePulleyObject(Pulley pulley) {
+    public void deletePulleyObject(Pulley pulley) {
         sandBoxPane.getChildren().remove(pulley.getCircleGroup());
         physicsObjectList.remove(pulley);
         soundPlayer.playSound("src/main/resources/sounds/Delete.wav");
     }
 
-    private void deletePlaneObject(Plane plane) {
+    public void deletePlaneObject(Plane plane) {
         sandBoxPane.getChildren().remove(plane.getLine());
         sandBoxPane.getChildren().remove(plane.getStartHandle());
         sandBoxPane.getChildren().remove(plane.getEndHandle());
@@ -1289,6 +1289,7 @@ public class Sandbox extends Application {
 
         return helpBox;
     }
+
 
     private void addRoofToSandbox() {
         // Create a roof that spans the width of the sandbox

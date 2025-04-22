@@ -237,7 +237,6 @@ public class Rope extends PhysicsObject {
             if (!isOnHandle) {
                 // Modified to only disconnect if dragging the entire rope
                 if (startConnection != null) {
-
                     startConnection.connectedRopes.remove(this);
                     if (startConnection instanceof Box) {
                         Box box = (Box) startConnection;
@@ -250,19 +249,17 @@ public class Rope extends PhysicsObject {
                     startConnection = null;
                 }
 
-
-                    if (endConnection != null) {
-                        endConnection.connectedRopes.remove(this);
-
-                        if (endConnection instanceof Box) {
-                            Box box = (Box) endConnection;
-                            box.setBoxUnderRope();
-                        }
-                        else if (endConnection instanceof Pulley){
-                            Pulley pulley = (Pulley) endConnection;
-                            pulley.updateBoxList();
-                        }
-                        endConnection = null;
+                if (endConnection != null) {
+                    endConnection.connectedRopes.remove(this);
+                    if (endConnection instanceof Box) {
+                        Box box = (Box) endConnection;
+                        box.setBoxUnderRope();
+                    }
+                    else if (endConnection instanceof Pulley){
+                        Pulley pulley = (Pulley) endConnection;
+                        pulley.updateBoxList();
+                    }
+                    endConnection = null;
                 }
                 startSnapped = false;
                 endSnapped = false;
@@ -285,7 +282,21 @@ public class Rope extends PhysicsObject {
             }
         });
 
+        // Add property listeners to update angles when rope positions change
+        this.getLine().startXProperty().addListener((obs, old, newVal) -> updateConnectedBoxAngles());
+        this.getLine().startYProperty().addListener((obs, old, newVal) -> updateConnectedBoxAngles());
+        this.getLine().endXProperty().addListener((obs, old, newVal) -> updateConnectedBoxAngles());
+        this.getLine().endYProperty().addListener((obs, old, newVal) -> updateConnectedBoxAngles());
+    }
 
+    // Move this method outside of addDragListener and to the class level
+    private void updateConnectedBoxAngles() {
+        if (startConnection instanceof Box) {
+            ((Box) startConnection).displayRopeAngle();
+        }
+        if (endConnection instanceof Box) {
+            ((Box) endConnection).displayRopeAngle();
+        }
     }
     @Override
     public double getCenterX() {
@@ -326,4 +337,6 @@ public class Rope extends PhysicsObject {
     public double getOrientation() {
         return orientation;
     }
+
+
 }

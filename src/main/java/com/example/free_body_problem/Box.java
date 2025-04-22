@@ -435,4 +435,132 @@ public class Box extends PhysicsObject {
             }
         }
     }
+
+    public void addRopeConnection(Rope rope, boolean isStart) {
+        connectedRopes.put(rope, isStart);
+        displayRopeAngle(); // Update angle display when a rope is added
+    }
+
+    public void removeRopeConnection(Rope rope) {
+        connectedRopes.remove(rope);
+        displayRopeAngle(); // Update angle display when a rope is removed
+    }
+
+    public void displayRopeAngle() {
+        // Only proceed if exactly two ropes are connected
+        if (connectedRopes.size() != 2) {
+            removeAngleDisplay();
+            return;
+        }
+
+        // Get the two ropes
+        Rope[] ropes = connectedRopes.keySet().toArray(new Rope[2]);
+        Rope rope1 = ropes[0];
+        Rope rope2 = ropes[1];
+
+        // Calculate angles from box center to rope endpoints
+        double boxCenterX = getCenterX();
+        double boxCenterY = getCenterY();
+
+        // Get the other ends of each rope relative to the box
+        double rope1EndX, rope1EndY, rope2EndX, rope2EndY;
+
+        if (rope1.getStartConnection() == this) {
+            rope1EndX = rope1.getLine().getEndX();
+            rope1EndY = rope1.getLine().getEndY();
+        } else {
+            rope1EndX = rope1.getLine().getStartX();
+            rope1EndY = rope1.getLine().getStartY();
+        }
+
+        if (rope2.getStartConnection() == this) {
+            rope2EndX = rope2.getLine().getEndX();
+            rope2EndY = rope2.getLine().getEndY();
+        } else {
+            rope2EndX = rope2.getLine().getStartX();
+            rope2EndY = rope2.getLine().getStartY();
+        }
+
+        // Calculate vectors from box to rope endpoints
+        double vector1X = rope1EndX - boxCenterX;
+        double vector1Y = rope1EndY - boxCenterY;
+        double vector2X = rope2EndX - boxCenterX;
+        double vector2Y = rope2EndY - boxCenterY;
+
+        // Calculate the angle between the vectors (in degrees)
+        double dotProduct = vector1X * vector2X + vector1Y * vector2Y;
+        double magnitude1 = Math.sqrt(vector1X * vector1X + vector1Y * vector1Y);
+        double magnitude2 = Math.sqrt(vector2X * vector2X + vector2Y * vector2Y);
+
+        double angleCos = dotProduct / (magnitude1 * magnitude2);
+        // Clamp to valid range to avoid floating-point errors
+        angleCos = Math.min(1.0, Math.max(-1.0, angleCos));
+
+        double angleDegrees = Math.toDegrees(Math.acos(angleCos));
+
+        // Create or update the angle display
+        createAngleDisplay(boxCenterX, boxCenterY, vector1X, vector1Y, vector2X, vector2Y, angleDegrees);
+    }
+
+    // Create visual elements to display the angle
+    private javafx.scene.shape.Arc angleArc;
+    private javafx.scene.text.Text angleText;
+
+    private void createAngleDisplay(double centerX, double centerY,
+                                    double v1x, double v1y, double v2x, double v2y, double angleDegrees) {
+        // Remove any existing angle display
+        removeAngleDisplay();
+
+        // Calculate arc parameters
+        double radius = 30; // Size of arc
+        double startAngle = Math.toDegrees(Math.atan2(-v1y, v1x)); // Convert to JavaFX angle system
+        double endAngle = Math.toDegrees(Math.atan2(-v2y, v2x));
+
+        // Ensure the smaller angle is displayed
+        if (Math.abs(endAngle - startAngle) > 180) {
+            if (endAngle > startAngle) {
+                endAngle -= 360;
+            } else {
+                startAngle -= 360;
+            }
+        }
+
+        // Create the arc
+        angleArc = new javafx.scene.shape.Arc(
+                centerX, centerY, radius, radius,
+                startAngle, Math.abs(endAngle - startAngle)
+        );
+        angleArc.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        angleArc.setStroke(javafx.scene.paint.Color.ORANGE);
+        angleArc.setStrokeWidth(2);
+        angleArc.setType(javafx.scene.shape.ArcType.ROUND);
+
+        // Create the text for displaying the angle value
+        String formattedAngle = String.format("%.1f°", angleDegrees);
+        // Modify this line in createAngleDisplay method
+        angleText = new javafx.scene.text.Text(
+                centerX + radius * 0.7 * Math.cos(Math.toRadians((startAngle + endAngle) / 2)),
+                centerY - radius * 0.7 * Math.sin(Math.toRadians((startAngle + endAngle) / 2)) - 10, // Add offset of -10
+                formattedAngle
+        );
+        angleText.setFill(javafx.scene.paint.Color.ORANGE);
+        angleText.setFont(javafx.scene.text.Font.font("Arial", 12));
+
+        // Add to sandbox
+        Sandbox.sandBoxPane.getChildren().addAll(angleArc, angleText);
+    }
+
+    // Remove the angle display elements
+    private void removeAngleDisplay() {
+        if (angleArc != null) {
+            Sandbox.sandBoxPane.getChildren().remove(angleArc);
+            angleArc = null;
+        }
+        if (angleText != null) {
+            Sandbox.sandBoxPane.getChildren().remove(angleText);
+            angleText = null;
+        }
+    }
+
+
 }

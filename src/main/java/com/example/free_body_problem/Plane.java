@@ -295,21 +295,8 @@ public class Plane extends  PhysicsObject {
         });
     }
 
-    public void addKeyListener() {
-        line.getScene().setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.R) {
-                Sandbox sandbox = this.sandbox;
-                boolean allSameMode = sandbox.areAllPlanesInSameMode();
-                boolean newMode = !isTransformMode;
-                if (!allSameMode) {
-                    newMode = !newMode;
-                }
-                for (Plane plane : sandbox.getPlanes()) {
-                    plane.setTransformMode(newMode);
-                }
-            }
-        });
-    }
+
+
 
     public boolean isTransformMode() {
         return isTransformMode;

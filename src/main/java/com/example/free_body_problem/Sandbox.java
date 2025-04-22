@@ -971,25 +971,27 @@ public class Sandbox extends Application {
 
 
         //Pulley case
-        Map.Entry<Rope, Boolean> hashMap2 = box.connectedRopes.entrySet().iterator().next();
-        Rope rope = hashMap2.getKey();
-        if ((rope.getStartConnection() instanceof Pulley) || (rope.getEndConnection() instanceof Pulley)) {
-            System.out.println("!!! box tension: " + box.tensionVector1);
-            if (!sandBoxPane.getChildren().contains(box.tensionVector1)) {
-                Pulley connectionPulley;
-                if (rope.getStartConnection() instanceof Pulley)
-                    connectionPulley = (Pulley) rope.getStartConnection();
-                else {
-                    connectionPulley = (Pulley) rope.getEndConnection();
-                }
+        try {
+            Map.Entry<Rope, Boolean> hashMap2 = box.connectedRopes.entrySet().iterator().next();
+            Rope rope = hashMap2.getKey();
+            if ((rope.getStartConnection() instanceof Pulley) || (rope.getEndConnection() instanceof Pulley)) {
+                System.out.println("!!! box tension: " + box.tensionVector1);
+                if (!sandBoxPane.getChildren().contains(box.tensionVector1)) {
+                    Pulley connectionPulley;
+                    if (rope.getStartConnection() instanceof Pulley)
+                        connectionPulley = (Pulley) rope.getStartConnection();
+                    else {
+                        connectionPulley = (Pulley) rope.getEndConnection();
+                    }
 
                     System.out.println("pulley: " + connectionPulley);
 
-                if (connectionPulley.connectedBoxes.size() == 2) {
-                    Box box1 = connectionPulley.connectedBoxes.getFirst();
-                    Box box2 = connectionPulley.connectedBoxes.getLast();
-                    System.out.println(box1 + " is 2 rope, 2 box with " + box2);
-                    VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
+                    if (connectionPulley.connectedBoxes.size() == 2) {
+//                        Box box1 = connectionPulley.connectedBoxes.getFirst();
+//                        Box box2 = connectionPulley.connectedBoxes.getLast();
+//                        System.out.println(box1 + " is 2 rope, 2 box with " + box2);
+//                        VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -1135,7 +1137,7 @@ public class Sandbox extends Application {
         }
     }
 
-    public void deleteRopeObject(Rope rope) {
+    private void deleteRopeObject(Rope rope) {
         // First disconnect any connections the rope has
         if (rope.getStartConnection() != null) {
             rope.getStartConnection().connectedRopes.remove(rope);
@@ -1160,7 +1162,7 @@ public class Sandbox extends Application {
         soundPlayer.playSound("src/main/resources/sounds/Delete.wav");
     }
 
-    public void deleteBoxObject(Box box) {
+    private void deleteBoxObject(Box box) {
         sandBoxPane.getChildren().remove(box.getRectangle());
         if (box.getResizeHandle() != null) sandBoxPane.getChildren().remove(box.getResizeHandle());
         if (box.getRotateHandle() != null) sandBoxPane.getChildren().remove(box.getRotateHandle());
@@ -1188,13 +1190,13 @@ public class Sandbox extends Application {
         soundPlayer.playSound("src/main/resources/sounds/Delete.wav");
     }
 
-    public void deletePulleyObject(Pulley pulley) {
+    private void deletePulleyObject(Pulley pulley) {
         sandBoxPane.getChildren().remove(pulley.getCircleGroup());
         physicsObjectList.remove(pulley);
         soundPlayer.playSound("src/main/resources/sounds/Delete.wav");
     }
 
-    public void deletePlaneObject(Plane plane) {
+    private void deletePlaneObject(Plane plane) {
         sandBoxPane.getChildren().remove(plane.getLine());
         sandBoxPane.getChildren().remove(plane.getStartHandle());
         sandBoxPane.getChildren().remove(plane.getEndHandle());

@@ -74,7 +74,7 @@ public class Sandbox extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setMaximized(true);
+        primaryStage.setFullScreen(true);
 
         // Root pane
         sandBoxRoot = new BorderPane();

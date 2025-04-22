@@ -383,8 +383,8 @@ public final class VectorMath {
             xTension2 = 0;
             yTension2 = magnitude;
 
-            box1.totalYForce = tempNet1 - magnitude;
-            box2.totalYForce = tempNet2 - magnitude;
+            box1.totalYForce = -1*(tempNet1 - magnitude);
+            box2.totalYForce = -1*(tempNet2 - magnitude);
 
             box1.totalXForce = 0;
             box2.totalXForce = 0;

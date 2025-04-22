@@ -1,12 +1,11 @@
 package com.example.free_body_problem;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
+import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -16,9 +15,12 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.stage.Screen;
 import javafx.stage.StageStyle;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 public class GUI extends Application {
     VBox mainMenuRoot = new VBox();
@@ -26,6 +28,18 @@ public class GUI extends Application {
     StackPane creditsRoot = new StackPane();
 
     double xOffset, yOffset;
+
+    // Screen resolution options
+    private final List<String> resolutions = Arrays.asList(
+            "800x600", "1024x768", "1280x720", "1366x768", "1600x900", "1920x1080"
+    );
+
+    // Current window settings
+    private boolean isFullscreen = false;
+    private String currentResolution = "1024x768"; // Default resolution
+
+    // UI Elements that need to be accessible
+    private ComboBox<String> resolutionComboBox;
 
     // Instantiate SoundPlayer
     private SoundPlayer menuSoundPlayer = new SoundPlayer();
@@ -54,10 +68,6 @@ public class GUI extends Application {
         // Add event handlers
         closeBtn.setOnAction(e -> primaryStage.close());
         titleBar.getChildren().addAll(title, spacer, closeBtn);
-
-
-
-
 
         primaryStage.setTitle("Free Body Problem");
         primaryStage.setResizable(false);
@@ -172,12 +182,16 @@ public class GUI extends Application {
         optionsBox.getStyleClass().add("roundBox");
 
         VBox optionsVBox = new VBox();
-        optionsVBox.setSpacing(50);
+        optionsVBox.setSpacing(40);
         optionsVBox.setAlignment(Pos.CENTER);
-        optionsVBox.setTranslateY(-50);
+        optionsVBox.setTranslateY(-25);
 
         Label optionsLabel = new Label("OPTIONS");
         optionsLabel.getStyleClass().add("titleStyle");
+
+        // Audio Options
+        Label audioLabel = new Label("AUDIO");
+        audioLabel.getStyleClass().add("header");
 
         Label musicVolumeLabel = new Label("Music Volume");
         musicVolumeLabel.getStyleClass().add("textStyle");
@@ -191,7 +205,7 @@ public class GUI extends Application {
         });
         HBox musicVolumeBox = new HBox();
         musicVolumeBox.setSpacing(30);
-        musicVolumeBox.setAlignment(Pos.TOP_CENTER);
+        musicVolumeBox.setAlignment(Pos.CENTER);
         musicVolumeBox.getChildren().addAll(musicVolumeLabel, musicVolumeSlider);
 
         Label effectsVolumeLabel = new Label("Effect Volume");
@@ -206,6 +220,56 @@ public class GUI extends Application {
         effectsVolumeBox.setAlignment(Pos.CENTER);
         effectsVolumeBox.getChildren().addAll(effectsVolumeLabel, effectsVolumeSlider);
 
+        // Display Options
+        Label displayLabel = new Label("DISPLAY");
+        displayLabel.getStyleClass().add("header");
+
+        // Fullscreen option
+        Label fullscreenLabel = new Label("Fullscreen");
+        fullscreenLabel.getStyleClass().add("textStyle");
+        CheckBox fullscreenCheckBox = new CheckBox();
+        fullscreenCheckBox.setSelected(isFullscreen);
+        fullscreenCheckBox.getStyleClass().add("check-box");
+        fullscreenCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            isFullscreen = newValue;
+
+            // Apply fullscreen immediately
+            primaryStage.setFullScreen(isFullscreen);
+
+            // Enable/disable resolution dropdown based on fullscreen state
+            resolutionComboBox.setDisable(isFullscreen);
+
+            // If exiting fullscreen, apply the selected resolution
+            if (!isFullscreen) {
+                applyResolution(primaryStage, currentResolution);
+            }
+        });
+        HBox fullscreenBox = new HBox();
+        fullscreenBox.setSpacing(120);
+        fullscreenBox.setAlignment(Pos.CENTER);
+        fullscreenBox.getChildren().addAll(fullscreenLabel, fullscreenCheckBox);
+
+        // Resolution dropdown
+        Label resolutionLabel = new Label("Resolution");
+        resolutionLabel.getStyleClass().add("textStyle");
+        resolutionComboBox = new ComboBox<>(FXCollections.observableArrayList(resolutions));
+        resolutionComboBox.setValue(currentResolution);
+        resolutionComboBox.getStyleClass().add("combo-box");
+        resolutionComboBox.setDisable(isFullscreen); // Disable if fullscreen is enabled
+        resolutionComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                currentResolution = newValue;
+                // Apply the new resolution immediately if not in fullscreen
+                if (!isFullscreen) {
+                    applyResolution(primaryStage, currentResolution);
+                }
+            }
+        });
+        HBox resolutionBox = new HBox();
+        resolutionBox.setSpacing(30);
+        resolutionBox.setAlignment(Pos.CENTER);
+        resolutionBox.getChildren().addAll(resolutionLabel, resolutionComboBox);
+
         ImageView optionsX = new ImageView(new Image(getClass().getResourceAsStream("/images/blueX.png")));
         optionsX.setPreserveRatio(true);
         optionsX.setFitHeight(35);
@@ -215,7 +279,18 @@ public class GUI extends Application {
         optionsX.setOnMouseExited(e -> optionsX.setFitHeight(35));
         optionsX.setOnMouseClicked(e -> primaryStage.getScene().setRoot(mainMenuRoot));
 
-        optionsVBox.getChildren().addAll(optionsLabel, musicVolumeBox, effectsVolumeBox);
+        // Group audio and display options
+        VBox audioOptionsVBox = new VBox();
+        audioOptionsVBox.setSpacing(15);
+        audioOptionsVBox.setAlignment(Pos.CENTER);
+        audioOptionsVBox.getChildren().addAll(audioLabel, musicVolumeBox, effectsVolumeBox);
+
+        VBox displayOptionsVBox = new VBox();
+        displayOptionsVBox.setSpacing(15);
+        displayOptionsVBox.setAlignment(Pos.CENTER);
+        displayOptionsVBox.getChildren().addAll(displayLabel, fullscreenBox, resolutionBox);
+
+        optionsVBox.getChildren().addAll(optionsLabel, audioOptionsVBox, displayOptionsVBox);
         optionsRoot.getChildren().addAll(optionsBox, optionsVBox, optionsX);
         optionsRoot.getStylesheets().add("OptionsAndCreditsStyleSheet.css");
 
@@ -224,9 +299,6 @@ public class GUI extends Application {
                 primaryStage.getScene().setRoot(mainMenuRoot);
             }
         });
-
-
-
 
         // Credits
         creditsRoot.setId("root");
@@ -288,6 +360,44 @@ public class GUI extends Application {
         Scene projectScene = new Scene(mainMenuRoot);
         primaryStage.setScene(projectScene);
         primaryStage.show();
+
+        // Apply initial resolution
+        applyResolution(primaryStage, currentResolution);
+    }
+
+    /**
+     * Applies the specified resolution to the stage
+     * @param stage The stage to apply the resolution to
+     * @param resolution The resolution string in format "widthxheight"
+     */
+    private void applyResolution(Stage stage, String resolution) {
+        if (resolution == null || resolution.isEmpty()) {
+            return;
+        }
+
+        try {
+            String[] dimensions = resolution.split("x");
+            if (dimensions.length == 2) {
+                double width = Double.parseDouble(dimensions[0]);
+                double height = Double.parseDouble(dimensions[1]);
+
+                // Ensure resolution doesn't exceed screen bounds
+                double screenWidth = Screen.getPrimary().getBounds().getWidth();
+                double screenHeight = Screen.getPrimary().getBounds().getHeight();
+
+                width = Math.min(width, screenWidth);
+                height = Math.min(height, screenHeight);
+
+                // Apply the new window size
+                stage.setWidth(width);
+                stage.setHeight(height);
+
+                // Center the window on screen
+                stage.centerOnScreen();
+            }
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            System.err.println("Invalid resolution format: " + resolution);
+        }
     }
 
     public static void main(String[] args) {

@@ -16,7 +16,7 @@
 .textStyle {
     -fx-font-weight: normal;
     -fx-font-family: "Arial";
-    -fx-font-size: 30px;
+    -fx-font-size: 20px;
     -fx-text-fill: #245d77;
 }
 
@@ -45,4 +45,11 @@
 #root {
     -fx-background-image: url("images/stoneAlt.png");
     -fx-background-size: cover;
+}
+
+.header{
+    -fx-font-weight: bold;
+    -fx-font-family: "Arial";
+    -fx-font-size: 40 px;
+    -fx-text-fill: #232222;
 }

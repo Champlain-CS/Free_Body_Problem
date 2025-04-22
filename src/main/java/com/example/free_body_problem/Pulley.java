@@ -26,6 +26,8 @@ public class Pulley extends PhysicsObject {
     private double grooveRadius; // Radius where the rope sits
     public List<Box> connectedBoxes = new ArrayList<>();
 
+    public Pulley() {};
+
     public Pulley(double x, double y, double outerRadius, double innerRadius, Color wheelColor, Color hubColor, Pane parentContainer) {
         this.parentContainer = parentContainer;
         this.radius = outerRadius;

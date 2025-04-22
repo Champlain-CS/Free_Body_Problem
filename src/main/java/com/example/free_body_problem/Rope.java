@@ -40,7 +40,7 @@ public class Rope extends PhysicsObject {
         this.physicsObjectList = physicsObjectList;
 
         //DEBUG
-        startHandle.setFill(Color.RED);
+        startHandle.setFill(Color.GREEN);
         endHandle = createHandle(endX, endY);
 
         line.setUserData(this);
@@ -298,31 +298,29 @@ public class Rope extends PhysicsObject {
     }
 
     public void updateOrientationAttribute() {
-        if (line.getStartY() > line.getEndY()) {
-            orientation += 180;
-            orientation %= 360;
-            return;
-        }
         double deltaX = line.getEndX() - line.getStartX();
         double deltaY = line.getEndY() - line.getStartY();
         double angleInRadians = Math.atan2(deltaY, deltaX);
         double angleInDegrees = Math.toDegrees(angleInRadians);
 
+        // Normalize to 0-360 range
         if (angleInDegrees < 0) {
             angleInDegrees += 360;
         }
-        if(line.getEndY() > line.getStartY())
-            orientation = (angleInDegrees + 180) %360;
-        else {
-            orientation = angleInDegrees %360;
+
+        // Calculating angle from the lower point to the higher point
+        if (line.getStartY() > line.getEndY() ||
+                (line.getStartY() == line.getEndY() && line.getStartX() > line.getEndX())) {
+            // If start is below end or same height but to the right, flip the angle
+            angleInDegrees = (angleInDegrees + 180) % 360;
         }
+
+        orientation = angleInDegrees;
     }
 
-    public void angleBetweenRopes(Rope otherRope) {
+    public double angleBetweenRopes(Rope otherRope) {
         double angleBetween = Math.abs(this.orientation - otherRope.getOrientation());
-        if (angleBetween > 180) {
-            angleBetween = 360 - angleBetween;
-        }
+        return angleBetween > 180 ? 360 - angleBetween : angleBetween;
     }
 
     public double getOrientation() {

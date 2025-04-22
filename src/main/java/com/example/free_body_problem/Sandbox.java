@@ -412,14 +412,14 @@ public class Sandbox extends Application {
         frictionComponentsCB = new CheckBox("Friction Components");
         frictionComponentsCB.getStyleClass().add("vector-checkbox");
 
-        tension1VectorCB = new CheckBox("Tension Force (1)");
+        tension1VectorCB = new CheckBox("Tension (1)");
         tension1VectorCB.getStyleClass().add("vector-checkbox");
         tension1VectorCB.setSelected(true);
 
         tension1ComponentsCB = new CheckBox("Tension Components (1)");
         tension1ComponentsCB.getStyleClass().add("vector-checkbox");
 
-        tension2VectorCB = new CheckBox("Tension Force (2)");
+        tension2VectorCB = new CheckBox("Tension (2)");
         tension2VectorCB.getStyleClass().add("vector-checkbox");
         tension2VectorCB.setSelected(true);
 
@@ -889,19 +889,10 @@ public class Sandbox extends Application {
     }
 
     public void updateVectors(Box box) {
-        // Remove existing vectors for this box
-        Iterator<Node> iterator = sandBoxPane.getChildren().iterator();
-        while (iterator.hasNext()) {
-            Node node = iterator.next();
-            if (node instanceof VectorDisplay &&
-                    ((VectorDisplay)node).getUserData() == box) {
-                iterator.remove();
-            }
-        }
-
-        // Reset force totals before recalculating
+        //Clearing total forces
         box.totalXForce = 0;
         box.totalYForce = 0;
+
 
         // Calculate ALL forces regardless of checkbox selections
         // This ensures physics remains consistent
@@ -919,40 +910,101 @@ public class Sandbox extends Application {
             VectorMath.calculateFrictionVector(box);
         }
 
+
+        // Cases with ropes
+
         //Tension case 1: 1 rope, 1 box
-        if(box.connectedRopes.size() == 1) {
-            Map.Entry<Rope, Boolean> hashMap = box.connectedRopes.entrySet().iterator().next();
-            Rope rope = hashMap.getKey();
-            // Avoids calculating tension on unconnected ropes
-            if (!(rope.getEndConnection() == null && rope.getStartConnection() == null)) {
+        if (box.connectedRopes.size() == 1) {
+            System.out.println(box + " is 1 rope, 1 box");
+            Map.Entry<Rope, Boolean> hashMap1 = box.connectedRopes.entrySet().iterator().next();
+            Rope rope = hashMap1.getKey();
+
+            // Only calculated tensions on roof-box connections
+            if ((rope.getEndConnection() instanceof Roof && rope.getStartConnection() instanceof Box)
+                    || (rope.getEndConnection() instanceof Box && rope.getStartConnection() instanceof Roof) ) {
                 VectorMath.calculateTension1Rope(box, rope);
+
+//                System.out.println("start: " + rope.getStartConnection() + " end: " + rope.getEndConnection());
+//                if(rope.getStartConnection() instanceof Pulley || rope.getEndConnection() instanceof Pulley) {
+//                    Pulley pulley;
+//                    if(rope.getStartConnection() instanceof Pulley)
+//                        pulley = (Pulley) rope.getStartConnection();
+//                    else {
+//                        pulley = (Pulley) rope.getEndConnection();
+//                    }
+//
+//                    if(pulley.connectedRopes.size() == 1) {
+//                        VectorMath.calculateTension1Rope(box, rope);
+//                    }
+//                }
+//                else {
+//                    VectorMath.calculateTension1Rope(box, rope);
+//                }
+
             }
         }
 
         //Tension case 2: 2 ropes, 1 box
-        if(box.connectedRopes.size() == 2) {
+        if (box.connectedRopes.size() == 2) {
+            System.out.println(box + " is 2 rope, 1 box");
             Iterator<Map.Entry<Rope, Boolean>> ropeIterator = box.connectedRopes.entrySet().iterator();
 
+            // Make sure we have two ropes before proceeding
             if (ropeIterator.hasNext()) {
-                Rope rope1 = ropeIterator.next().getKey();
-                Rope rope2 = ropeIterator.next().getKey();
-                Rope[] ropesInOrder = determineRopePositions(rope1, rope2);
+                Map.Entry<Rope, Boolean> entry1 = ropeIterator.next();
+                Rope rope1 = entry1.getKey();
 
-                // Making sure there are no pulley connections
-                if (!(rope1.getEndConnection() instanceof Pulley || rope1.getStartConnection() instanceof Pulley) &&
-                        !(rope2.getEndConnection() instanceof Pulley || rope2.getStartConnection() instanceof Pulley)) {
-                    VectorMath.calculateTension2Ropes(box, ropesInOrder[0], ropesInOrder[1]);
+                if (ropeIterator.hasNext()) {
+                    Map.Entry<Rope, Boolean> entry2 = ropeIterator.next();
+                    Rope rope2 = entry2.getKey();
+
+                    Rope[] ropesInOrder = determineRopePositions(rope1, rope2, box);
+
+                    // Making sure there are no pulley connections
+                    if (!(rope1.getEndConnection() instanceof Pulley || rope1.getStartConnection() instanceof Pulley) &&
+                            !(rope2.getEndConnection() instanceof Pulley || rope2.getStartConnection() instanceof Pulley)) {
+                        VectorMath.calculateTension2Ropes(box, ropesInOrder[0], ropesInOrder[1]);
+                    }
                 }
-
             }
         }
 
+
+        //Pulley case
+        try {
+            Map.Entry<Rope, Boolean> hashMap2 = box.connectedRopes.entrySet().iterator().next();
+            Rope rope = hashMap2.getKey();
+            if ((rope.getStartConnection() instanceof Pulley) || (rope.getEndConnection() instanceof Pulley)) {
+                System.out.println("!!! box tension: " + box.tensionVector1);
+                if (!sandBoxPane.getChildren().contains(box.tensionVector1)) {
+                    Pulley connectionPulley;
+                    if (rope.getStartConnection() instanceof Pulley)
+                        connectionPulley = (Pulley) rope.getStartConnection();
+                    else {
+                        connectionPulley = (Pulley) rope.getEndConnection();
+                    }
+
+                    System.out.println("pulley: " + connectionPulley);
+
+                    if (connectionPulley.connectedBoxes.size() == 2) {
+                        Box box1 = connectionPulley.connectedBoxes.getFirst();
+                        Box box2 = connectionPulley.connectedBoxes.getLast();
+                        System.out.println(box1 + " is 2 rope, 2 box with " + box2);
+                        VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("no ropes attached to " + box);
+        }
+
+
+        //Net vector (always)
         VectorMath.calculateNetVector(box);
 
 
-        System.out.println();
-
-        iterator = sandBoxPane.getChildren().iterator();
+        //Checkboxes check
+        Iterator<Node> iterator = sandBoxPane.getChildren().iterator();
         while (iterator.hasNext()) {
             Node node = iterator.next();
             if (node instanceof VectorDisplay) {
@@ -982,6 +1034,8 @@ public class Sandbox extends Application {
             }
         }
 
+
+        System.out.println();
     }
 
     // Extract the toggle functionality to a reusable method
@@ -1256,40 +1310,69 @@ public class Sandbox extends Application {
         });
     }
 
-    private Rope[] determineRopePositions(Rope rope1, Rope rope2) {
-        //Checking what point is higher (start or end) on both
-        boolean startHigherFor1 = false;
-        if(rope1.getLine().getStartY() > rope1.getLine().getEndY()) {
-            startHigherFor1 = true;
-        }
-        boolean startHigherFor2 = false;
-        if(rope2.getLine().getStartY() > rope2.getLine().getEndY()) {
-            startHigherFor2 = true;
+    private Rope[] determineRopePositions(Rope rope1, Rope rope2, Box box) {
+        double boxCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
+        double boxCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+
+        // Get the X coordinate of the other end of each rope
+        double rope1OtherEndX;
+        if (rope1.getStartConnection() == box) {
+            rope1OtherEndX = rope1.getLine().getEndX();
+        } else {
+            rope1OtherEndX = rope1.getLine().getStartX();
         }
 
-        //Checking which rope is to the right, which is to the left
-        boolean rope1ToTheRight = false;
-        if(startHigherFor1 && startHigherFor2 && rope1.getLine().getStartX() > rope2.getLine().getStartX()) {
-            rope1ToTheRight = true;
+        double rope2OtherEndX;
+        if (rope2.getStartConnection() == box) {
+            rope2OtherEndX = rope2.getLine().getEndX();
+        } else {
+            rope2OtherEndX = rope2.getLine().getStartX();
         }
-        else if(!startHigherFor1 && startHigherFor2 && rope2.getLine().getEndX() > rope1.getLine().getStartX()) {
-            rope1ToTheRight = true;
-        }
-        else if(startHigherFor1 && !startHigherFor2 && rope1.getLine().getStartX() > rope2.getLine().getEndX()) {
-            rope1ToTheRight = true;
-        }
-        else if(!startHigherFor1 && !startHigherFor2 && rope1.getLine().getEndX() > rope2.getLine().getEndX()) {
-            rope1ToTheRight = true;
-        }
+
 
         Rope[] ropesInOrder = new Rope[2];
-        if(rope1ToTheRight) {
+
+        if (rope1OtherEndX < boxCenterX && rope2OtherEndX > boxCenterX) {
+            // rope1 is to the left, rope2 is to the right
+            ropesInOrder[0] = rope1;
+            ropesInOrder[1] = rope2;
+        } else if (rope1OtherEndX > boxCenterX && rope2OtherEndX < boxCenterX) {
+            // rope2 is to the left, rope1 is to the right
             ropesInOrder[0] = rope2;
             ropesInOrder[1] = rope1;
-        }
-        else {
-            ropesInOrder[1] = rope1;
-            ropesInOrder[0] = rope2;
+        } else {
+            if (Math.abs(rope1OtherEndX - boxCenterX) < 0.001) {
+                // rope1 is vertical
+                if (rope2OtherEndX < boxCenterX) {
+                    // rope2 is to the left, rope1 is considered right
+                    ropesInOrder[0] = rope2;
+                    ropesInOrder[1] = rope1;
+                } else {
+                    // rope2 is to the right, rope1 is considered left
+                    ropesInOrder[0] = rope1;
+                    ropesInOrder[1] = rope2;
+                }
+            } else if (Math.abs(rope2OtherEndX - boxCenterX) < 0.001) {
+                // rope2 is vertical
+                if (rope1OtherEndX < boxCenterX) {
+                    // rope1 is to the left, rope2 is considered right
+                    ropesInOrder[0] = rope1;
+                    ropesInOrder[1] = rope2;
+                } else {
+                    // rope1 is to the right, rope2 is considered left
+                    ropesInOrder[0] = rope2;
+                    ropesInOrder[1] = rope1;
+                }
+            } else {
+                // Both ropes are on the same side (shouldn't happen, but just in case)
+                if (rope1OtherEndX < rope2OtherEndX) {
+                    ropesInOrder[0] = rope1;
+                    ropesInOrder[1] = rope2;
+                } else {
+                    ropesInOrder[0] = rope2;
+                    ropesInOrder[1] = rope1;
+                }
+            }
         }
 
         return ropesInOrder;

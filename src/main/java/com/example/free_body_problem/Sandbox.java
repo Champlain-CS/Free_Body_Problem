@@ -870,16 +870,7 @@ public class Sandbox extends Application {
     }
 
 
-    public boolean areAllPlanesInSameMode() {
-        if (planes.isEmpty()) return true;
-        boolean firstPlaneMode = planes.getFirst().isTransformMode();
-        for (Plane plane : planes) {
-            if (plane.isTransformMode() != firstPlaneMode) {
-                return false;
-            }
-        }
-        return true;
-    }
+
 
     // Helper method to create a rectangle button
     private Rectangle createButtonRectangle() {

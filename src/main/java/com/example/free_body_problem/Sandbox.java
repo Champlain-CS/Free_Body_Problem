@@ -39,10 +39,12 @@ import java.util.*;
 import java.util.List;
 
 public class Sandbox extends Application {
+
     private final List<Plane> planes = new ArrayList<>();
     public ArrayList<PhysicsObject> physicsObjectList = new ArrayList<>();
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
     private HBox helpBox;
+    private HBox formulaBox;
     private boolean isDisplayingVectors = false;
     public static Roof sandBoxRoof;
     static TextField gravityField;
@@ -53,8 +55,8 @@ public class Sandbox extends Application {
     private Button deleteBT;
     private BorderPane sandBoxRoot;
     private ImageView vectorDisplayView;
+    private ImageView formulaDisplayView;
 
-    // Checkboxes for vector display control
     private CheckBox gravityVectorCB;
     private CheckBox normalVectorCB;
     private CheckBox frictionVectorCB;
@@ -249,6 +251,12 @@ public class Sandbox extends Application {
         infoDisplayView.setFitHeight(50);
         infoDisplayView.setPickOnBounds(true);
 
+        ImageView formulaDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/formula.png")));
+        formulaDisplayView.setPreserveRatio(true);
+        formulaDisplayView.setFitHeight(50);
+        formulaDisplayView.setPickOnBounds(true);
+
+
 
         // Little mute button in-app
         ImageView muteButton = new ImageView();
@@ -305,7 +313,7 @@ public class Sandbox extends Application {
 
 
         // Add elements to the bottom bar
-        bottomBar.getChildren().addAll(infoDisplayView, muteButton, leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT, deleteBT);
+        bottomBar.getChildren().addAll(infoDisplayView, formulaDisplayView, muteButton, leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT, deleteBT);
 
         // Pane for world settings
         VBox editorPane = new VBox();
@@ -561,6 +569,14 @@ public class Sandbox extends Application {
             infoSoundPlayer.playSound("src/main/resources/sounds/Info.wav");
         });
 
+        SoundPlayer formulaSoundPlayer = new SoundPlayer();
+
+        formulaDisplayView.setOnMouseClicked(event -> {
+            toggleFormulaBox();
+
+            formulaSoundPlayer.playSound("src/main/resources/sounds/Info.wav");
+        });
+
         // Instantiate SoundPlayer for vector button
         SoundPlayer vectorSoundPlayer = new SoundPlayer();
 
@@ -593,6 +609,9 @@ public class Sandbox extends Application {
                     toggleVectorsMode();
                     vectorSoundPlayer.playSound("src/main/resources/sounds/Vectors.wav");
                     break;
+                case F:
+                    toggleFormulaBox();
+                    infoSoundPlayer.playSound("src/main/resources/sounds/Info.wav");
             }
         });
 
@@ -801,6 +820,7 @@ public class Sandbox extends Application {
             Plane plane = planes.get(i);
             HBox planeInfoBox = new HBox(10);
             planeInfoBox.setAlignment(Pos.CENTER_LEFT);
+
 
             Label planeLabel = new Label("Plane " + (i + 1));
             planeLabel.setFont(Font.font(14));
@@ -1049,6 +1069,16 @@ public class Sandbox extends Application {
         }
     }
 
+    private void toggleFormulaBox(){
+        if (formulaBox == null) {
+            formulaBox = createFormulaDialogue(); // Create the help box
+            sandBoxPane.getChildren().add(formulaBox); // Add it to the pane
+        } else {
+            sandBoxPane.getChildren().remove(formulaBox); // Remove it from the pane
+            formulaBox = null; // Reset the helpBox variable to null
+        }
+    }
+
     private void restrictTextFieldToNumbers(TextField textField) {
         textField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.matches("\\d*(\\.\\d*)?")) {
@@ -1290,7 +1320,128 @@ public class Sandbox extends Application {
         return helpBox;
     }
 
-    private void addRoofToSandbox() {
+    public static HBox createFormulaDialogue() {
+        HBox formulaBox = new HBox();
+        formulaBox.setAlignment(Pos.CENTER);
+
+        // Set high z-order to ensure help stays on top
+        formulaBox.setViewOrder(-1000);  // Lower values appear on top
+
+        // Define dimensions
+        double boxWidth = 900;
+        double boxHeight = 400;
+
+        // Create background rectangle
+        Rectangle background = new Rectangle(boxWidth, boxHeight);
+        background.setFill(Color.LIGHTBLUE);
+        background.setStroke(Color.BLACK);
+
+        // Create container for text content
+        VBox contentBox = new VBox(10);
+        contentBox.setPadding(new Insets(20));
+        contentBox.setMaxWidth(boxWidth - 40);
+        contentBox.setMaxHeight(boxHeight - 40);
+        contentBox.setAlignment(Pos.TOP_CENTER);
+
+        // Create title
+        Text title = new Text("Static Equilibrium Formulas");
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 25));
+        title.setFill(Color.BLACK);
+        // Add drop shadow to make title more visible
+        title.setEffect(new javafx.scene.effect.DropShadow(5, Color.WHITE));
+
+        // Create text area for formula content
+        TextArea textArea = new TextArea();
+        textArea.getStyleClass().add("help-text-area");
+        textArea.setEditable(false);
+        textArea.setPrefWidth(boxWidth - 60);
+        textArea.setPrefHeight(boxHeight - 100);
+        // Ensure text area is on top
+        textArea.setViewOrder(-1001);
+
+        // Set the static equilibrium formulas content
+        textArea.setText(
+                "STATIC EQUILIBRIUM FORMULAS\n\n" +
+                        "1. Equilibrium Conditions:\n" +
+                        "   • Sum of forces: ∑F = 0 (vector sum)\n" +
+                        "   • Sum of torques: ∑τ = 0 (around any point)\n\n" +
+
+                        "2. Component Equilibrium:\n" +
+                        "   • Horizontal: ∑Fx = 0\n" +
+                        "   • Vertical: ∑Fy = 0\n\n" +
+
+                        "3. Gravitational Force:\n" +
+                        "   • Fg = mg\n" +
+                        "   • where m = mass, g = gravitational acceleration\n\n" +
+
+                        "4. Normal Force on Horizontal Surface:\n" +
+                        "   • N = mg (without other vertical forces)\n\n" +
+
+                        "5. Normal Force on Inclined Plane (angle θ):\n" +
+                        "   • N = mg·cos(θ)\n\n" +
+
+                        "6. Static Friction Force:\n" +
+                        "   • Fs ≤ μs·N (inequality - only as much as needed for equilibrium)\n" +
+                        "   • Fs = μs·N (maximum value)\n" +
+                        "   • where μs = coefficient of static friction\n\n" +
+
+                        "7. Kinetic Friction Force:\n" +
+                        "   • Fk = μk·N\n" +
+                        "   • where μk = coefficient of kinetic friction\n\n" +
+
+                        "8. Tension in Strings/Ropes:\n" +
+                        "   • Tension is equal throughout massless string\n" +
+                        "   • Direction is along the string\n\n" +
+
+                        "9. Forces on Inclined Plane (angle θ):\n" +
+                        "   • Component of gravity parallel to plane: Fg,∥ = mg·sin(θ)\n" +
+                        "   • Component of gravity perpendicular to plane: Fg,⊥ = mg·cos(θ)\n\n" +
+
+                        "10. Two-Body Equilibrium with Pulley:\n" +
+                        "    • Tension is equal on both sides of an ideal pulley\n" +
+                        "    • For masses m₁ and m₂: T = (2·m₁·m₂·g)/(m₁+m₂)\n\n" +
+
+                        "11. Net Force Vector:\n" +
+                        "    • Fx,net = ∑Fx\n" +
+                        "    • Fy,net = ∑Fy\n" +
+                        "    • |F|net = √(Fx,net² + Fy,net²)\n\n" +
+
+                        "12. Torque:\n" +
+                        "    • τ = r × F = |r|·|F|·sin(θ)\n" +
+                        "    • where r = position vector, F = force vector\n\n" +
+
+                        "13. Rotational Equilibrium:\n" +
+                        "    • ∑τclockwise = ∑τcounterclockwise"
+        );
+
+        // Add elements to containers
+        contentBox.getChildren().addAll(title, textArea);
+        StackPane centerPane = new StackPane(background, contentBox);
+        formulaBox.getChildren().add(centerPane);
+
+        // Add a semi-transparent overlay to block interaction with elements beneath
+        Rectangle overlay = new Rectangle();
+        overlay.widthProperty().bind(sandBoxPane.widthProperty());
+        overlay.heightProperty().bind(sandBoxPane.heightProperty());
+        overlay.setFill(Color.rgb(0, 0, 0, 0.3));
+        overlay.setViewOrder(-999);  // Just behind the formula box
+
+        // Center the formula box in the sandbox pane
+        formulaBox.layoutXProperty().bind(sandBoxPane.widthProperty().subtract(boxWidth).divide(2));
+        formulaBox.layoutYProperty().bind(sandBoxPane.heightProperty().subtract(boxHeight).divide(2));
+
+        // Create container that includes both overlay and formula box
+        Group formulaGroup = new Group();
+        formulaGroup.getChildren().addAll(overlay, formulaBox);
+
+        return formulaBox;
+    }
+
+
+
+
+
+        private void addRoofToSandbox() {
         // Create a roof that spans the width of the sandbox
         double roofHeight = 25; // Height of the roof
         double roofY = 0; // Position at the top of the sandbox

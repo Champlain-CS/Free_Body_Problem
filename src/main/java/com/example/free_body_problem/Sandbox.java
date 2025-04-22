@@ -649,7 +649,7 @@ public class Sandbox extends Application {
         }
     }
 
-    private void resetSimulation() {
+    void resetSimulation() {
         sandBoxPane.getChildren().clear();
         gravityField.setText("9.8");
         physicsObjectList.clear();

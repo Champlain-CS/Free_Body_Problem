@@ -9,12 +9,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -36,7 +30,6 @@ import javafx.stage.Stage;
 
 import java.io.*;
 import java.util.*;
-import java.util.List;
 
 public class Sandbox extends Application {
     private final List<Plane> planes = new ArrayList<>();
@@ -53,6 +46,7 @@ public class Sandbox extends Application {
     private Button deleteBT;
     private BorderPane sandBoxRoot;
     private ImageView vectorDisplayView;
+    private SandboxPreset sandboxPreset;
 
     // Checkboxes for vector display control
     private CheckBox gravityVectorCB;
@@ -71,6 +65,9 @@ public class Sandbox extends Application {
     // Instantiate SoundPlayer
     private final SoundPlayer soundPlayer = new SoundPlayer();
 
+    // Declare controlsPane
+    private VBox controlsPane;
+
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setMaximized(true);
@@ -85,7 +82,8 @@ public class Sandbox extends Application {
         sandBoxRoot.setCenter(sandBoxPane);
         sandBoxRoot.setStyle("-fx-background-color: white");
 
-
+        // Initialize SandboxPreset with required parameters
+        sandboxPreset = new SandboxPreset(this, sandBoxPane, physicsObjectList, planes, soundPlayer);
 
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
@@ -315,6 +313,16 @@ public class Sandbox extends Application {
         Label editorLabel = new Label("Sandbox Editor");
         editorLabel.getStyleClass().add("editor-label");
 
+        // Add the editor label first
+        editorPane.getChildren().add(editorLabel);
+
+        // Initialize controlsPane
+        controlsPane = new VBox();
+        editorPane.getChildren().add(controlsPane);
+
+        // Get preset controls and add them to your control layout
+        HBox presetControlsBox = sandboxPreset.createPresetControls();
+
         // Create a scroll pane for plane list
         ScrollPane planeScrollPane = new ScrollPane();
         planeScrollPane.setFitToWidth(true);
@@ -511,9 +519,10 @@ public class Sandbox extends Application {
 
 
         // Add elements to the editor pane
-        editorPane.getChildren().addAll(
-                editorLabel,
-                planeScrollPane,  // Add the scroll pane
+// Add elements to the editor pane
+            editorPane.getChildren().addAll(
+                planeScrollPane,
+                    presetControlsBox,
                 gravityBox,
                 coefficientBox,
                 vectorDisplayBox,// Add the vector controls section
@@ -619,7 +628,7 @@ public class Sandbox extends Application {
         }
     }
 
-    private void resetSimulation() {
+    public void resetSimulation() {
         sandBoxPane.getChildren().clear();
         gravityField.setText("9.8");
         physicsObjectList.clear();

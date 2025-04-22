@@ -349,6 +349,5 @@ public class Pulley extends PhysicsObject {
                 }
             }
         }
-        System.out.println("Number of boxes is " + connectedBoxes.size());
     }
 }

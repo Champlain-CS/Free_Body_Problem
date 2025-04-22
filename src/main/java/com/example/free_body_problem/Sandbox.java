@@ -1341,63 +1341,6 @@ public class Sandbox extends Application {
             }
         }
 
-        // Set the static equilibrium formulas content
-//        textArea.setText(
-//                """
-//                        STATIC EQUILIBRIUM FORMULAS
-//
-//                        1. Equilibrium Conditions:
-//                           • Sum of forces: ∑F = 0 (vector sum)
-//                           • Sum of torques: ∑τ = 0 (around any point)
-//
-//                        2. Component Equilibrium:
-//                           • Horizontal: ∑Fx = 0
-//                           • Vertical: ∑Fy = 0
-//
-//                        3. Gravitational Force:
-//                           • Fg = mg
-//                           • where m = mass, g = gravitational acceleration
-//
-//                        4. Normal Force on Horizontal Surface:
-//                           • N = mg (without other vertical forces)
-//
-//                        5. Normal Force on Inclined Plane (angle θ):
-//                           • N = mg·cos(θ)
-//
-//                        6. Static Friction Force:
-//                           • Fs ≤ μs·N (inequality - only as much as needed for equilibrium)
-//                           • Fs = μs·N (maximum value)
-//                           • where μs = coefficient of static friction
-//
-//                        7. Kinetic Friction Force:
-//                           • Fk = μk·N
-//                           • where μk = coefficient of kinetic friction
-//
-//                        8. Tension in Strings/Ropes:
-//                           • Tension is equal throughout massless string
-//                           • Direction is along the string
-//
-//                        9. Forces on Inclined Plane (angle θ):
-//                           • Component of gravity parallel to plane: Fg,∥ = mg·sin(θ)
-//                           • Component of gravity perpendicular to plane: Fg,⊥ = mg·cos(θ)
-//
-//                        10. Two-Body Equilibrium with Pulley:
-//                            • Tension is equal on both sides of an ideal pulley
-//                            • For masses m₁ and m₂: T = (2·m₁·m₂·g)/(m₁+m₂)
-//
-//                        11. Net Force Vector:
-//                            • Fx,net = ∑Fx
-//                            • Fy,net = ∑Fy
-//                            • |F|net = √(Fx,net² + Fy,net²)
-//
-//                        12. Torque:
-//                            • τ = r × F = |r|·|F|·sin(θ)
-//                            • where r = position vector, F = force vector
-//
-//                        13. Rotational Equilibrium:
-//                            • ∑τclockwise = ∑τcounterclockwise"""
-//        );
-
         // Add elements to containers
         contentBox.getChildren().addAll(title, textArea);
         StackPane centerPane = new StackPane(background, contentBox);

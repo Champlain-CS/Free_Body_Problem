@@ -458,10 +458,10 @@ public final class VectorMath {
                 netAngle = 360 - phi;
             }
         }
-        else if(xComponent != 0 && yComponent == 0) {
+        else if(xComponent != 0) {
             netAngle = xComponent >= 0.0001 ? 0 : 180;
         }
-        else if (xComponent == 0 && yComponent != 0) {
+        else if (yComponent != 0) {
             netAngle = yComponent >= 0.0001 ? 270 : 90;
         }
         else {

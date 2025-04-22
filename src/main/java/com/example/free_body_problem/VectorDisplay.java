@@ -115,10 +115,6 @@ public class VectorDisplay extends Pane {
         forceText.setLayoutY(endY + 5);
         forceText.setRotate(0 - angle);
         forceMagnitude.setText(df.format(trueLength) + " N");
-
-        System.out.println("Text position for " + forceName.getText() +
-                ": X=" + forceText.getLayoutX() +
-                ", Y=" + forceText.getLayoutY());
     }
 
     private double calculateVisualLength(double magnitude) {

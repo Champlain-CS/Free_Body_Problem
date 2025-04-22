@@ -34,6 +34,7 @@ public class Box extends PhysicsObject {
     public double normalForce;
     public double frictionForce;
     public boolean snappedToPlane = false;
+    public boolean isNetSet = false;
     public Plane snappedPlane;
     boolean isSnapped = false;
     boolean isSliding;
@@ -384,8 +385,6 @@ public class Box extends PhysicsObject {
             for (Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
                 Rope rope = entry.getKey();
                 boolean isStartConnected = entry.getValue();
-                System.out.println("Start" + rope.getStartSnapped());
-                System.out.println("End" + rope.getEndSnapped());
 
                 double ropeX;
                 if (isStartConnected) {

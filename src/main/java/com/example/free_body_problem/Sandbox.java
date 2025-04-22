@@ -662,8 +662,9 @@ public class Sandbox extends Application {
                 sandBoxRoot.getChildren().removeIf(node -> node instanceof LockPane);
 
                 for (PhysicsObject obj : physicsObjectList) {
-                    if(obj instanceof Box)
+                    if(obj instanceof Box) {
                         ((Box) obj).resetNetVectorComponents();
+                    }
                 }
 
             sandBoxRoot.setStyle("-fx-background-color: white");
@@ -696,7 +697,9 @@ public class Sandbox extends Application {
         // Recalculate vectors for all boxes
         for (PhysicsObject physObj : physicsObjectList) {
             if (physObj instanceof Box) {
-                updateVectors((Box) physObj);
+                Box box = (Box) physObj;
+                updateVectors(box);
+                box.isNetSet = false;
             }
         }
     }
@@ -890,9 +893,10 @@ public class Sandbox extends Application {
 
     public void updateVectors(Box box) {
         //Clearing total forces
-        box.totalXForce = 0;
-        box.totalYForce = 0;
-
+        if(!box.isNetSet) {
+            box.totalXForce = 0;
+            box.totalYForce = 0;
+        }
 
         // Calculate ALL forces regardless of checkbox selections
         // This ensures physics remains consistent
@@ -915,32 +919,14 @@ public class Sandbox extends Application {
 
         //Tension case 1: 1 rope, 1 box
         if (box.connectedRopes.size() == 1) {
-            System.out.println(box + " is 1 rope, 1 box");
             Map.Entry<Rope, Boolean> hashMap1 = box.connectedRopes.entrySet().iterator().next();
             Rope rope = hashMap1.getKey();
-
             // Only calculated tensions on roof-box connections
             if ((rope.getEndConnection() instanceof Roof && rope.getStartConnection() instanceof Box)
                     || (rope.getEndConnection() instanceof Box && rope.getStartConnection() instanceof Roof) ) {
+
+                System.out.println(box + " is 1 rope, 1 box");
                 VectorMath.calculateTension1Rope(box, rope);
-
-//                System.out.println("start: " + rope.getStartConnection() + " end: " + rope.getEndConnection());
-//                if(rope.getStartConnection() instanceof Pulley || rope.getEndConnection() instanceof Pulley) {
-//                    Pulley pulley;
-//                    if(rope.getStartConnection() instanceof Pulley)
-//                        pulley = (Pulley) rope.getStartConnection();
-//                    else {
-//                        pulley = (Pulley) rope.getEndConnection();
-//                    }
-//
-//                    if(pulley.connectedRopes.size() == 1) {
-//                        VectorMath.calculateTension1Rope(box, rope);
-//                    }
-//                }
-//                else {
-//                    VectorMath.calculateTension1Rope(box, rope);
-//                }
-
             }
         }
 
@@ -971,27 +957,29 @@ public class Sandbox extends Application {
 
 
         //Pulley case
-        Map.Entry<Rope, Boolean> hashMap2 = box.connectedRopes.entrySet().iterator().next();
-        Rope rope = hashMap2.getKey();
-        if ((rope.getStartConnection() instanceof Pulley) || (rope.getEndConnection() instanceof Pulley)) {
-            System.out.println("!!! box tension: " + box.tensionVector1);
-            if (!sandBoxPane.getChildren().contains(box.tensionVector1)) {
-                Pulley connectionPulley;
-                if (rope.getStartConnection() instanceof Pulley)
-                    connectionPulley = (Pulley) rope.getStartConnection();
-                else {
-                    connectionPulley = (Pulley) rope.getEndConnection();
-                }
+        try {
+            Map.Entry<Rope, Boolean> hashMap2 = box.connectedRopes.entrySet().iterator().next();
+            Rope rope = hashMap2.getKey();
+            if ((rope.getStartConnection() instanceof Pulley) || (rope.getEndConnection() instanceof Pulley)) {
+                if (!sandBoxPane.getChildren().contains(box.tensionVector1)) {
+                    Pulley connectionPulley;
+                    if (rope.getStartConnection() instanceof Pulley)
+                        connectionPulley = (Pulley) rope.getStartConnection();
+                    else {
+                        connectionPulley = (Pulley) rope.getEndConnection();
+                    }
 
-                System.out.println("pulley: " + connectionPulley);
-
-                if (connectionPulley.connectedBoxes.size() == 2) {
-                    Box box1 = connectionPulley.connectedBoxes.getFirst();
-                    Box box2 = connectionPulley.connectedBoxes.getLast();
-                    System.out.println(box1 + " is 2 rope, 2 box with " + box2);
-                    VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
+                    if (connectionPulley.connectedBoxes.size() == 2) {
+                        Box box1 = connectionPulley.connectedBoxes.getFirst();
+                        Box box2 = connectionPulley.connectedBoxes.getLast();
+                        System.out.println(box1 + " is 2 rope, 2 box with " + box2);
+                        VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
+                    }
                 }
             }
+        }
+        catch(Exception exception) {
+            System.out.println("No ropes connected. Caught by try-catch");
         }
 
         //Net vector (always)

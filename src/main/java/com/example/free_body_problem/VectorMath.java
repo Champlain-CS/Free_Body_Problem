@@ -14,7 +14,6 @@ public final class VectorMath {
     }
 
     public static void calculateGravityVector(Box box) {
-        System.out.println("Box at "+box.rectangle.getRotate()+" degrees");
         double gravityValue = Double.parseDouble(Sandbox.gravityField.getText());
         double massValue = Double.parseDouble(box.getTextField().getText());
 
@@ -44,7 +43,8 @@ public final class VectorMath {
         box.gravityVector = gravityVector;
         Sandbox.sandBoxPane.getChildren().add(gravityVector);
 
-        box.totalYForce -= magnitude; //always down
+        if(!box.isNetSet)
+            box.totalYForce -= magnitude; //always down
     }
 
     public static void calculateNormalVector(Box box) {
@@ -88,10 +88,10 @@ public final class VectorMath {
         double normalXComponent = magnitude * Math.sin(normalAngleRad);
         double normalYComponent = magnitude * Math.cos(normalAngleRad);
 
+
         box.totalXForce += normalXComponent;
         box.totalYForce += normalYComponent;
 
-        System.out.println("normal components: " + normalXComponent + " " + normalYComponent);
 
 
         // Components
@@ -127,8 +127,6 @@ public final class VectorMath {
             magnitude = gravityAlongIncline; // static equilibrium
             box.isSliding = false;
         }
-
-        System.out.println("friction magnitude: " + magnitude);
 
 
         double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
@@ -175,7 +173,6 @@ public final class VectorMath {
         box.totalXForce += frictionXComponent;
         box.totalYForce += frictionYComponent;
 
-        System.out.println("friction components: " + frictionXComponent + " " + frictionYComponent);
 
         // Components
         VectorDisplay frictionX = new VectorDisplay(newPositionX, newPositionY, frictionXComponent, 0, "Fx", Color.DARKGREEN);
@@ -190,7 +187,6 @@ public final class VectorMath {
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
         double boxRotationAngle = box.getRectangle().getRotate();
         double ropeRotationAngle = rope.getOrientation();
-        System.out.println("box rotation " + boxRotationAngle + "  rope rotation " + ropeRotationAngle);
 
 
         // Create a Point2D to represent the center of the rectangle
@@ -226,7 +222,6 @@ public final class VectorMath {
             xTension = -1 * box.totalXForce;
             yTension = -1 * box.totalYForce;
             magnitude = Math.sqrt(xTension * xTension + yTension * yTension);
-            System.out.println("tension: " + magnitude);
             angle = ropeRotationAngle + 180;
         }
 
@@ -257,8 +252,6 @@ public final class VectorMath {
         // Putting orientations to "normal" math angles
         double leftRopeRotationAngle = normalizeAngle(360 - leftRope.getOrientation());
         double rightRopeRotationAngle = normalizeAngle(360 - rightRope.getOrientation());
-        System.out.println("box rotation " + boxRotationAngle +
-                "  left rope rotation " + leftRopeRotationAngle + " right rope rotation " + rightRopeRotationAngle);
 
 
         // Create a Point2D to represent the center of the rectangle
@@ -345,6 +338,10 @@ public final class VectorMath {
     }
 
     public static void calculatePulleyTension(Box box1, Box box2, Pulley connectionPulley){
+        System.out.println("\nBefore starting calculations");
+        System.out.println("box1 x force:" + box1.totalXForce + "; box1 y force:" + box2.totalXForce);
+        System.out.println("box2 x force: " + box2.totalXForce + "; box2 y force:" + box1.totalXForce);
+
         double position1X = tensionVectorPositions(box1)[0];
         double position1Y = tensionVectorPositions(box1)[1];
         double position2X = tensionVectorPositions(box2)[0];
@@ -367,22 +364,16 @@ public final class VectorMath {
         double yTension2 =0;
 
         double gravityValue = Double.parseDouble(Sandbox.gravityField.getText());
-        double tempNet1 = Double.parseDouble(box1.getTextField().getText()) * gravityValue;
-        double tempNet2 = Double.parseDouble(box2.getTextField().getText()) * gravityValue;
-
-        System.out.println("temp net 1: " + tempNet1 + ", temp net 2: " + tempNet2);
+        double m1 = Double.parseDouble(box1.getTextField().getText());
+        double m2 = Double.parseDouble(box2.getTextField().getText());
+        double tempNet1 = m1 * gravityValue;  // Weight of box1
+        double tempNet2 = m2 * gravityValue;  // Weight of box2
 
 
         if(!box1.isSnapped && !box2.isSnapped) {
-            if (tempNet1 > tempNet2) {
-                magnitude = tempNet1 - tempNet2;
-            }
-            else if(tempNet1 == tempNet2) {
-                magnitude = tempNet1;
-            }
-            else {
-                magnitude = tempNet2 - tempNet1;
-            }
+            magnitude = (2 * m1 * m2 * gravityValue) / (m1 + m2);
+
+            System.out.println("pulley tension magnitude: " + magnitude);
 
             box1Angle = 270;
             box2Angle = 270;
@@ -392,12 +383,17 @@ public final class VectorMath {
             xTension2 = 0;
             yTension2 = magnitude;
 
-            box1.totalYForce = magnitude - tempNet1;
-            box2.totalYForce = magnitude - tempNet2;
+            box1.totalYForce = tempNet1 - magnitude;
+            box2.totalYForce = tempNet2 - magnitude;
+
             box1.totalXForce = 0;
             box2.totalXForce = 0;
+            box1.isNetSet = true;
+            box2.isNetSet = true;
 
-            System.out.println("total Y force: " + box1.totalYForce);
+            System.out.println("\nAfter calculations");
+            System.out.println("box1 x force:" + box1.totalXForce + "; box1 y force:" + box1.totalYForce);
+            System.out.println("box2 x force: " + box2.totalXForce + "; box2 y force:" + box2.totalYForce);
         }
 
 
@@ -428,32 +424,30 @@ public final class VectorMath {
                 adaptComponentOrientation(tension1X), adaptComponentOrientation(tension1Y));
         Sandbox.sandBoxPane.getChildren().addAll(
                 adaptComponentOrientation(tension2X), adaptComponentOrientation(tension2Y));
-
-
-
-
-
     }
 
     public static void calculateNetVector(Box box) {
         double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
 
-        System.out.println("total x force: " + box.totalXForce + "; total y force: " + box.totalYForce);
-
         double xComponent = box.totalXForce;
         double yComponent = box.totalYForce;
 
-        System.out.println(xComponent + " " + yComponent);
+        System.out.println("\nIn Net Vector Calculations (" + box + "):");
+        System.out.println("box x force:" + box.totalXForce + "; box y force:" + box.totalYForce);
 
         double magnitude = Math.sqrt(xComponent*xComponent + yComponent*yComponent);
+        if(xComponent == 0 && yComponent == 0) {
+            magnitude = 0;
+        }
         double boxAngle = box.getRectangle().getRotate()+90;
         double netAngle;
+
+        System.out.println("net magnitude: " + magnitude);
 
         //Angle calculation for all 4 cases
         if(xComponent !=0 && yComponent !=0) {
             double phi = Math.toDegrees(Math.atan(yComponent / xComponent)) + 180; //Angle between net vector and x component (used as reference)
-            System.out.println("phi = " + phi);
 
             //Net angle adjustment
             if (0 <= boxAngle && boxAngle < 90) {
@@ -466,6 +460,12 @@ public final class VectorMath {
                 netAngle = 360 - phi;
             }
         }
+        else if(xComponent != 0 && yComponent == 0) {
+            netAngle = xComponent >= 0.0001 ? 0 : 180;
+        }
+        else if (xComponent == 0 && yComponent != 0) {
+            netAngle = yComponent >= 0.0001 ? 270 : 90;
+        }
         else {
             netAngle = 0;
         }
@@ -474,7 +474,6 @@ public final class VectorMath {
                 magnitude, netAngle, "Net", Color.BLACK);
         box.netVector = netVector;
         Sandbox.sandBoxPane.getChildren().add(netVector);
-        System.out.println("Net Vector updated for " + box + " at " + netAngle + "degrees");
 
 
 

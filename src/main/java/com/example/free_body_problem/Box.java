@@ -2,19 +2,16 @@ package com.example.free_body_problem;
 
 import javafx.scene.Cursor;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.layout.Pane;
 import javafx.geometry.Pos;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -22,34 +19,27 @@ import static java.lang.Math.abs;
 
 public class Box extends PhysicsObject {
     public Rectangle rectangle;
-    private Circle resizeHandle;
-    private Circle rotateHandle;
-    private TextField textField;
-    private HBox massField;
-    private Pane parentContainer;
-    private Double lastDragDelta = null;
+    private final Circle resizeHandle;
+    private final Circle rotateHandle;
+    private final TextField textField;
+    private final HBox massField;
+    private final Pane parentContainer;
 
 
-    public double gravityForce;
-    public double normalForce;
-    public double frictionForce;
     public boolean snappedToPlane = false;
     public Plane snappedPlane;
     boolean isSnapped = false;
     boolean isSliding;
-    public double pulleyTension = 0;
 
 
     protected VectorDisplay gravityVector;
     protected VectorDisplay normalVector;
     protected VectorDisplay frictionVector;
     protected VectorDisplay tensionVector1;
-    protected VectorDisplay tensionVector2;
     protected VectorDisplay netVector;
     public List<Plane> planeList;
 
     public double totalXForce, totalYForce;
-    public double angle; //used for vector calculations
 
 
     public Box(double x, double y, double width, double height, Color color, Pane parentContainer, List<Plane> planeList) {
@@ -125,14 +115,6 @@ public class Box extends PhysicsObject {
         return textField;
     }
 
-    public Double getLastDragDelta() {
-        return lastDragDelta;
-    }
-
-    public void setLastDragDelta(Double delta) {
-        this.lastDragDelta = delta;
-    }
-
     private Circle createHandle(double x, double y) {
         Circle handle = new Circle(x, y, Sandbox.HANDLE_RADIUS);
         handle.setFill(Color.RED);
@@ -150,10 +132,8 @@ public class Box extends PhysicsObject {
 
     public void addDragListener() {
         rectangle.setOnMousePressed(event -> {
-            lastDragDelta = null;
             // Store initial press position
             rectangle.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
-            lastDragDelta = null; // Reset on new drag
         });
 
         rectangle.setOnMouseDragged(event -> {
@@ -210,7 +190,6 @@ public class Box extends PhysicsObject {
                     initialPress[0] = event.getSceneX();
                     initialPress[1] = event.getSceneY();
                     rectangle.setUserData(initialPress);
-                    lastDragDelta = Math.sqrt(offsetX*offsetX + offsetY*offsetY);
 
                     updateHandlePositions();
                     updateConnectedRopes();
@@ -220,10 +199,7 @@ public class Box extends PhysicsObject {
             }
         });
 
-        rectangle.setOnMouseReleased(event -> {
-            lastDragDelta = null;
-            setBoxUnderRope();
-        });
+        rectangle.setOnMouseReleased(_ -> setBoxUnderRope());
     }
 
     private static final double MIN_WIDTH = 50;
@@ -256,7 +232,7 @@ public class Box extends PhysicsObject {
         });
 
         // Update cursor based on snap status
-        resizeHandle.setOnMouseEntered(event -> {
+        resizeHandle.setOnMouseEntered(_ -> {
             if (!isSnapped) {
                 resizeHandle.setCursor(Cursor.SE_RESIZE);
             } else {
@@ -309,7 +285,7 @@ public class Box extends PhysicsObject {
     }
 
     private void restrictTextFieldToNumbers(TextField textField) {
-        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+        textField.textProperty().addListener((_, oldValue, newValue) -> {
             if (!newValue.matches("\\d*(\\.\\d*)?")) {
                 textField.setText(oldValue);
             }
@@ -357,13 +333,13 @@ public class Box extends PhysicsObject {
             // If y values are equal, no change needed
 
             // Position the box under the connected end
-            if (start && rope.getEndSnapped() == false || (rope.getEndConnection() instanceof Roof) || (rope.getEndConnection() instanceof Pulley)) {
+            if (start && !rope.getEndSnapped() || (rope.getEndConnection() instanceof Roof) || (rope.getEndConnection() instanceof Pulley)) {
                 if (startY < endY) {
                     startY += distance*2;
                 }
                 setPosition(rope.getLine().getEndX() - getRectangle().getWidth() / 2, startY);
 
-            } else if (!start && rope.getStartSnapped() == false || (rope.getStartConnection() instanceof Roof) || (rope.getStartConnection() instanceof Pulley)) {
+            } else if (!start && !rope.getStartSnapped() || (rope.getStartConnection() instanceof Roof) || (rope.getStartConnection() instanceof Pulley)) {
                 if (startY > endY) {
                     endY += distance*2;
                 }
@@ -434,16 +410,6 @@ public class Box extends PhysicsObject {
                 setPosition(constrainedX, rectangle.getY());
             }
         }
-    }
-
-    public void addRopeConnection(Rope rope, boolean isStart) {
-        connectedRopes.put(rope, isStart);
-        displayRopeAngle(); // Update angle display when a rope is added
-    }
-
-    public void removeRopeConnection(Rope rope) {
-        connectedRopes.remove(rope);
-        displayRopeAngle(); // Update angle display when a rope is removed
     }
 
     public void displayRopeAngle() {

@@ -96,9 +96,8 @@ public class Sandbox extends Application {
         sandBoxRoot.setBottom(bottomBar);
         deleteBT = new Button("DELETE");
         deleteBT.getStyleClass().add("delete-button"); // Apply CSS class
-        deleteBT.setOnMouseClicked(e -> {
-            toggleDeleteMode();
-        });
+        deleteBT.setOnMouseClicked(_ -> toggleDeleteMode());
+
         addRoofToSandbox();
         // Back to Menu Button
         Button menuBT = new Button("MENU");
@@ -106,21 +105,19 @@ public class Sandbox extends Application {
         // Instantiate SoundPlayer for menu button
         SoundPlayer menuSoundPlayer = new SoundPlayer();
 
-        menuBT.setOnMouseClicked(e -> {
-            showMenu();
-        });
+        menuBT.setOnMouseClicked(_ -> showMenu());
 
         // Add RESET button
         Button resetBT = new Button("RESET");
         resetBT.getStyleClass().add("menu-button"); // Apply CSS class
 
         // Create buttons for each shape
-        Rectangle rectangleButton = createButtonRectangle(50, 50, Color.WHITE);
-        Circle circleButton = createButtonCircle(15, Color.BLACK);
+        Rectangle rectangleButton = createButtonRectangle();
+        Circle circleButton = createButtonCircle();
         circleButton.setStroke(Color.GRAY);
         circleButton.setStrokeWidth(10); // Adjust the stroke width to create the inner radius effect
-        Line lineButton = createButtonLine(50, 10, Color.BLACK);
-        Line ropeButton = createButtonLine(50, 10, Color.BROWN);
+        Line lineButton = createButtonLine(Color.BLACK);
+        Line ropeButton = createButtonLine(Color.BROWN);
         LinearGradient ropeGradient = new LinearGradient(0, 0, 1, 1, true,
                 javafx.scene.paint.CycleMethod.REFLECT,
                 new Stop(0, Color.web("#A0522D")),
@@ -136,46 +133,45 @@ public class Sandbox extends Application {
         addDragHandlers(ropeButton, sandBoxPane, "rope");
 
         // Add mouse event handlers for rectangleButton
-        rectangleButton.setOnMouseEntered(e -> {
+        rectangleButton.setOnMouseEntered(_ -> {
             rectangleButton.setScaleX(1.2);
             rectangleButton.setScaleY(1.2);
         });
-        rectangleButton.setOnMouseExited(e -> {
+        rectangleButton.setOnMouseExited(_ -> {
             rectangleButton.setScaleX(1.0);
             rectangleButton.setScaleY(1.0);
         });
 
         // Add mouse event handlers for circleButton
-        circleButton.setOnMouseClicked(event -> {
+        circleButton.setOnMouseClicked(_ -> {
             Pulley newPulley = new Pulley(100, 50, 25, 10, Color.GRAY, Color.BLACK, sandBoxPane);
             sandBoxPane.getChildren().add(newPulley.getCircleGroup());
             newPulley.addDragListener();
         });
-        circleButton.setOnMouseEntered(e -> {
+        circleButton.setOnMouseEntered(_ -> {
             circleButton.setScaleX(1.2);
             circleButton.setScaleY(1.2);
         });
-        circleButton.setOnMouseExited(e -> {
+        circleButton.setOnMouseExited(_ -> {
             circleButton.setScaleX(1.0);
             circleButton.setScaleY(1.0);
         });
 
         // Add mouse event handlers for lineButton
-        lineButton.setOnMouseClicked(event -> {
-            createPlane(100, 50, 200, 50, Color.BLACK);
-        });
-        lineButton.setOnMouseEntered(e -> {
+        lineButton.setOnMouseClicked(_ ->
+            createPlane(100, 50, 200, 50)
+        );
+        lineButton.setOnMouseEntered(_ -> {
             lineButton.setScaleX(1.2);
             lineButton.setScaleY(1.2);
         });
-        lineButton.setOnMouseExited(e -> {
+        lineButton.setOnMouseExited(_ -> {
             lineButton.setScaleX(1.0);
             lineButton.setScaleY(1.0);
         });
 
         // Add mouse event handlers for ropeButton
-        ropeButton.setOnMouseClicked(event -> {
-            double ropeLength = 100;
+        ropeButton.setOnMouseClicked(_ -> {
             Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN, false, false, physicsObjectList);
             sandBoxPane.getChildren().add(newRope.getLine());
             newRope.addLineResizeListener();
@@ -185,11 +181,11 @@ public class Sandbox extends Application {
             // Add to physics object list to enable deletion
             physicsObjectList.add(newRope);
         });
-        ropeButton.setOnMouseEntered(e -> {
+        ropeButton.setOnMouseEntered(_ -> {
             ropeButton.setScaleX(1.2);
             ropeButton.setScaleY(1.2);
         });
-        ropeButton.setOnMouseExited(e -> {
+        ropeButton.setOnMouseExited(_ -> {
             ropeButton.setScaleX(1.0);
             ropeButton.setScaleY(1.0);
         });
@@ -238,7 +234,11 @@ public class Sandbox extends Application {
         leftSpacer.setMinWidth(175);
         HBox.setHgrow(rightSpacer, Priority.ALWAYS);
 
-        ImageView axesDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/Axes.png")));
+        InputStream imageStream = getClass().getResourceAsStream("/images/Axes.png");
+        if (imageStream == null) {
+            throw new IllegalArgumentException("Image not found: /images/Axes.png");
+        }
+        ImageView axesDisplayView = new ImageView(new Image(imageStream));
         axesDisplayView.setPreserveRatio(true);
         axesDisplayView.setFitHeight(85);
         axesDisplayView.setTranslateX(310);
@@ -246,15 +246,29 @@ public class Sandbox extends Application {
         axesDisplayView.setViewOrder(500);
         sandBoxRoot.getChildren().add(axesDisplayView);
 
-        ImageView infoDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/infoDisplay.png")));
-        infoDisplayView.setPreserveRatio(true);
-        infoDisplayView.setFitHeight(50);
-        infoDisplayView.setPickOnBounds(true);
+        InputStream infoStream = getClass().getResourceAsStream("/images/infoDisplay.png");
+        ImageView infoDisplayView = null;
+        if (infoStream != null) {
+            infoDisplayView = new ImageView(new Image(infoStream));
+            infoDisplayView.setPreserveRatio(true);
+            infoDisplayView.setFitHeight(50);
+            infoDisplayView.setPickOnBounds(true);
+        } else {
+            System.err.println("Warning: Could not load image /images/infoDisplay.png");
+        }
 
-        ImageView formulaDisplayView = new ImageView(new Image(getClass().getResourceAsStream("/images/formula.png")));
-        formulaDisplayView.setPreserveRatio(true);
-        formulaDisplayView.setFitHeight(50);
-        formulaDisplayView.setPickOnBounds(true);
+
+        InputStream formulaStream = getClass().getResourceAsStream("/images/formula.png");
+        ImageView formulaImage = null;
+        if (formulaStream != null) {
+            formulaImage = new ImageView(new Image(formulaStream));
+            formulaImage.setPreserveRatio(true);
+            formulaImage.setFitHeight(50);
+            formulaImage.setPickOnBounds(true);
+        } else {
+            System.err.println("Warning: Could not load image /images/formula.png");
+        }
+
 
 
 
@@ -264,11 +278,32 @@ public class Sandbox extends Application {
         muteButton.setFitHeight(50);
         muteButton.setPickOnBounds(true);
 
-        Image muteInactive = new Image(getClass().getResourceAsStream("/images/speaker.png"));
-        Image muteActive = new Image(getClass().getResourceAsStream("/images/speakerCrossed.png"));
-        muteButton.setImage(muteInactive);
+        // Safe loading of muteInactive image
+        InputStream muteInactiveStream = getClass().getResourceAsStream("/images/speaker.png");
+         Image muteInactive;
+        if (muteInactiveStream != null) {
+            muteInactive = new Image(muteInactiveStream);
+        } else {
+            muteInactive = null;
+            System.err.println("Warning: Could not load image /images/speaker.png");
+        }
 
-        if(GUI.backgroundMusicPlayer != null) {
+// Safe loading of muteActive image
+        InputStream muteActiveStream = getClass().getResourceAsStream("/images/speakerCrossed.png");
+        Image muteActive;
+        if (muteActiveStream != null) {
+            muteActive = new Image(muteActiveStream);
+        } else {
+            muteActive = null;
+            System.err.println("Warning: Could not load image /images/speakerCrossed.png");
+        }
+
+// Apply image if available
+        if (muteInactive != null) {
+            muteButton.setImage(muteInactive);
+        }
+
+        if (GUI.backgroundMusicPlayer != null) {
             double originalVolume = GUI.backgroundMusicPlayer.getVolume();
 
             ContextMenu volumeMenu = new ContextMenu();
@@ -284,24 +319,20 @@ public class Sandbox extends Application {
             volumeSlider.setFocusTraversable(false);
 
             volumeSlider.setValue(originalVolume);
-            volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            volumeSlider.valueProperty().addListener((_, _, newValue) -> {
                 SoundPlayer.setVolume(newValue.doubleValue()); // Update volume
                 if (GUI.backgroundMusicPlayer != null) {
                     GUI.backgroundMusicPlayer.setVolume(newValue.doubleValue());
                 }
             });
 
-            muteButton.setOnMouseEntered(e -> {
-                volumeMenu.show(muteButton, Side.TOP, 0, 0);
-            });
+            muteButton.setOnMouseEntered(_ -> volumeMenu.show(muteButton, Side.TOP, 0, 0));
 
-
-            muteButton.setOnMouseClicked(e -> {
-                if(muteButton.getImage() == muteInactive) {
+            muteButton.setOnMouseClicked(_ -> {
+                if (muteButton.getImage() == muteInactive && muteActive != null) {
                     muteButton.setImage(muteActive);
                     GUI.backgroundMusicPlayer.setVolume(0);
-                }
-                else if(muteButton.getImage() == muteActive) {
+                } else if (muteButton.getImage() == muteActive && muteInactive != null) {
                     muteButton.setImage(muteInactive);
                     GUI.backgroundMusicPlayer.setVolume(volumeSlider.getValue());
                 }
@@ -310,10 +341,8 @@ public class Sandbox extends Application {
 
 
 
-
-
         // Add elements to the bottom bar
-        bottomBar.getChildren().addAll(infoDisplayView, formulaDisplayView, muteButton, leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT, deleteBT);
+        bottomBar.getChildren().addAll(infoDisplayView, formulaImage, muteButton, leftSpacer, shapeButtons, rightSpacer, menuBT, resetBT, deleteBT);
 
         // Pane for world settings
         VBox editorPane = new VBox();
@@ -405,7 +434,7 @@ public class Sandbox extends Application {
         Label vectorDisplayLabel = new Label("Display Vectors: ");
         vectorDisplayLabel.getStyleClass().add("editor-attribute-label");
         vectorDisplayView = new ImageView(
-                new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+                new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/vectorDisplay.png"))));
         vectorDisplayView.setPreserveRatio(true);
         vectorDisplayView.setFitHeight(50);
         vectorDisplayView.setPickOnBounds(true);
@@ -477,52 +506,10 @@ public class Sandbox extends Application {
 
 
         // Add event handlers to checkboxes to update vector display
-        gravityVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors)
-                updateAllVectors();
-        });
+        setVectorComponents(gravityVectorCB, normalVectorCB, normalComponentsCB, frictionVectorCB, frictionComponentsCB);
 
-        normalVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors)
-                updateAllVectors();
-        });
-        normalComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors)
-                updateAllVectors();
-        });
-
-        frictionVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors)
-                updateAllVectors();
-        });
-        frictionComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors)
-                updateAllVectors();
-        });
-
-        tension1VectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors)
-                updateAllVectors();
-        });
-        tension1ComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if(isDisplayingVectors)
-                updateAllVectors();
-        });
-
-        tension2VectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors)
-                updateAllVectors();
-        });
-        tension2ComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if(isDisplayingVectors)
-                updateAllVectors();
-        });
-
-        netForceVectorCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (isDisplayingVectors)
-                updateAllVectors();
-        });
-        netForceComponentsCB.selectedProperty().addListener((obs, oldVal, newVal) -> {
+        setVectorComponents(tension1VectorCB, tension1ComponentsCB, tension2VectorCB, tension2ComponentsCB, netForceVectorCB);
+        netForceComponentsCB.selectedProperty().addListener((_, _, _) -> {
             if (isDisplayingVectors)
                 updateAllVectors();
         });
@@ -542,7 +529,7 @@ public class Sandbox extends Application {
         // Instantiate SoundPlayer for reset button
         SoundPlayer resetSoundPlayer = new SoundPlayer();
 
-        resetBT.setOnMouseClicked(event -> {
+        resetBT.setOnMouseClicked(_ -> {
             Alert warngAlert = new Alert(Alert.AlertType.CONFIRMATION);
             warngAlert.setTitle("Warning");
             warngAlert.setHeaderText(null);
@@ -573,7 +560,8 @@ public class Sandbox extends Application {
         SoundPlayer infoSoundPlayer = new SoundPlayer();
 
         // Keep the existing click handler
-        infoDisplayView.setOnMouseClicked(event -> {
+        assert infoDisplayView != null;
+        infoDisplayView.setOnMouseClicked(_ -> {
             toggleHelpBox();
 
             // Play info display sound
@@ -582,7 +570,8 @@ public class Sandbox extends Application {
 
         SoundPlayer formulaSoundPlayer = new SoundPlayer();
 
-        formulaDisplayView.setOnMouseClicked(event -> {
+        assert formulaImage != null;
+        formulaImage.setOnMouseClicked(_ -> {
             toggleFormulaBox();
 
             formulaSoundPlayer.playSound("src/main/resources/sounds/Info.wav");
@@ -591,7 +580,7 @@ public class Sandbox extends Application {
         // Instantiate SoundPlayer for vector button
         SoundPlayer vectorSoundPlayer = new SoundPlayer();
 
-        vectorDisplayView.setOnMouseClicked(event -> {
+        vectorDisplayView.setOnMouseClicked(_ -> {
             toggleVectorsMode();
 
             // Play vector button sound
@@ -633,6 +622,31 @@ public class Sandbox extends Application {
         sandBoxPane.setFocusTraversable(true);
     }
 
+    private void setVectorComponents(CheckBox gravityVectorCB, CheckBox normalVectorCB, CheckBox normalComponentsCB, CheckBox frictionVectorCB, CheckBox frictionComponentsCB) {
+        gravityVectorCB.selectedProperty().addListener((_, _, _) -> {
+            if (isDisplayingVectors)
+                updateAllVectors();
+        });
+
+        normalVectorCB.selectedProperty().addListener((_, _, _) -> {
+            if (isDisplayingVectors)
+                updateAllVectors();
+        });
+        normalComponentsCB.selectedProperty().addListener((_, _, _) -> {
+            if (isDisplayingVectors)
+                updateAllVectors();
+        });
+
+        frictionVectorCB.selectedProperty().addListener((_, _, _) -> {
+            if (isDisplayingVectors)
+                updateAllVectors();
+        });
+        frictionComponentsCB.selectedProperty().addListener((_, _, _) -> {
+            if (isDisplayingVectors)
+                updateAllVectors();
+        });
+    }
+
     private void toggleDeleteMode() {
         deletionMode = !deletionMode;
 
@@ -664,17 +678,11 @@ public class Sandbox extends Application {
         netForceVectorCB.setSelected(true);
 
         // Removing the lock
-        Iterator<Node> rootIterator = sandBoxRoot.getChildren().iterator();
-        while (rootIterator.hasNext()) {
-            Node node = rootIterator.next();
-            if (node instanceof LockPane) {
-                rootIterator.remove();
-            }
-        }
+        sandBoxRoot.getChildren().removeIf(node -> node instanceof LockPane);
         addRoofToSandbox();
         sandBoxRoot.setStyle("-fx-background-color: white");
         vectorDisplayView.setImage(
-                new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+                new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/vectorDisplay.png"))));
     }
 
     private void showMenu() {
@@ -698,7 +706,7 @@ public class Sandbox extends Application {
 
             sandBoxRoot.setStyle("-fx-background-color: white");
             vectorDisplayView.setImage(
-                    new Image(getClass().getResourceAsStream("/images/vectorDisplay.png")));
+                    new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/vectorDisplay.png"))));
 
         } else { // Add vectors
             isDisplayingVectors = true;
@@ -709,19 +717,13 @@ public class Sandbox extends Application {
             sandBoxRoot.getChildren().add(locker);
             sandBoxRoot.setStyle("-fx-background-color: #8d9393");
             vectorDisplayView.setImage(
-                    new Image(getClass().getResourceAsStream("/images/vectorDisplayCrossed.png")));
+                    new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/vectorDisplayCrossed.png"))));
         }
     }
 
     private void updateAllVectors() {
         // Clear all existing vectors
-        Iterator<Node> iterator = sandBoxPane.getChildren().iterator();
-        while (iterator.hasNext()) {
-            Node node = iterator.next();
-            if (node instanceof VectorDisplay) {
-                iterator.remove();
-            }
-        }
+        sandBoxPane.getChildren().removeIf(node -> node instanceof VectorDisplay);
 
         // Recalculate vectors for all boxes
         for (PhysicsObject physObj : physicsObjectList) {
@@ -739,15 +741,12 @@ public class Sandbox extends Application {
             db.setContent(content);
 
             // Create a snapshot of the node and set it as the drag view
-            if (button instanceof Rectangle) {
-                Rectangle rect = (Rectangle) button;
-                db.setDragView(rect.snapshot(null, null));
-            } else if (button instanceof Circle) {
-                Circle circle = (Circle) button;
-                db.setDragView(circle.snapshot(null, null));
-            } else if (button instanceof Line) {
-                Line line = (Line) button;
-                db.setDragView(line.snapshot(null, null));
+            switch (button) {
+                case Rectangle rect -> db.setDragView(rect.snapshot(null, null));
+                case Circle circle -> db.setDragView(circle.snapshot(null, null));
+                case Line line -> db.setDragView(line.snapshot(null, null));
+                default -> {
+                }
             }
 
             event.consume();
@@ -783,7 +782,7 @@ public class Sandbox extends Application {
                         break;
                     case "line":
                         double lineLength = 100;
-                        Plane newPlane = createPlane(event.getX() - lineLength / 2, event.getY(), event.getX() + lineLength / 2, event.getY(), Color.BLACK);
+                        createPlane(event.getX() - lineLength / 2, event.getY(), event.getX() + lineLength / 2, event.getY());
                         soundPlayer.playSound("src/main/resources/sounds/Place.wav");
                         break;
                     case "rope":
@@ -805,8 +804,8 @@ public class Sandbox extends Application {
         });
     }
 
-    private Plane createPlane(double startX, double startY, double endX, double endY, Color color) {
-        Plane newPlane = new Plane(startX, startY, endX, endY, color, this);
+    private void createPlane(double startX, double startY, double endX, double endY) {
+        Plane newPlane = new Plane(startX, startY, endX, endY, Color.BLACK, this);
         planes.add(newPlane);
         physicsObjectList.add(newPlane);
 
@@ -821,7 +820,6 @@ public class Sandbox extends Application {
         // Update the plane list
         updatePlaneList();
 
-        return newPlane;
     }
 
     // New method to update the plane list
@@ -845,7 +843,7 @@ public class Sandbox extends Application {
             Label degreeLabel = new Label("°");
 
             // Add listener to update plane angle when text field is modified
-            angleField.setOnAction(event -> {
+            angleField.setOnAction(_ -> {
                 try {
                     double newAngle = Double.parseDouble(angleField.getText());
                     plane.setPlaneAngle(newAngle);
@@ -857,18 +855,10 @@ public class Sandbox extends Application {
             });
 
             // Bind the angleField to update when plane is moved
-            plane.getLine().startXProperty().addListener((obs, oldVal, newVal) -> {
-                angleField.setText(String.format("%.1f", plane.calculatePlaneAngle()));
-            });
-            plane.getLine().startYProperty().addListener((obs, oldVal, newVal) -> {
-                angleField.setText(String.format("%.1f", plane.calculatePlaneAngle()));
-            });
-            plane.getLine().endXProperty().addListener((obs, oldVal, newVal) -> {
-                angleField.setText(String.format("%.1f", plane.calculatePlaneAngle()));
-            });
-            plane.getLine().endYProperty().addListener((obs, oldVal, newVal) -> {
-                angleField.setText(String.format("%.1f", plane.calculatePlaneAngle()));
-            });
+            plane.getLine().startXProperty().addListener((_, _, _) -> angleField.setText(String.format("%.1f", plane.calculatePlaneAngle())));
+            plane.getLine().startYProperty().addListener((_, _, _) -> angleField.setText(String.format("%.1f", plane.calculatePlaneAngle())));
+            plane.getLine().endXProperty().addListener((_, _, _) -> angleField.setText(String.format("%.1f", plane.calculatePlaneAngle())));
+            plane.getLine().endYProperty().addListener((_, _, _) -> angleField.setText(String.format("%.1f", plane.calculatePlaneAngle())));
 
             planeInfoBox.getChildren().addAll(planeLabel, angleField, degreeLabel);
             planeListBox.getChildren().add(planeInfoBox);
@@ -882,7 +872,7 @@ public class Sandbox extends Application {
 
     public boolean areAllPlanesInSameMode() {
         if (planes.isEmpty()) return true;
-        boolean firstPlaneMode = planes.get(0).isTransformMode();
+        boolean firstPlaneMode = planes.getFirst().isTransformMode();
         for (Plane plane : planes) {
             if (plane.isTransformMode() != firstPlaneMode) {
                 return false;
@@ -892,15 +882,15 @@ public class Sandbox extends Application {
     }
 
     // Helper method to create a rectangle button
-    private Rectangle createButtonRectangle(double width, double height, Color color) {
-        Rectangle rect = new Rectangle(width, height, color);
+    private Rectangle createButtonRectangle() {
+        Rectangle rect = new Rectangle(50, 50, Color.WHITE);
         rect.setStroke(Color.BLACK);
         return rect;
     }
 
     // Helper method to create a circle button
-    private Circle createButtonCircle(double radius, Color color) {
-        Circle circle = new Circle(radius, color);
+    private Circle createButtonCircle() {
+        Circle circle = new Circle(15, Color.BLACK);
         circle.setStroke(Color.BLACK);
         return circle;
     }
@@ -911,10 +901,10 @@ public class Sandbox extends Application {
     }
 
     // Helper method to create a line button
-    private Line createButtonLine(double length, double strokeWidth, Color color) {
-        Line line = new Line(0, 0, length, 0);
+    private Line createButtonLine(Color color) {
+        Line line = new Line(0, 0, 50, 0);
         line.setStroke(color);
-        line.setStrokeWidth(strokeWidth);
+        line.setStrokeWidth(10);
         return line;
     }
 
@@ -1016,12 +1006,10 @@ public class Sandbox extends Application {
 
                     System.out.println("pulley: " + connectionPulley);
 
-                    if (connectionPulley.connectedBoxes.size() == 2) {
-//                        Box box1 = connectionPulley.connectedBoxes.getFirst();
-//                        Box box2 = connectionPulley.connectedBoxes.getLast();
-//                        System.out.println(box1 + " is 2 rope, 2 box with " + box2);
-//                        VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
-                    }
+                    //                        Box box1 = connectionPulley.connectedBoxes.getFirst();
+                    //                        Box box2 = connectionPulley.connectedBoxes.getLast();
+                    //                        System.out.println(box1 + " is 2 rope, 2 box with " + box2);
+                    //                        VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
                 }
             }
         } catch (Exception e) {
@@ -1037,8 +1025,7 @@ public class Sandbox extends Application {
         Iterator<Node> iterator = sandBoxPane.getChildren().iterator();
         while (iterator.hasNext()) {
             Node node = iterator.next();
-            if (node instanceof VectorDisplay) {
-                VectorDisplay vectorDisplay = (VectorDisplay) node;
+            if (node instanceof VectorDisplay vectorDisplay) {
                 String vectorName = vectorDisplay.getForceName().getText();
 
                 // Remove vectors if their main checkbox is unchecked
@@ -1079,8 +1066,18 @@ public class Sandbox extends Application {
         }
     }
 
+    private void toggleFormulaBox(){
+        if (formulaBox == null) {
+            formulaBox = createFormulaDialogue(); // Create the help box
+            sandBoxPane.getChildren().add(formulaBox); // Add it to the pane
+        } else {
+            sandBoxPane.getChildren().remove(formulaBox); // Remove it from the pane
+            formulaBox = null; // Reset the helpBox variable to null
+        }
+    }
+
     private void restrictTextFieldToNumbers(TextField textField) {
-        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+        textField.textProperty().addListener((_, oldValue, newValue) -> {
             if (!newValue.matches("\\d*(\\.\\d*)?")) {
                 textField.setText(oldValue);
             }
@@ -1107,8 +1104,7 @@ public class Sandbox extends Application {
                             ((Plane)obj).getEndHandle() == clickedNode)) {
                 deletePlaneObject((Plane)obj);
                 return;
-            } else if (obj instanceof Rope) {
-                Rope rope = (Rope)obj;
+            } else if (obj instanceof Rope rope) {
                 if (rope.getLine() == clickedNode ||
                         rope.getStartHandle() == clickedNode ||
                         rope.getEndHandle() == clickedNode) {
@@ -1135,9 +1131,8 @@ public class Sandbox extends Application {
             } else if (userData instanceof Rope) {
                 deleteRopeObject((Rope)userData);
                 return;
-            } else if (userData instanceof Group) {
+            } else if (userData instanceof Group group) {
                 // Check if this group contains our objects
-                Group group = (Group)userData;
                 for (Node child : group.getChildren()) {
                     if (child == clickedNode) {
                         // Check if this group is part of our objects
@@ -1199,7 +1194,7 @@ public class Sandbox extends Application {
 
         // Remove the HBox containing the mass field - improved method for finding it
         for (Node node : new ArrayList<>(sandBoxPane.getChildren())) {
-            if (node instanceof HBox && ((HBox)node).getChildren().size() > 0) {
+            if (node instanceof HBox && !((HBox) node).getChildren().isEmpty()) {
                 double boxCenterX = box.getCenterX();
                 double boxCenterY = box.getCenterY();
                 double nodeX = node.getLayoutX();
@@ -1361,57 +1356,59 @@ public class Sandbox extends Application {
 
         // Set the static equilibrium formulas content
         textArea.setText(
-                "STATIC EQUILIBRIUM FORMULAS\n\n" +
-                        "1. Equilibrium Conditions:\n" +
-                        "   • Sum of forces: ∑F = 0 (vector sum)\n" +
-                        "   • Sum of torques: ∑τ = 0 (around any point)\n\n" +
-
-                        "2. Component Equilibrium:\n" +
-                        "   • Horizontal: ∑Fx = 0\n" +
-                        "   • Vertical: ∑Fy = 0\n\n" +
-
-                        "3. Gravitational Force:\n" +
-                        "   • Fg = mg\n" +
-                        "   • where m = mass, g = gravitational acceleration\n\n" +
-
-                        "4. Normal Force on Horizontal Surface:\n" +
-                        "   • N = mg (without other vertical forces)\n\n" +
-
-                        "5. Normal Force on Inclined Plane (angle θ):\n" +
-                        "   • N = mg·cos(θ)\n\n" +
-
-                        "6. Static Friction Force:\n" +
-                        "   • Fs ≤ μs·N (inequality - only as much as needed for equilibrium)\n" +
-                        "   • Fs = μs·N (maximum value)\n" +
-                        "   • where μs = coefficient of static friction\n\n" +
-
-                        "7. Kinetic Friction Force:\n" +
-                        "   • Fk = μk·N\n" +
-                        "   • where μk = coefficient of kinetic friction\n\n" +
-
-                        "8. Tension in Strings/Ropes:\n" +
-                        "   • Tension is equal throughout massless string\n" +
-                        "   • Direction is along the string\n\n" +
-
-                        "9. Forces on Inclined Plane (angle θ):\n" +
-                        "   • Component of gravity parallel to plane: Fg,∥ = mg·sin(θ)\n" +
-                        "   • Component of gravity perpendicular to plane: Fg,⊥ = mg·cos(θ)\n\n" +
-
-                        "10. Two-Body Equilibrium with Pulley:\n" +
-                        "    • Tension is equal on both sides of an ideal pulley\n" +
-                        "    • For masses m₁ and m₂: T = (2·m₁·m₂·g)/(m₁+m₂)\n\n" +
-
-                        "11. Net Force Vector:\n" +
-                        "    • Fx,net = ∑Fx\n" +
-                        "    • Fy,net = ∑Fy\n" +
-                        "    • |F|net = √(Fx,net² + Fy,net²)\n\n" +
-
-                        "12. Torque:\n" +
-                        "    • τ = r × F = |r|·|F|·sin(θ)\n" +
-                        "    • where r = position vector, F = force vector\n\n" +
-
-                        "13. Rotational Equilibrium:\n" +
-                        "    • ∑τclockwise = ∑τcounterclockwise"
+                """
+                        STATIC EQUILIBRIUM FORMULAS
+                        
+                        1. Equilibrium Conditions:
+                           • Sum of forces: ∑F = 0 (vector sum)
+                           • Sum of torques: ∑τ = 0 (around any point)
+                        
+                        2. Component Equilibrium:
+                           • Horizontal: ∑Fx = 0
+                           • Vertical: ∑Fy = 0
+                        
+                        3. Gravitational Force:
+                           • Fg = mg
+                           • where m = mass, g = gravitational acceleration
+                        
+                        4. Normal Force on Horizontal Surface:
+                           • N = mg (without other vertical forces)
+                        
+                        5. Normal Force on Inclined Plane (angle θ):
+                           • N = mg·cos(θ)
+                        
+                        6. Static Friction Force:
+                           • Fs ≤ μs·N (inequality - only as much as needed for equilibrium)
+                           • Fs = μs·N (maximum value)
+                           • where μs = coefficient of static friction
+                        
+                        7. Kinetic Friction Force:
+                           • Fk = μk·N
+                           • where μk = coefficient of kinetic friction
+                        
+                        8. Tension in Strings/Ropes:
+                           • Tension is equal throughout massless string
+                           • Direction is along the string
+                        
+                        9. Forces on Inclined Plane (angle θ):
+                           • Component of gravity parallel to plane: Fg,∥ = mg·sin(θ)
+                           • Component of gravity perpendicular to plane: Fg,⊥ = mg·cos(θ)
+                        
+                        10. Two-Body Equilibrium with Pulley:
+                            • Tension is equal on both sides of an ideal pulley
+                            • For masses m₁ and m₂: T = (2·m₁·m₂·g)/(m₁+m₂)
+                        
+                        11. Net Force Vector:
+                            • Fx,net = ∑Fx
+                            • Fy,net = ∑Fy
+                            • |F|net = √(Fx,net² + Fy,net²)
+                        
+                        12. Torque:
+                            • τ = r × F = |r|·|F|·sin(θ)
+                            • where r = position vector, F = force vector
+                        
+                        13. Rotational Equilibrium:
+                            • ∑τclockwise = ∑τcounterclockwise"""
         );
 
         // Add elements to containers
@@ -1456,14 +1453,11 @@ public class Sandbox extends Application {
         sandBoxRoof = roof;
 
         // Make the roof adapt to sandbox width changes
-        sandBoxPane.widthProperty().addListener((obs, oldVal, newVal) -> {
-            roof.adjustToSandboxWidth(newVal.doubleValue());
-        });
+        sandBoxPane.widthProperty().addListener((_, _, newVal) -> roof.adjustToSandboxWidth(newVal.doubleValue()));
     }
 
     private Rope[] determineRopePositions(Rope rope1, Rope rope2, Box box) {
         double boxCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
-        double boxCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
 
         // Get the X coordinate of the other end of each rope
         double rope1OtherEndX;
@@ -1529,26 +1523,4 @@ public class Sandbox extends Application {
         return ropesInOrder;
     }
 
-    private void saveStateToFile(File file) {
-        SaveState saveState = new SaveState();
-        saveState.gravitySetting = Double.parseDouble(gravityField.getText());
-        saveState.frictionCoefficientSetting = Double.parseDouble(coefficientField.getText());
-        saveState.physicsObjects = physicsObjectList;
-
-
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-            out.writeObject(saveState);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public SaveState loadSaveState(File file) {
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-            return (SaveState)in.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 }

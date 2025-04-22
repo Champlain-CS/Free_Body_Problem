@@ -16,17 +16,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.Math.abs;
 
 public class Pulley extends PhysicsObject {
     public Group circleGroup;
     private Pane parentContainer;
-    private Double lastDragDelta = null;
     private double radius;
     private double grooveRadius; // Radius where the rope sits
     public List<Box> connectedBoxes = new ArrayList<>();
 
-    public Pulley() {};
+    public Pulley() {}
 
     public Pulley(double x, double y, double outerRadius, double innerRadius, Color wheelColor, Color hubColor, Pane parentContainer) {
         this.parentContainer = parentContainer;
@@ -111,16 +109,10 @@ public class Pulley extends PhysicsObject {
         return radius;
     }
 
-    // Add getter for groove radius where rope sits
-    public double getGrooveRadius() {
-        return grooveRadius;
-    }
-
     public double getCenterX() {
         // Find the center of the first circle (wheel body)
         for (Node node : circleGroup.getChildren()) {
-            if (node instanceof Circle) {
-                Circle circle = (Circle) node;
+            if (node instanceof Circle circle) {
                 return circle.getCenterX();
             }
         }
@@ -130,8 +122,7 @@ public class Pulley extends PhysicsObject {
     public double getCenterY() {
         // Find the center of the first circle (wheel body)
         for (Node node : circleGroup.getChildren()) {
-            if (node instanceof Circle) {
-                Circle circle = (Circle) node;
+            if (node instanceof Circle circle) {
                 return circle.getCenterY();
             }
         }
@@ -142,20 +133,12 @@ public class Pulley extends PhysicsObject {
         return circleGroup;
     }
 
-    public Double getLastDragDelta() {
-        return lastDragDelta;
-    }
-
-    public void setLastDragDelta(Double delta) {
-        this.lastDragDelta = delta;
-    }
-
     @Override
     public void updateConnectedRopes() {
         super.updateConnectedRopes();
 
         // After updating connected ropes, make sure they attach to the correct sides
-        if (connectedRopes.size() > 0) {
+        if (!connectedRopes.isEmpty()) {
             int ropeIndex = 0;
             for (Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
                 Rope rope = entry.getKey();
@@ -183,10 +166,7 @@ public class Pulley extends PhysicsObject {
     }
 
     public void addDragListener() {
-        circleGroup.setOnMousePressed(event -> {
-            lastDragDelta = null;
-            circleGroup.setUserData(new double[]{event.getSceneX(), event.getSceneY()});
-        });
+        circleGroup.setOnMousePressed(event -> circleGroup.setUserData(new double[]{event.getSceneX(), event.getSceneY()}));
 
         circleGroup.setOnMouseDragged(event -> {
             double[] initialPress = (double[]) circleGroup.getUserData();
@@ -214,12 +194,10 @@ public class Pulley extends PhysicsObject {
 
                 // Update the position of all elements in the group
                 for (Node node : circleGroup.getChildren()) {
-                    if (node instanceof Circle) {
-                        Circle circle = (Circle) node;
+                    if (node instanceof Circle circle) {
                         circle.setCenterX(circle.getCenterX() + deltaX);
                         circle.setCenterY(circle.getCenterY() + deltaY);
-                    } else if (node instanceof Line) {
-                        Line line = (Line) node;
+                    } else if (node instanceof Line line) {
                         line.setStartX(line.getStartX() + deltaX);
                         line.setStartY(line.getStartY() + deltaY);
                         line.setEndX(line.getEndX() + deltaX);
@@ -230,48 +208,16 @@ public class Pulley extends PhysicsObject {
                 initialPress[0] = event.getSceneX();
                 initialPress[1] = event.getSceneY();
                 circleGroup.setUserData(initialPress);
-                lastDragDelta = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
 
                 updateConnectedRopes();
             }
         });
 
-        circleGroup.setOnMouseReleased(event -> {
-            lastDragDelta = null;
+        circleGroup.setOnMouseReleased(_ -> {
             for (Box box: connectedBoxes){
                 box.setBoxUnderRope();
             }
         });
-    }
-
-    public void setPosition(double x, double y) {
-        // Apply basic container constraints first
-        double constrainedX = Math.max(radius, Math.min(x, parentContainer.getWidth() - radius));
-        double constrainedY = Math.max(radius, Math.min(y, parentContainer.getHeight() - radius));
-
-        // Then apply rope constraints if needed
-        constrainedX = applyRopeConstraints(constrainedX);
-
-        // Calculate delta to move all elements
-        double deltaX = constrainedX - getCenterX();
-        double deltaY = constrainedY - getCenterY();
-
-        // Update all elements in the group
-        for (Node node : circleGroup.getChildren()) {
-            if (node instanceof Circle) {
-                Circle circle = (Circle) node;
-                circle.setCenterX(circle.getCenterX() + deltaX);
-                circle.setCenterY(circle.getCenterY() + deltaY);
-            } else if (node instanceof Line) {
-                Line line = (Line) node;
-                line.setStartX(line.getStartX() + deltaX);
-                line.setStartY(line.getStartY() + deltaY);
-                line.setEndX(line.getEndX() + deltaX);
-                line.setEndY(line.getEndY() + deltaY);
-            }
-        }
-
-        updateConnectedRopes();
     }
 
     private double applyRopeConstraints(double newX) {
@@ -306,45 +252,16 @@ public class Pulley extends PhysicsObject {
         return newX;
     }
 
-    public void enforceConstraints() {
-        if (connectedRopes.size() > 1) {
-            double minX = Double.MAX_VALUE;
-            double maxX = Double.MIN_VALUE;
-
-            // Find boundary constraints from connected ropes
-            for (Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
-                Rope rope = entry.getKey();
-                boolean isStartConnected = entry.getValue();
-
-                // Get the non-connected end position
-                double ropeX = isStartConnected ?
-                        rope.getLine().getEndX() :
-                        rope.getLine().getStartX();
-
-                if (ropeX < minX) minX = ropeX;
-                if (ropeX > maxX) maxX = ropeX;
-            }
-
-            // Apply constraints
-            double constrainedX = Math.max(minX, Math.min(getCenterX(), maxX));
-            if (constrainedX != getCenterX()) {
-                setPosition(constrainedX, getCenterY());
-            }
-        }
-    }
-
     public void updateBoxList() {
         //check if the list is not empty
         if (!connectedRopes.isEmpty()) {
             connectedBoxes.clear();
             for (Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
                 Rope rope = entry.getKey();
-                if (rope.getStartConnection() instanceof Box){
-                    Box ropeBox = (Box) rope.getStartConnection();
+                if (rope.getStartConnection() instanceof Box ropeBox){
                     connectedBoxes.add(ropeBox);
                 }
-                else if (rope.getEndConnection() instanceof Box){
-                    Box ropeBox = (Box) rope.getEndConnection();
+                else if (rope.getEndConnection() instanceof Box ropeBox){
                     connectedBoxes.add(ropeBox);
                 }
             }

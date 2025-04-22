@@ -4,13 +4,13 @@ import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 import javafx.geometry.Point2D;
 
-import java.util.Map;
 
 public final class VectorMath {
-    private Sandbox sandbox;
 
-    public VectorMath(Sandbox sandbox) {
-        this.sandbox = sandbox;
+    public static Pulley
+            connectionPulley;
+
+    public VectorMath() {
     }
 
     public static void calculateGravityVector(Box box) {
@@ -271,14 +271,14 @@ public final class VectorMath {
 
 
         //Cases
-        double leftMagnitude = 0;
-        double rightMagnitude = 0;
-        double leftAngle = 0;
-        double rightAngle = 0;
-        double leftXTension = 0;
-        double leftYTension = 0;
-        double rightXTension = 0;
-        double rightYTension = 0;
+        double leftMagnitude;
+        double rightMagnitude;
+        double leftAngle;
+        double rightAngle;
+        double leftXTension;
+        double leftYTension;
+        double rightXTension;
+        double rightYTension;
         boolean leftRopeStartIsHigher = leftRope.getLine().getStartY() > leftRope.getLine().getEndY();
         boolean rightRopeStartIsHigher = rightRope.getLine().getStartY() > rightRope.getLine().getEndY();
 
@@ -338,6 +338,7 @@ public final class VectorMath {
     }
 
     public static void calculatePulleyTension(Box box1, Box box2, Pulley connectionPulley){
+        VectorMath.connectionPulley = connectionPulley;
         System.out.println("\nBefore starting calculations");
         System.out.println("box1 x force:" + box1.totalXForce + "; box1 y force:" + box2.totalXForce);
         System.out.println("box2 x force: " + box2.totalXForce + "; box2 y force:" + box1.totalXForce);
@@ -347,10 +348,7 @@ public final class VectorMath {
         double position2X = tensionVectorPositions(box2)[0];
         double position2Y = tensionVectorPositions(box2)[1];
 
-        Map.Entry<Rope, Boolean> hashMap1 = box1.connectedRopes.entrySet().iterator().next();
-        Rope rope1 = hashMap1.getKey();
-        Map.Entry<Rope, Boolean> hashMap2 = box2.connectedRopes.entrySet().iterator().next();
-        Rope rope2 = hashMap2.getKey();
+        box1.connectedRopes.entrySet().iterator().next();
 
 
         // Cases
@@ -566,5 +564,8 @@ public final class VectorMath {
 
         return angle;
     }
+
+
+
 
 }

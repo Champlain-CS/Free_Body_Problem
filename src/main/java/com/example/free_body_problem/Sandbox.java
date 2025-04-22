@@ -49,8 +49,6 @@ public class Sandbox extends Application {
     private Button deleteBT;
     private BorderPane sandBoxRoot;
     private ImageView vectorDisplayView;
-    private ImageView formulaDisplayView;
-    private SandboxPreset sandboxPreset;
 
     // Checkboxes for vector display control
     private CheckBox gravityVectorCB;
@@ -69,9 +67,6 @@ public class Sandbox extends Application {
     // Instantiate SoundPlayer
     private final SoundPlayer soundPlayer = new SoundPlayer();
 
-    // Declare controlsPane
-    private VBox controlsPane;
-
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setFullScreen(true);
@@ -87,7 +82,7 @@ public class Sandbox extends Application {
         sandBoxRoot.setStyle("-fx-background-color: white");
 
         // Initialize SandboxPreset with required parameters
-        sandboxPreset = new SandboxPreset(this, sandBoxPane, physicsObjectList, planes, soundPlayer);
+        SandboxPreset sandboxPreset = new SandboxPreset(this, sandBoxPane, physicsObjectList, planes, soundPlayer);
 
         // Bottom bar for shape buttons
         HBox bottomBar = new HBox();
@@ -172,7 +167,7 @@ public class Sandbox extends Application {
 
         // Add mouse event handlers for ropeButton
         ropeButton.setOnMouseClicked(_ -> {
-            Rope newRope = new Rope(100, 50, 200, 50, Color.BROWN, false, false, physicsObjectList);
+            Rope newRope = new Rope(100, 50, 200, 50, false, physicsObjectList);
             sandBoxPane.getChildren().add(newRope.getLine());
             newRope.addLineResizeListener();
             newRope.addDragListener();
@@ -356,7 +351,8 @@ public class Sandbox extends Application {
         editorPane.getChildren().add(editorLabel);
 
         // Initialize controlsPane
-        controlsPane = new VBox();
+        // Declare controlsPane
+        VBox controlsPane = new VBox();
         editorPane.getChildren().add(controlsPane);
 
         // Get preset controls and add them to your control layout
@@ -789,7 +785,7 @@ public class Sandbox extends Application {
                         break;
                     case "rope":
                         double ropeLength = 100;
-                        Rope newRope = new Rope(event.getX() - ropeLength / 2, event.getY(), event.getX() + ropeLength / 2, event.getY(), Color.BROWN, false, false, physicsObjectList);
+                        Rope newRope = new Rope(event.getX() - ropeLength / 2, event.getY(), event.getX() + ropeLength / 2, event.getY(), false, physicsObjectList);
                         sandBoxPane.getChildren().add(newRope.getLine());
                         newRope.getStyleClass().add("rope-line");
                         newRope.addLineResizeListener();

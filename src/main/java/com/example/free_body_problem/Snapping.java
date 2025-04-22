@@ -5,9 +5,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.Node;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Snapping {
@@ -16,7 +14,6 @@ public class Snapping {
     private static final double SNAP_THRESHOLD = 20;
 
     public static void snapBoxToPlane(Box boxObject, List<Plane> planeList) {
-        boolean wasSnapped = boxObject.isSnapped;
 
         boxObject.isSnapped = false;
 
@@ -44,17 +41,16 @@ public class Snapping {
             double boxCenterY = box.getY() + box.getHeight() / 2;
 
             // Calculate the edge center point (bottom or top) of the box before rotation
-            double edgeCenterX = boxCenterX;
             double edgeCenterY = useBottomEdge
                     ? (boxCenterY + box.getHeight() / 2)  // Bottom edge
                     : (boxCenterY - box.getHeight() / 2); // Top edge
 
             // Rotate the edge center point around the center of the box
             double rotatedEdgeX = boxCenterX +
-                    (edgeCenterX - boxCenterX) * Math.cos(currentAngleRad) -
+                    (0.0) * Math.cos(currentAngleRad) -
                     (edgeCenterY - boxCenterY) * Math.sin(currentAngleRad);
             double rotatedEdgeY = boxCenterY +
-                    (edgeCenterX - boxCenterX) * Math.sin(currentAngleRad) +
+                    (0.0) * Math.sin(currentAngleRad) +
                     (edgeCenterY - boxCenterY) * Math.cos(currentAngleRad);
 
             // Find the closest point on the plane to the rotated edge center
@@ -141,11 +137,10 @@ public class Snapping {
             return; // Do not snap if the end is already connected to the target
         }
 
-        if (target instanceof Box) {
+        if (target instanceof Box box) {
             // Box snapping logic (unchanged)
             double centerX = target.getCenterX();
             double centerY = target.getCenterY();
-            Box box = (Box) target;
             Rectangle rect = box.getRectangle();
 
             // Calculate distance to rectangle bounds
@@ -173,14 +168,12 @@ public class Snapping {
 
                 rope.updateOrientationAttribute();
 
-                if (rope.endSnapped && (rope.getEndConnection() instanceof Pulley)){
-                    Pulley pulley = (Pulley) rope.getEndConnection();
+                if (rope.endSnapped && (rope.getEndConnection() instanceof Pulley pulley)){
                     pulley.updateBoxList();
                 }
             }
-        } else if (target instanceof Pulley) {
+        } else if (target instanceof Pulley pulley) {
             // Handle pulley snapping with side positioning
-            Pulley pulley = (Pulley) target;
             double centerX = pulley.getCenterX();
             double centerY = pulley.getCenterY();
             double radius = pulley.getRadius();
@@ -237,9 +230,8 @@ public class Snapping {
             return; // Do not snap if the start is already connected to the target
         }
 
-        if (target instanceof Box) {
+        if (target instanceof Box box) {
             // Box snapping logic (unchanged)
-            Box box = (Box) target;
             Rectangle rect = box.getRectangle();
             double centerX = rect.getX() + rect.getWidth() / 2;
             double centerY = rect.getY() + rect.getHeight() / 2;
@@ -269,14 +261,12 @@ public class Snapping {
 
                 rope.updateOrientationAttribute();
 
-                if (rope.startSnapped && (rope.getStartConnection() instanceof Pulley)){
-                    Pulley pulley = (Pulley) rope.getStartConnection();
+                if (rope.startSnapped && (rope.getStartConnection() instanceof Pulley pulley)){
                     pulley.updateBoxList();
                 }
             }
-        } else if (target instanceof Pulley) {
+        } else if (target instanceof Pulley pulley) {
             // Handle pulley snapping with side positioning
-            Pulley pulley = (Pulley) target;
             double centerX = pulley.getCenterX();
             double centerY = pulley.getCenterY();
             double radius = pulley.getRadius();
@@ -371,56 +361,7 @@ public class Snapping {
             rope.updateOrientationAttribute();
         }
     }
-    public static void alignPulleyWithBox(Pulley pulley, Box box, Rope rope) {
-        // Check if both objects are connected by this rope
-        boolean pulleyConnected = (rope.getStartConnection() == pulley || rope.getEndConnection() == pulley);
-        boolean boxConnected = (rope.getStartConnection() == box || rope.getEndConnection() == box);
 
-        if (!pulleyConnected || !boxConnected) {
-            return; // Both objects must be connected by the rope
-        }
-
-        // Get box properties
-        double boxCenterX = box.getCenterX();
-        double boxCenterY = box.getCenterY();
-        double boxRotation = box.getRectangle().getRotate();
-        double boxRotationRadians = Math.toRadians(boxRotation);
-
-        // Get current pulley position
-        double pulleyX = pulley.getCenterX();
-        double pulleyY = pulley.getCenterY();
-
-        // Calculate the vector from box to pulley
-        double dx = pulleyX - boxCenterX;
-        double dy = pulleyY - boxCenterY;
-
-        // Calculate distance from box to pulley
-        double distance = Math.sqrt(dx * dx + dy * dy);
-
-        // Calculate the direction vector along the box's x-axis (considering rotation)
-        double dirX = Math.cos(boxRotationRadians);
-        double dirY = Math.sin(boxRotationRadians);
-
-        // Calculate new position for pulley along the box's rotated x-axis
-        double newPulleyX = boxCenterX + distance * dirX;
-        double newPulleyY = boxCenterY + distance * dirY;
-
-        // Calculate the translation needed
-        double deltaX = newPulleyX - pulleyX;
-        double deltaY = newPulleyY - pulleyY;
-
-        // Move all circles in the pulley group
-        for (Node node : pulley.circleGroup.getChildren()) {
-            if (node instanceof Circle) {
-                Circle circle = (Circle) node;
-                circle.setCenterX(circle.getCenterX() + deltaX);
-                circle.setCenterY(circle.getCenterY() + deltaY);
-            }
-        }
-
-        // Update any ropes connected to the pulley
-        pulley.updateConnectedRopes();
-    }
     private static double distance(double x1, double y1, double x2, double y2) {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     }

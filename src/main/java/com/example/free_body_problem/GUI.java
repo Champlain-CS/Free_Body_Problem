@@ -21,6 +21,7 @@ import javafx.stage.StageStyle;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class GUI extends Application {
     VBox mainMenuRoot = new VBox();
@@ -42,7 +43,7 @@ public class GUI extends Application {
     private ComboBox<String> resolutionComboBox;
 
     // Instantiate SoundPlayer
-    private SoundPlayer menuSoundPlayer = new SoundPlayer();
+    private final SoundPlayer menuSoundPlayer = new SoundPlayer();
     public static MediaPlayer backgroundMusicPlayer;
 
     public void start(Stage primaryStage) {
@@ -66,7 +67,7 @@ public class GUI extends Application {
         closeBtn.getStyleClass().add("close-button");
 
         // Add event handlers
-        closeBtn.setOnAction(e -> primaryStage.close());
+        closeBtn.setOnAction(_ -> primaryStage.close());
         titleBar.getChildren().addAll(title, spacer, closeBtn);
 
         primaryStage.setTitle("Free Body Problem");
@@ -108,7 +109,7 @@ public class GUI extends Application {
         nameLabel.getStyleClass().add("titleStyle");
         nameLabel.setEffect(new DropShadow());
 
-        ImageView logoView = new ImageView(new Image(getClass().getResourceAsStream("/images/logoAlt.png")));
+        ImageView logoView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/logoAlt.png"))));
         logoView.setFitHeight(350);
         logoView.setFitWidth(350);
         logoView.setTranslateX(150);
@@ -120,8 +121,8 @@ public class GUI extends Application {
 
         Button startBT = new Button("START");
         startBT.getStyleClass().add("buttonStyle");
-        startBT.setOnMouseEntered(e -> startBT.getStyleClass().add("buttonHover"));
-        startBT.setOnMouseClicked(e -> {
+        startBT.setOnMouseEntered(_ -> startBT.getStyleClass().add("buttonHover"));
+        startBT.setOnMouseClicked(_ -> {
             menuSoundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
             Sandbox app = new Sandbox();
             app.start(new Stage());
@@ -130,16 +131,16 @@ public class GUI extends Application {
 
         Button optionsBT = new Button("OPTIONS");
         optionsBT.getStyleClass().add("buttonStyle");
-        optionsBT.setOnMouseEntered(e -> optionsBT.getStyleClass().add("buttonHover"));
-        optionsBT.setOnMouseClicked(e -> {
+        optionsBT.setOnMouseEntered(_ -> optionsBT.getStyleClass().add("buttonHover"));
+        optionsBT.setOnMouseClicked(_ -> {
             menuSoundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
             primaryStage.getScene().setRoot(optionsRoot);
         });
 
         Button creditsBT = new Button("CREDITS");
         creditsBT.getStyleClass().add("buttonStyle");
-        creditsBT.setOnMouseEntered(e -> creditsBT.getStyleClass().add("buttonHover"));
-        creditsBT.setOnMouseClicked(e -> {
+        creditsBT.setOnMouseEntered(_ -> creditsBT.getStyleClass().add("buttonHover"));
+        creditsBT.setOnMouseClicked(_ -> {
             menuSoundPlayer.playSound("src/main/resources/sounds/Menu Buttons.wav");
             primaryStage.getScene().setRoot(creditsRoot);
             creditsRoot.requestFocus();
@@ -197,7 +198,8 @@ public class GUI extends Application {
         musicVolumeLabel.getStyleClass().add("textStyle");
         Slider musicVolumeSlider = new Slider(0, 1, SoundPlayer.getVolume()); // Set slider to current volume
         musicVolumeSlider.getStyleClass().add("slider");
-        musicVolumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+        musicVolumeSlider.valueProperty().addListener((
+                _, _, newValue) -> {
             SoundPlayer.setVolume(newValue.doubleValue()); // Update volume
             if (backgroundMusicPlayer != null) {
                 backgroundMusicPlayer.setVolume(newValue.doubleValue());
@@ -212,7 +214,7 @@ public class GUI extends Application {
         effectsVolumeLabel.getStyleClass().add("textStyle");
         Slider effectsVolumeSlider = new Slider(0, 1, SoundPlayer.getVolume()); // Set slider to current volume
         effectsVolumeSlider.getStyleClass().add("slider");
-        effectsVolumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+        effectsVolumeSlider.valueProperty().addListener((_, _, newValue) -> {
             SoundPlayer.setVolume(newValue.doubleValue()); // Update volume
         });
         HBox effectsVolumeBox = new HBox();
@@ -230,7 +232,7 @@ public class GUI extends Application {
         CheckBox fullscreenCheckBox = new CheckBox();
         fullscreenCheckBox.setSelected(isFullscreen);
         fullscreenCheckBox.getStyleClass().add("check-box");
-        fullscreenCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+        fullscreenCheckBox.selectedProperty().addListener((_, _, newValue) -> {
             isFullscreen = newValue;
 
             // Apply fullscreen immediately
@@ -256,7 +258,7 @@ public class GUI extends Application {
         resolutionComboBox.setValue(currentResolution);
         resolutionComboBox.getStyleClass().add("combo-box");
         resolutionComboBox.setDisable(isFullscreen); // Disable if fullscreen is enabled
-        resolutionComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+        resolutionComboBox.valueProperty().addListener((_, _, newValue) -> {
             if (newValue != null) {
                 currentResolution = newValue;
                 // Apply the new resolution immediately if not in fullscreen
@@ -270,14 +272,14 @@ public class GUI extends Application {
         resolutionBox.setAlignment(Pos.CENTER);
         resolutionBox.getChildren().addAll(resolutionLabel, resolutionComboBox);
 
-        ImageView optionsX = new ImageView(new Image(getClass().getResourceAsStream("/images/blueX.png")));
+        ImageView optionsX = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/blueX.png"))));
         optionsX.setPreserveRatio(true);
         optionsX.setFitHeight(35);
         optionsX.setTranslateX(460);
         optionsX.setTranslateY(-210);
-        optionsX.setOnMouseEntered(e -> optionsX.setFitHeight(37));
-        optionsX.setOnMouseExited(e -> optionsX.setFitHeight(35));
-        optionsX.setOnMouseClicked(e -> primaryStage.getScene().setRoot(mainMenuRoot));
+        optionsX.setOnMouseEntered(_ -> optionsX.setFitHeight(37));
+        optionsX.setOnMouseExited(_ -> optionsX.setFitHeight(35));
+        optionsX.setOnMouseClicked(_ -> primaryStage.getScene().setRoot(mainMenuRoot));
 
         // Group audio and display options
         VBox audioOptionsVBox = new VBox();
@@ -334,14 +336,14 @@ public class GUI extends Application {
         Label creditsLabel = new Label("CREDITS");
         creditsLabel.getStyleClass().add("titleStyle");
 
-        ImageView creditsX = new ImageView(new Image(getClass().getResourceAsStream("/images/blueX.png")));
+        ImageView creditsX = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/blueX.png"))));
         creditsX.setPreserveRatio(true);
         creditsX.setFitHeight(35);
         creditsX.setTranslateX(460);
         creditsX.setTranslateY(-210);
-        creditsX.setOnMouseEntered(e -> creditsX.setFitHeight(37));
-        creditsX.setOnMouseExited(e -> creditsX.setFitHeight(35));
-        creditsX.setOnMouseClicked(e -> primaryStage.getScene().setRoot(mainMenuRoot));
+        creditsX.setOnMouseEntered(_ -> creditsX.setFitHeight(37));
+        creditsX.setOnMouseExited(_ -> creditsX.setFitHeight(35));
+        creditsX.setOnMouseClicked(_ -> primaryStage.getScene().setRoot(mainMenuRoot));
 
         VBox creditsBox = new VBox();
         creditsBox.setSpacing(80);

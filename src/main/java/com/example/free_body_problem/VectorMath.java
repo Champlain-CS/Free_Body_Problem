@@ -13,6 +13,8 @@ public final class VectorMath {
     public VectorMath() {
     }
 
+
+
     public static void calculateGravityVector(Box box) {
         double gravityValue = Double.parseDouble(Sandbox.gravityField.getText());
         double massValue = Double.parseDouble(box.getTextField().getText());
@@ -156,6 +158,9 @@ public final class VectorMath {
         double newPositionX = rotatedVector.getX();
         double newPositionY = rotatedVector.getY();
 
+        if(box.isPulled) {
+            frictionAngle += 180;
+        }
 
 
         VectorDisplay frictionVector = new VectorDisplay(
@@ -287,8 +292,8 @@ public final class VectorMath {
 
         if(!box.isSnapped && !isLeftRopeChaining && !isRightRopeChaining) {
             // Convert angles to radians for calculations
-            double leftAngleRad = Math.toRadians(leftRopeRotationAngle);
-            double rightAngleRad = Math.toRadians(rightRopeRotationAngle);
+            double rightAngleRad = Math.toRadians(leftRopeRotationAngle);
+            double leftAngleRad = Math.toRadians(rightRopeRotationAngle);
 
             // Calculate magnitudes (always positive)
             rightMagnitude = Math.abs(box.gravityVector.getTrueLength() /
@@ -353,8 +358,8 @@ public final class VectorMath {
 
         // Cases
         double magnitude =0;
-        double box1Angle =0;
-        double box2Angle =0;
+        double box1Angle = box1.getRectangle().getRotate();
+        double box2Angle = box2.getRectangle().getRotate();
 
         double xTension1 =0;
         double yTension1 =0;
@@ -364,36 +369,56 @@ public final class VectorMath {
         double gravityValue = Double.parseDouble(Sandbox.gravityField.getText());
         double m1 = Double.parseDouble(box1.getTextField().getText());
         double m2 = Double.parseDouble(box2.getTextField().getText());
-        double tempNet1 = m1 * gravityValue;  // Weight of box1
-        double tempNet2 = m2 * gravityValue;  // Weight of box2
+        double weight1 = m1 * gravityValue;  // Weight of box1
+        double weight2 = m2 * gravityValue;  // Weight of box2
 
 
         if(!box1.isSnapped && !box2.isSnapped) {
             magnitude = (2 * m1 * m2 * gravityValue) / (m1 + m2);
 
-            System.out.println("pulley tension magnitude: " + magnitude);
-
             box1Angle = 270;
             box2Angle = 270;
-
             xTension1 = 0;
             yTension1 = magnitude;
             xTension2 = 0;
             yTension2 = magnitude;
 
-            box1.totalYForce = -1*(tempNet1 - magnitude);
-            box2.totalYForce = -1*(tempNet2 - magnitude);
-
+            box1.totalYForce = -1*(weight1 - magnitude);
+            box2.totalYForce = -1*(weight2 - magnitude);
             box1.totalXForce = 0;
             box2.totalXForce = 0;
             box1.isNetSet = true;
             box2.isNetSet = true;
-
-            System.out.println("\nAfter calculations");
-            System.out.println("box1 x force:" + box1.totalXForce + "; box1 y force:" + box1.totalYForce);
-            System.out.println("box2 x force: " + box2.totalXForce + "; box2 y force:" + box2.totalYForce);
         }
 
+        else if(box1.isSnapped && box2.isSnapped) {
+            double inclineWeight1 = weight1 * Math.sin(Math.toRadians(box1Angle));
+            double inclineWeight2 = weight2 * Math.sin(Math.toRadians(box2Angle));
+            magnitude = (2 * inclineWeight1 * inclineWeight2) / (inclineWeight1 + inclineWeight2);
+
+            box1Angle = calculatePulleyBoxAngles(box1, connectionPulley);
+            box2Angle = calculatePulleyBoxAngles(box2, connectionPulley);
+
+            // Potential Friction Flip
+            if(inclineWeight1 < inclineWeight2) {
+                box2.isPulled = true;
+                box2.frictionVector.setRotation(box2.frictionVector.getRotation() + 180);
+            }
+            if(inclineWeight1 > inclineWeight2) {
+                box1.isPulled = true;
+                box1.frictionVector.setRotation(box1.frictionVector.getRotation() + 180);
+            }
+
+            xTension1 = magnitude * Math.sin(box1Angle);
+            yTension1 = magnitude * Math.cos(box1Angle);
+            xTension2 = magnitude * Math.sin(box2Angle);
+            yTension2 = magnitude * Math.cos(box2Angle);
+
+            box1.totalXForce += xTension1;
+            box1.totalYForce += yTension1;
+            box2.totalXForce += xTension2;
+            box2.totalYForce += yTension2;
+        }
 
 
         VectorDisplay tensionVector1 = new VectorDisplay(position1X, position1Y,
@@ -483,7 +508,13 @@ public final class VectorMath {
         Sandbox.sandBoxPane.getChildren().addAll(
                 adaptComponentOrientation(xComponentVector),
                 adaptComponentOrientation(yComponentVector));
+
+
+        //End of calculation, reset status
+        box.isPulled = false;
     }
+
+
 
     private static VectorDisplay adaptComponentOrientation(VectorDisplay vector) {
         if (vector.getTrueLength() < 0) {
@@ -565,7 +596,28 @@ public final class VectorMath {
         return angle;
     }
 
+    private static double calculatePulleyBoxAngles(Box box, Pulley pulley) {
+        //Getting the points
+        double x1 = box.getCenterX();
+        double y1 = box.getCenterY();
+        double x2 = pulley.getCenterX();
+        double y2 = pulley.getCenterY();
 
+        // Calculate differences
+        double deltaX = x2 - x1;
+        double deltaY = y2 - y1;
+
+        // Calculate angle in radians using arctan (atan2 to account for quadrants)
+        double angleRadians = Math.atan2(deltaY, deltaX);
+        double angleDegrees = Math.toDegrees(angleRadians);
+
+        // Adjust to 0-360 range
+        if (angleDegrees < 0) {
+            angleDegrees += 360;
+        }
+
+        return angleDegrees;
+    }
 
 
 }

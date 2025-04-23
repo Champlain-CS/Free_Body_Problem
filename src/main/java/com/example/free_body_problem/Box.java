@@ -28,9 +28,10 @@ public class Box extends PhysicsObject {
 
     public boolean snappedToPlane = false;
     public boolean isNetSet = false;
-    public Plane snappedPlane;
+    public boolean isPulled = false;
     boolean isSnapped = false;
     boolean isSliding;
+    public Plane snappedPlane;
 
 
     protected VectorDisplay gravityVector;
@@ -447,10 +448,10 @@ public class Box extends PhysicsObject {
         }
 
         // Calculate vectors from box to rope endpoints
-        double vector1X = rope1EndX - boxCenterX;
-        double vector1Y = rope1EndY - boxCenterY;
-        double vector2X = rope2EndX - boxCenterX;
-        double vector2Y = rope2EndY - boxCenterY;
+        double vector1X = rope2EndX - boxCenterX;
+        double vector1Y = rope2EndY - boxCenterY;
+        double vector2X = rope1EndX - boxCenterX;
+        double vector2Y = rope1EndY - boxCenterY;
 
         // Calculate the angle between the vectors (in degrees)
         double dotProduct = vector1X * vector2X + vector1Y * vector2Y;
@@ -466,6 +467,7 @@ public class Box extends PhysicsObject {
         // Create or update the angle display
         createAngleDisplay(boxCenterX, boxCenterY, vector1X, vector1Y, vector2X, vector2Y, angleDegrees);
     }
+
 
     // Create visual elements to display the angle
     private javafx.scene.shape.Arc angleArc;

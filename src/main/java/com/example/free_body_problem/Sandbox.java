@@ -910,6 +910,7 @@ public class Sandbox extends Application {
         // Always calculated gravity
         VectorMath.calculateGravityVector(box);
 
+
         //Calculate normal if on a plane
         if (box.isSnapped) {
             VectorMath.calculateNormalVector(box);

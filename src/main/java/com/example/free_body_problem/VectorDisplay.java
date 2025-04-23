@@ -110,7 +110,7 @@ public class VectorDisplay extends Pane {
 
         forceText.setLayoutX(endX);
         forceText.setLayoutY(endY + 5);
-        forceText.setRotate(0 - angle);
+        forceText.setRotate(0 - rotate.getAngle());
         forceMagnitude.setText(df.format(trueLength) + " N");
     }
 
@@ -150,6 +150,8 @@ public class VectorDisplay extends Pane {
 
     public void setRotation(double angle) {
         rotate.setAngle(angle);
+        // Counter-rotate the text by the exact same amount
+        forceText.setRotate(-rotate.getAngle());
         updateVector();
     }
 

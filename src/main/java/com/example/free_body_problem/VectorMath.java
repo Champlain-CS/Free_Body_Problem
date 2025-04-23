@@ -155,8 +155,8 @@ public final class VectorMath {
         Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
 
         // Now, rotatedVector gives the new position of the vector after the box is rotated
-        double newPositionX = rotatedVector.getX();
-        double newPositionY = rotatedVector.getY();
+        double newPositionX = rotatedVector.getX() + 5;
+        double newPositionY = rotatedVector.getY() + 5;
 
         if(box.isPulled) {
             frictionAngle += 180;
@@ -175,8 +175,16 @@ public final class VectorMath {
         double frictionXComponent = magnitude * Math.sin(frictionAngleRad);
         double frictionYComponent = magnitude * Math.cos(frictionAngleRad);
 
+
         box.totalXForce += frictionXComponent;
-        box.totalYForce += frictionYComponent;
+        if(box.isPulled) {
+            box.totalYForce -= frictionYComponent;
+        }
+        else {
+            box.totalYForce += frictionXComponent;
+        }
+
+
 
 
         // Components
@@ -392,28 +400,88 @@ public final class VectorMath {
         }
 
         else if(box1.isSnapped && box2.isSnapped) {
+            // Magnitude calculation
+            // Calculate component of weight along the incline
             double inclineWeight1 = weight1 * Math.sin(Math.toRadians(box1Angle));
             double inclineWeight2 = weight2 * Math.sin(Math.toRadians(box2Angle));
-            magnitude = (2 * inclineWeight1 * inclineWeight2) / (inclineWeight1 + inclineWeight2);
+
+            // Calculate the net force that would cause acceleration (if any)
+            double netForce = Math.abs(inclineWeight1 - inclineWeight2);
+
+            if (netForce < 0.0001) {  // For floating point errors
+                // Static equilibrium case
+                magnitude = inclineWeight1;
+            } else {
+                // Dynamic case
+                magnitude = (m1 * m2 * gravityValue * Math.abs(Math.sin(Math.toRadians(box1Angle)) -
+                        Math.sin(Math.toRadians(box2Angle)))) / (m1 + m2);
+            }
+            System.out.println("tension magnitude: " + magnitude);
 
             box1Angle = calculatePulleyBoxAngles(box1, connectionPulley);
             box2Angle = calculatePulleyBoxAngles(box2, connectionPulley);
 
-            // Potential Friction Flip
-            if(inclineWeight1 < inclineWeight2) {
+
+            // Determine which box dominates movement
+            boolean box1Dominates = inclineWeight1 < inclineWeight2;
+
+            // Clear the previous friction force contributions
+            if (box1.frictionVector != null) {
+                // Remove the old friction contributions from totalXForce and totalYForce
+                double frictionAngle1Rad = Math.toRadians(box1.frictionVector.getRotation() + 90); // Parallel to surface
+                double oldFrictionX1 = box1.frictionVector.getTrueLength() * Math.sin(frictionAngle1Rad);
+                double oldFrictionY1 = box1.frictionVector.getTrueLength() * Math.cos(frictionAngle1Rad);
+                box1.totalXForce -= oldFrictionX1;
+                box1.totalYForce -= oldFrictionY1;
+            }
+
+            if (box2.frictionVector != null) {
+                // Remove the old friction contributions from totalXForce and totalYForce
+                double frictionAngle2Rad = Math.toRadians(box2.frictionVector.getRotation() + 90); // Parallel to surface
+                double oldFrictionX2 = box2.frictionVector.getTrueLength() * Math.sin(frictionAngle2Rad);
+                double oldFrictionY2 = box2.frictionVector.getTrueLength() * Math.cos(frictionAngle2Rad);
+                box2.totalXForce -= oldFrictionX2;
+                box2.totalYForce -= oldFrictionY2;
+            }
+
+            // Applying new friction
+            if (box1Dominates) {
                 box2.isPulled = true;
-                box2.frictionVector.setRotation(box2.frictionVector.getRotation() + 180);
-            }
-            if(inclineWeight1 > inclineWeight2) {
+                // Update friction direction for box2
+                if (box2.frictionVector != null) {
+                    // Flip the friction vector direction
+                    double oldRotation = box2.frictionVector.getRotation();
+                    box2.frictionVector.setRotation((oldRotation + 180) % 360);
+
+                    // Recalculate friction components with new direction
+                    double newFrictionAngle2Rad = Math.toRadians(box2.frictionVector.getRotation() + 90);
+                    double newFrictionX2 = box2.frictionVector.getTrueLength() * Math.sin(newFrictionAngle2Rad);
+                    double newFrictionY2 = box2.frictionVector.getTrueLength() * Math.cos(newFrictionAngle2Rad);
+
+                    // Add the updated friction force components
+                    box2.totalXForce += newFrictionX2;
+                    box2.totalYForce += newFrictionY2;
+                }
+            } else if (!box1Dominates) {
                 box1.isPulled = true;
-                box1.frictionVector.setRotation(box1.frictionVector.getRotation() + 180);
+                // Update friction direction for box1
+                if (box1.frictionVector != null) {
+                    // Flip the friction vector direction
+                    double oldRotation = box1.frictionVector.getRotation();
+                    box1.frictionVector.setRotation((oldRotation + 180) % 360);
+
+                    // Recalculate friction components with new direction
+                    double newFrictionAngle1Rad = Math.toRadians(box1.frictionVector.getRotation() + 90);
+                    double newFrictionX1 = box1.frictionVector.getTrueLength() * Math.sin(newFrictionAngle1Rad);
+                    double newFrictionY1 = box1.frictionVector.getTrueLength() * Math.cos(newFrictionAngle1Rad);
+
+                    // Add the updated friction force components
+                    box1.totalXForce += newFrictionX1;
+                    box1.totalYForce += newFrictionY1;
+                }
             }
 
-            xTension1 = magnitude * Math.sin(box1Angle);
-            yTension1 = magnitude * Math.cos(box1Angle);
-            xTension2 = magnitude * Math.sin(box2Angle);
-            yTension2 = magnitude * Math.cos(box2Angle);
-
+            // Add tension components to total forces
             box1.totalXForce += xTension1;
             box1.totalYForce += yTension1;
             box2.totalXForce += xTension2;
@@ -521,14 +589,6 @@ public final class VectorMath {
             // flip the sign of the true length while maintaining visual length
             vector.setDisplayLength(-1 * vector.getTrueLength());
             vector.setRotation((vector.getRotation() + 180) % 360);
-
-            double originalRotation = vector.getRotation();
-            double originalTextRotation = vector.forceText.getRotate();
-
-            if (originalRotation % 360 >= 90 && originalRotation % 360 < 270) {
-                // Only flip text if vector was pointing left
-                vector.forceText.setRotate((originalTextRotation + 180) % 360);
-            }
         }
 
         return vector;

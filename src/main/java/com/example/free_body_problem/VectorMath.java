@@ -445,6 +445,9 @@ public final class VectorMath {
             }
 
             // Applying new friction
+            double netOnIncline1 = 0;
+            double netOnIncline2 = 0;
+
             if (box1Dominates) {
                 box2.isPulled = true;
                 // Update friction direction for box2
@@ -458,9 +461,11 @@ public final class VectorMath {
                     double newFrictionX2 = box2.frictionVector.getTrueLength() * Math.sin(newFrictionAngle2Rad);
                     double newFrictionY2 = box2.frictionVector.getTrueLength() * Math.cos(newFrictionAngle2Rad);
 
-                    // Add the updated friction force components
-                    box2.totalXForce += newFrictionX2;
-                    box2.totalYForce += newFrictionY2;
+                    // Preparing for net force
+                    netOnIncline1 = inclineWeight1 + box1.normalVector.getTrueLength()*Math.sin(box1Angle)
+                            - magnitude - box1.frictionVector.getTrueLength();
+                    netOnIncline2 = magnitude - box2.normalVector.getTrueLength()*Math.sin(box2Angle)
+                            - box2.frictionVector.getTrueLength() - inclineWeight2;
                 }
             } else if (!box1Dominates) {
                 box1.isPulled = true;
@@ -475,17 +480,19 @@ public final class VectorMath {
                     double newFrictionX1 = box1.frictionVector.getTrueLength() * Math.sin(newFrictionAngle1Rad);
                     double newFrictionY1 = box1.frictionVector.getTrueLength() * Math.cos(newFrictionAngle1Rad);
 
-                    // Add the updated friction force components
-                    box1.totalXForce += newFrictionX1;
-                    box1.totalYForce += newFrictionY1;
+                    // Preparing for net force
+                    netOnIncline2 = inclineWeight2 + box2.normalVector.getTrueLength()*Math.sin(box2Angle)
+                            - magnitude - box2.frictionVector.getTrueLength();
+                    netOnIncline1 = magnitude - box1.normalVector.getTrueLength()*Math.sin(box1Angle)
+                            - box1.frictionVector.getTrueLength() - inclineWeight1;
                 }
             }
 
             // Add tension components to total forces
-            box1.totalXForce += xTension1;
-            box1.totalYForce += yTension1;
-            box2.totalXForce += xTension2;
-            box2.totalYForce += yTension2;
+            box1.totalXForce = netOnIncline1 * Math.sin(box1Angle);
+            box1.totalYForce = netOnIncline1 * Math.cos(box2Angle);
+            box2.totalXForce = netOnIncline2 * Math.sin(box2Angle);
+            box2.totalYForce = netOnIncline2 * Math.cos(box1Angle);
         }
 
 

@@ -45,8 +45,8 @@ public final class VectorMath {
         box.gravityVector = gravityVector;
         Sandbox.sandBoxPane.getChildren().add(gravityVector);
 
-        if(!box.isNetSet)
-            box.totalYForce -= magnitude; //always down
+
+        box.totalYForce -= magnitude; //always down
     }
 
     public static void calculateNormalVector(Box box) {
@@ -176,13 +176,17 @@ public final class VectorMath {
         double frictionYComponent = magnitude * Math.cos(frictionAngleRad);
 
 
+//        if(box.isPulled) {
+//            box.totalYForce -= frictionYComponent;
+//            box.totalXForce -= frictionXComponent;
+//        }
+//        else {
+//            box.totalYForce += frictionXComponent;
+//            box.totalXForce += frictionXComponent;
+//        }
+
+        box.totalYForce += frictionXComponent;
         box.totalXForce += frictionXComponent;
-        if(box.isPulled) {
-            box.totalYForce -= frictionYComponent;
-        }
-        else {
-            box.totalYForce += frictionXComponent;
-        }
 
 
 
@@ -262,6 +266,7 @@ public final class VectorMath {
         double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
         double boxRotationAngle = box.getRectangle().getRotate();
+
         // Putting orientations to "normal" math angles
         double leftRopeRotationAngle = normalizeAngle(360 - leftRope.getOrientation());
         double rightRopeRotationAngle = normalizeAngle(360 - rightRope.getOrientation());
@@ -535,44 +540,60 @@ public final class VectorMath {
         System.out.println("box x force:" + box.totalXForce + "; box y force:" + box.totalYForce);
 
         double magnitude = Math.sqrt(xComponent*xComponent + yComponent*yComponent);
-        if(xComponent == 0 && yComponent == 0) {
+        if(magnitude < 0.0001) {  // Using a small threshold instead of exact zero check
             magnitude = 0;
         }
-        double boxAngle = box.getRectangle().getRotate()+90;
+
+        double boxAngle = box.getRectangle().getRotate() + 90;
         double netAngle;
 
         System.out.println("net magnitude: " + magnitude);
 
-        //Angle calculation for all 4 cases
-        if(xComponent !=0 && yComponent !=0) {
-            double phi = Math.toDegrees(Math.atan(yComponent / xComponent)) + 180; //Angle between net vector and x component (used as reference)
+//        //Angle calculation for all 4 cases
+//        if(xComponent !=0 && yComponent !=0) {
+//            double phi = Math.toDegrees(Math.atan(yComponent / xComponent)) + 180; //Angle between net vector and x component (used as reference)
+//
+//            //Net angle adjustment
+//            if (0 <= boxAngle && boxAngle < 90) {
+//                netAngle = phi;
+//            } else if (90 <= boxAngle && boxAngle < 180) {
+//                netAngle = 180 - phi;
+//            } else if (180 <= boxAngle && boxAngle < 270) {
+//                netAngle = 180 + phi;
+//            } else {
+//                netAngle = 360 - phi;
+//            }
+//        }
+//        else if(xComponent != 0) {
+//            netAngle = xComponent >= 0.0001 ? 0 : 180;
+//        }
+//        else if (yComponent != 0) {
+//            netAngle = yComponent >= 0.0001 ? 270 : 90;
+//        }
+//        else {
+//            netAngle = 0;
+//        }
 
-            //Net angle adjustment
-            if (0 <= boxAngle && boxAngle < 90) {
-                netAngle = phi;
-            } else if (90 <= boxAngle && boxAngle < 180) {
-                netAngle = 180 - phi;
-            } else if (180 <= boxAngle && boxAngle < 270) {
-                netAngle = 180 + phi;
-            } else {
-                netAngle = 360 - phi;
+        // Improved angle calculation
+        if(Math.abs(xComponent) > 0.0001 || Math.abs(yComponent) > 0.0001) {
+            // Calculate the angle in degrees, with proper quadrant handling
+            netAngle = Math.toDegrees(Math.atan2(-yComponent, xComponent));
+
+            // atan2 returns angles in range -180 to 180, convert to 0-360
+            if(netAngle < 0) {
+                netAngle += 360;
             }
-        }
-        else if(xComponent != 0) {
-            netAngle = xComponent >= 0.0001 ? 0 : 180;
-        }
-        else if (yComponent != 0) {
-            netAngle = yComponent >= 0.0001 ? 270 : 90;
-        }
-        else {
+        } else {
+            // If both components are essentially zero, default angle
             netAngle = 0;
         }
 
+
+        // Create the net vector display
         VectorDisplay netVector = new VectorDisplay(positionCenterX, positionCenterY,
                 magnitude, netAngle, "Net", Color.BLACK);
         box.netVector = netVector;
         Sandbox.sandBoxPane.getChildren().add(netVector);
-
 
 
         // Components

@@ -725,8 +725,8 @@ public class Sandbox extends Application {
         // Recalculate vectors for all boxes
         for (PhysicsObject physObj : physicsObjectList) {
             if (physObj instanceof Box box) {
-                updateVectors(box);
                 box.isNetSet = false;
+                updateVectors(box);
             }
         }
     }
@@ -1024,7 +1024,7 @@ public class Sandbox extends Application {
         }
 
 
-        System.out.println();
+        System.out.println(); // For console readability
     }
 
     // Extract the toggle functionality to a reusable method

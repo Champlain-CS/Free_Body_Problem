@@ -38,6 +38,7 @@ public class Box extends PhysicsObject {
     protected VectorDisplay normalVector;
     protected VectorDisplay frictionVector;
     protected VectorDisplay tensionVector1;
+    protected VectorDisplay tensionVector2;
     protected VectorDisplay netVector;
     public List<Plane> planeList;
 
@@ -306,17 +307,38 @@ public class Box extends PhysicsObject {
 
         // Then apply rope constraints if needed
         if (connectedRopes.size() > 1) {
-            enforceConstraints();
-            return; // Constraints already applied in enforceConstraints()
+            // Instead of calling enforceConstraints() which would cause recursion,
+            // apply the constraint logic directly here
+            double minX = Double.MAX_VALUE;
+            double maxX = Double.MIN_VALUE;
+
+            // Find boundary constraints from connected ropes
+            for (Map.Entry<Rope, Boolean> entry : connectedRopes.entrySet()) {
+                Rope rope = entry.getKey();
+                boolean isStartConnected = entry.getValue();
+
+                // Get the non-connected end position
+                double ropeX = isStartConnected ?
+                        rope.getLine().getEndX() :
+                        rope.getLine().getStartX();
+
+                if (ropeX < minX) minX = ropeX;
+                if (ropeX > maxX) maxX = ropeX;
+            }
+
+            // Apply constraints directly
+            constrainedX = Math.max(minX - rectangle.getWidth()/2, Math.min(constrainedX, maxX - rectangle.getWidth()/2));
         }
 
-
+        // Set the position with all constraints applied
         rectangle.setX(constrainedX);
         rectangle.setY(constrainedY - 50);
         rectangle.setRotate(0);
         updateHandlePositions();
         updateConnectedRopes();
     }
+
+
 
     public void setBoxUnderRope() {
         if (connectedRopes.size() == 1 && !isSnapped) {
@@ -404,10 +426,12 @@ public class Box extends PhysicsObject {
                 if (ropeX > maxX) maxX = ropeX;
             }
 
-            // Apply constraints
-            double constrainedX = Math.max(minX, Math.min(rectangle.getX(), maxX));
+            // Apply constraints directly to rectangle instead of calling setPosition
+            double constrainedX = Math.max(minX - rectangle.getWidth()/2, Math.min(rectangle.getX(), maxX - rectangle.getWidth()/2));
             if (constrainedX != rectangle.getX()) {
-                setPosition(constrainedX, rectangle.getY());
+                rectangle.setX(constrainedX);
+                updateHandlePositions();
+                updateConnectedRopes();
             }
         }
     }

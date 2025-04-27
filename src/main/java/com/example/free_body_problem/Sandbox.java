@@ -705,7 +705,7 @@ public class Sandbox extends Application {
             vectorDisplayView.setImage(
                     new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/vectorDisplay.png"))));
 
-        } else { // Add vectors
+        } else if (!isDisplayingVectors) { // Add vectors
             isDisplayingVectors = true;
             updateAllVectors();
 
@@ -729,6 +729,7 @@ public class Sandbox extends Application {
                 updateVectors(box);
             }
         }
+        System.out.println("Break");
     }
 
     private void addDragHandlers(Node button, Pane sandBoxPane, String shapeType) {

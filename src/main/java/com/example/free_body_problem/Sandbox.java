@@ -903,6 +903,7 @@ public class Sandbox extends Application {
         if(!box.isNetSet) {
             box.totalXForce = 0;
             box.totalYForce = 0;
+            box.tensionVector1 = null;
         }
 
         // Calculate ALL forces regardless of checkbox selections
@@ -964,30 +965,32 @@ public class Sandbox extends Application {
         }
 
 
-        //Pulley case
-        try {
-            Map.Entry<Rope, Boolean> hashMap2 = box.connectedRopes.entrySet().iterator().next();
-            Rope rope = hashMap2.getKey();
-            if ((rope.getStartConnection() instanceof Pulley) || (rope.getEndConnection() instanceof Pulley)) {
-                if (!sandBoxPane.getChildren().contains(box.tensionVector1)) {
-                    Pulley connectionPulley;
-                    if (rope.getStartConnection() instanceof Pulley)
-                        connectionPulley = (Pulley) rope.getStartConnection();
-                    else {
-                        connectionPulley = (Pulley) rope.getEndConnection();
-                    }
+        if(!box.isNetSet) {
+            //Pulley case
+            try {
+                Map.Entry<Rope, Boolean> hashMap2 = box.connectedRopes.entrySet().iterator().next();
+                Rope rope = hashMap2.getKey();
+                if ((rope.getStartConnection() instanceof Pulley) || (rope.getEndConnection() instanceof Pulley)) {
+                    if (!sandBoxPane.getChildren().contains(box.tensionVector1)) {
+                        Pulley connectionPulley;
+                        if (rope.getStartConnection() instanceof Pulley)
+                            connectionPulley = (Pulley) rope.getStartConnection();
+                        else {
+                            connectionPulley = (Pulley) rope.getEndConnection();
+                        }
 
-                    if (connectionPulley.connectedBoxes.size() == 2) {
-                        Box box1 = connectionPulley.connectedBoxes.getFirst();
-                        Box box2 = connectionPulley.connectedBoxes.getLast();
-                        System.out.println(box1 + " is 2 rope, 2 box with " + box2);
-                        VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
+                        if (connectionPulley.connectedBoxes.size() == 2) {
+                            Box box1 = connectionPulley.connectedBoxes.getFirst();
+                            Box box2 = connectionPulley.connectedBoxes.getLast();
+                            System.out.println(box1 + " is 2 rope, 2 box with " + box2);
+                            VectorMath.calculatePulleyTension(box1, box2, connectionPulley);
+                        }
                     }
                 }
+                System.out.println("BRR BRR PATAPIM");
+            } catch (Exception exception) {
+                System.out.println("No ropes connected. Caught by try-catch");
             }
-        }
-        catch(Exception exception) {
-            System.out.println("No ropes connected. Caught by try-catch");
         }
 
         //Net vector (always)

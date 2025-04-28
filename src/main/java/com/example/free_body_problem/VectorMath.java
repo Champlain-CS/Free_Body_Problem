@@ -153,7 +153,7 @@ public final class VectorMath {
         double frictionXComponent = magnitude * Math.sin(frictionAngleRad);
         double frictionYComponent = magnitude * Math.cos(frictionAngleRad);
 
-        box.totalYForce += frictionXComponent;
+        box.totalYForce += frictionYComponent;
         box.totalXForce += frictionXComponent;
 
         VectorDisplay frictionX = new VectorDisplay(newPositionX, newPositionY, frictionXComponent, 0, "Fx", Color.DARKGREEN);

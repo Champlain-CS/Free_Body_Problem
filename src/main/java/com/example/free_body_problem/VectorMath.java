@@ -666,6 +666,7 @@ public final class VectorMath {
 
         //End of calculation, reset status
         box.isPulled = false;
+        box.isNetSet = false;
     }
 
 

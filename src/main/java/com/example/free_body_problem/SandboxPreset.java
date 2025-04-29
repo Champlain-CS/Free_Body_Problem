@@ -135,7 +135,79 @@ public class SandboxPreset {
     }
 
     private void createAtwoodMachineScenario() {
+        sandboxPane.getChildren().removeIf(node -> node instanceof VectorDisplay);
 
+        double pulleyX = sandboxPane.getWidth() / 2;
+        double pulleyY = sandboxPane.getHeight() * 0.2;
+        double outerRadius = 40;
+        double innerRadius = 37;
+
+        Pulley pulley = new Pulley(pulleyX, pulleyY, outerRadius, innerRadius,
+                Color.BLACK, Color.GRAY, sandboxPane);
+        sandboxPane.getChildren().add(pulley.getCircleGroup());
+        pulley.addDragListener();
+        physicsObjectList.add(pulley);
+
+        double boxWidth = 100;
+        double boxHeight = 80;
+        double leftBoxX = pulleyX - 150;
+        double rightBoxX = pulleyX + 70;
+        double leftBoxY = pulleyY + 200;
+        double rightBoxY = pulleyY + 100;
+
+        Box leftBox = new Box(leftBoxX, leftBoxY, boxWidth, boxHeight, Color.WHITE, sandboxPane, planes);
+        Box rightBox = new Box(rightBoxX, rightBoxY, boxWidth, boxHeight, Color.WHITE, sandboxPane, planes);
+
+        physicsObjectList.add(leftBox);
+        physicsObjectList.add(rightBox);
+
+        leftBox.getTextField().setText("8");
+        rightBox.getTextField().setText("12");
+
+        Rope leftRope = new Rope(pulleyX - outerRadius, pulleyY, leftBox.getCenterX(), leftBox.getCenterY(),
+                false, physicsObjectList);
+        leftRope.getStyleClass().add("rope-line");
+        Sandbox.sandBoxPane.getChildren().add(leftRope);
+        Sandbox.sandBoxPane.getChildren().addAll(leftRope.getStartHandle(), leftRope.getEndHandle());
+        leftRope.addLineResizeListener();
+        leftRope.addDragListener();
+        physicsObjectList.add(leftRope);
+
+        Rope rightRope = new Rope(pulleyX + outerRadius, pulleyY, rightBox.getCenterX(), rightBox.getCenterY(),
+                false, physicsObjectList);
+        rightRope.getStyleClass().add("rope-line");
+        Sandbox.sandBoxPane.getChildren().add(rightRope);
+        Sandbox.sandBoxPane.getChildren().addAll(rightRope.getStartHandle(), rightRope.getEndHandle());
+        rightRope.addLineResizeListener();
+        rightRope.addDragListener();
+        physicsObjectList.add(rightRope);
+
+        leftBox.connectedRopes.put(leftRope, false);
+        leftRope.setEndConnection(leftBox);
+
+        rightBox.connectedRopes.put(rightRope, false);
+        rightRope.setEndConnection(rightBox);
+
+        pulley.connectedRopes.put(leftRope, true);
+        pulley.connectedRopes.put(rightRope, true);
+        leftRope.setStartConnection(pulley);
+        rightRope.setStartConnection(pulley);
+
+        pulley.updateBoxList();
+
+        leftBox.setBoxUnderRope();
+        rightBox.setBoxUnderRope();
+
+        javafx.application.Platform.runLater(() -> {
+            leftBox.setBoxUnderRope();
+            rightBox.setBoxUnderRope();
+        });
+
+        if (sandbox.isDisplayingVectors) {
+            sandbox.updateAllVectors();
+        }
+
+        soundPlayer.playSound("src/main/resources/sounds/Place.wav");
     }
 
     private void hangingBoxScenario() {

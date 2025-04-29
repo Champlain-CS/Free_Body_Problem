@@ -19,6 +19,7 @@ public class SandboxPreset {
     private final List<Plane> planes;
     private final SoundPlayer soundPlayer;
 
+
     public SandboxPreset(Sandbox sandbox, Pane sandboxPane, List<PhysicsObject> physicsObjectList,
                          List<Plane> planes, SoundPlayer soundPlayer) {
         this.sandbox = sandbox;
@@ -110,7 +111,8 @@ public class SandboxPreset {
         double boxX = boxCenterX - boxWidth / 2;
         double boxY = boxCenterY - boxHeight / 2;
 
-        Box box = new Box(boxX, boxY - boxHeight/2 - 5, boxWidth, boxHeight, Color.WHITE, sandboxPane, planes);
+        // box height needs adjustment after rotation
+        Box box = new Box(boxX, boxY - boxHeight/2 - 15, boxWidth, boxHeight, Color.WHITE, sandboxPane, planes);
         physicsObjectList.add(box);
         box.addDragListener();
 
@@ -198,7 +200,7 @@ public class SandboxPreset {
         leftBox.setBoxUnderRope();
         rightBox.setBoxUnderRope();
 
-// Use Platform.runLater to ensure text fields are properly positioned after the scene is laid out
+        // Use Platform.runLater to ensure text fields are properly positioned after the scene is laid out
         javafx.application.Platform.runLater(() -> {
             // Reposition boxes again to update all internal positions including text fields
             leftBox.setBoxUnderRope();
@@ -213,7 +215,45 @@ public class SandboxPreset {
     }
 
     private void hangingBoxScenario() {
+        sandboxPane.getChildren().removeIf(node -> node instanceof VectorDisplay);
 
+        // Creating the rope
+        double startX = sandboxPane.getWidth() / 2;
+        double startY = Sandbox.getRoof().getHeight();
+        double endX = startX;
+        double endY = 300; //arbitrary hanging length
+
+        Rope rope = new Rope(startX, startY, endX, endY, true, physicsObjectList);
+        sandboxPane.getChildren().add(rope.getLine());
+        rope.getLine().getStyleClass().add("rope-line");
+        rope.addLineResizeListener();
+        rope.addDragListener();
+        sandboxPane.getChildren().addAll(rope.getStartHandle(), rope.getEndHandle());
+        physicsObjectList.add(rope);
+
+
+
+        // Creating the box
+        double boxWidth = 100;
+        double boxHeight = 80;
+        double boxX = endX - boxWidth / 2;
+        double boxY = endY - boxHeight / 2;
+
+        Box box = new Box(boxX, boxY, boxWidth, boxHeight, Color.WHITE, sandboxPane, planes);
+        physicsObjectList.add(box);
+
+        rope.setStartConnection(Sandbox.getRoof());
+        rope.setEndConnection(box);
+        box.connectedRopes.put(rope, false);
+        javafx.application.Platform.runLater(() ->  box.setBoxUnderRope());
+        box.updateConnectedRopes();
+
+
+        if (sandbox.isDisplayingVectors) {
+            sandbox.updateAllVectors();
+        }
+
+        soundPlayer.playSound("src/main/resources/sounds/Place.wav");
 
     }
 }

@@ -1,5 +1,6 @@
 package com.example.free_body_problem;
 
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -11,6 +12,11 @@ import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 import java.util.List;
+
+/**
+ * This class lists the different presets a user can choose to quickly display a classic setup <p>
+ * The selection comboBox is also implemented in this class for coherence
+ */
 
 public class SandboxPreset {
     private final Sandbox sandbox;
@@ -195,12 +201,6 @@ public class SandboxPreset {
 
         // Display the angle between the ropes
         box.displayRopeAngle();
-
-        // Use Platform.runLater to ensure text fields are properly positioned
-        javafx.application.Platform.runLater(() -> {
-            box.getTextField().requestFocus();
-            box.getTextField().selectAll();
-        });
 
         // Update vectors if enabled
         if (sandbox.isDisplayingVectors) {

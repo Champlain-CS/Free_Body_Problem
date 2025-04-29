@@ -504,22 +504,44 @@ public class Box extends PhysicsObject {
 
         // Calculate arc parameters
         double radius = 30; // Size of arc
-        double startAngle = Math.toDegrees(Math.atan2(-v1y, v1x)); // Convert to JavaFX angle system
-        double endAngle = Math.toDegrees(Math.atan2(-v2y, v2x));
+        double angle1 = Math.toDegrees(Math.atan2(-v1y, v1x)); // Convert to JavaFX angle system
+        double angle2 = Math.toDegrees(Math.atan2(-v2y, v2x));
+        // normalize angles to 0-360 degrees
+        angle1 = (angle1 + 360) % 360;
+        angle2 = (angle2 + 360) % 360;
 
-        // Ensure the smaller angle is displayed
-        if (Math.abs(endAngle - startAngle) > 180) {
-            if (endAngle > startAngle) {
-                endAngle -= 360;
-            } else {
-                startAngle -= 360;
+
+
+        // Calculate cross product to determine the correct sweep direction
+        double crossProduct = v1x * v2y - v1y * v2x;
+        double startAngle, sweepAngle;
+
+        // If cross product is positive, goes from angle1 to angle2
+        // If negative, go from angle2 to angle1
+        if (crossProduct >= 0) {
+            startAngle = angle1;
+            // Calculate sweep angle in counterclockwise direction
+            sweepAngle = (angle2 - angle1 + 360) % 360;
+            // If bigger than 180, take the complementary angle
+            if (sweepAngle > 180) {
+                sweepAngle = 360 - sweepAngle;
+                startAngle = angle2;
+            }
+        } else {
+            startAngle = angle2;
+            // Calculate sweep angle in counterclockwise direction
+            sweepAngle = (angle1 - angle2 + 360) % 360;
+            // If bigger than 180, take the complementary angle
+            if (sweepAngle > 180) {
+                sweepAngle = 360 - sweepAngle;
+                startAngle = angle1;
             }
         }
 
         // Create the arc
         angleArc = new javafx.scene.shape.Arc(
                 centerX, centerY, radius, radius,
-                startAngle, Math.abs(endAngle - startAngle)
+                startAngle, sweepAngle
         );
         angleArc.setFill(javafx.scene.paint.Color.TRANSPARENT);
         angleArc.setStroke(javafx.scene.paint.Color.ORANGE);
@@ -528,10 +550,11 @@ public class Box extends PhysicsObject {
 
         // Create the text for displaying the angle value
         String formattedAngle = String.format("%.1f°", angleDegrees);
+
         // Modify this line in createAngleDisplay method
         angleText = new javafx.scene.text.Text(
-                centerX + radius * 0.7 * Math.cos(Math.toRadians((startAngle + endAngle) / 2)),
-                centerY - radius * 0.7 * Math.sin(Math.toRadians((startAngle + endAngle) / 2)) - 10, // Add offset of -10
+                centerX + radius * 0.7 * Math.cos(Math.toRadians((angle1 + angle2) / 2)),
+                centerY - radius * 0.7 * Math.sin(Math.toRadians((angle1 + angle2) / 2)) - 10, // Add offset of -10
                 formattedAngle
         );
         angleText.setFill(javafx.scene.paint.Color.ORANGE);

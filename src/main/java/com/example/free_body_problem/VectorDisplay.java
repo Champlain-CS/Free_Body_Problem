@@ -12,6 +12,13 @@ import javafx.scene.transform.Rotate;
 
 import java.text.DecimalFormat;
 
+/**
+ * This class allows for the creation, modification, and use of the vector objects.
+ * <p>
+ * Note that each vector has a true length corresponding to its actual physical magnitude and
+ * a visual length, logarithmically scaled and with upper and lower bounds for viewing coherence.
+ */
+
 public class VectorDisplay extends Pane {
     final Line line;
     final Polygon arrowhead;
@@ -58,8 +65,6 @@ public class VectorDisplay extends Pane {
         arrowhead.setStroke(color);
         arrowhead.setScaleX(1.2);
         arrowhead.setScaleY(1.2);
-
-
 
         forceName.setFill(Color.WHITE);  // Keep white text
         forceName.setFont(new Font(16));  // Original font size
@@ -110,7 +115,7 @@ public class VectorDisplay extends Pane {
 
         forceText.setLayoutX(endX);
         forceText.setLayoutY(endY + 5);
-        forceText.setRotate(0 - rotate.getAngle());
+        forceText.setRotate(0 - rotate.getAngle()); // counter-rotate text to keep it upright
         forceMagnitude.setText(df.format(trueLength) + " N");
     }
 
@@ -121,7 +126,7 @@ public class VectorDisplay extends Pane {
         if (absMagnitude <= 0.001)
             return 0;
 
-        // Modified logarithmic scaling
+        // Logarithmic scaling
         double scaledLength = MIN_VISIBLE_LENGTH +
                 (MAX_VISIBLE_LENGTH - MIN_VISIBLE_LENGTH) *
                         Math.log10(1 + SCALE_FACTOR * absMagnitude) /

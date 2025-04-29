@@ -7,6 +7,14 @@ import javafx.geometry.Point2D;
 import java.util.Map;
 
 
+/**
+ * Used to isolate vector calculations.
+ * <p>
+ * Different methods for different vectors plus additional useful methods.
+ * <br>
+ * Vector methods are void as they directly add the calculated vector to the sandbox.
+ */
+
 public final class VectorMath {
 
     public static Pulley
@@ -25,14 +33,18 @@ public final class VectorMath {
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
         double rotationAngle = box.getRectangle().getRotate();
 
+        // Point representing the center of the box
         Point2D center = new Point2D(positionCenterX, positionCenterY);
 
-        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
-        double vectorY = box.getRectangle().getY() + box.getRectangle().getHeight();
 
+        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2; // Center X of box
+        double vectorY = box.getRectangle().getY() + box.getRectangle().getHeight(); //Bottom edge of box
+
+        // Rotate transform around the center
         Rotate rotate = new Rotate(rotationAngle, center.getX(), center.getY());
         Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
 
+        // Positions off of the rotate box
         double newPositionX = rotatedVector.getX();
         double newPositionY = rotatedVector.getY();
 
@@ -43,13 +55,13 @@ public final class VectorMath {
         box.gravityVector = gravityVector;
         Sandbox.sandBoxPane.getChildren().add(gravityVector);
 
+        // gravity always negative
         box.totalYForce -= magnitude;
-
-        System.out.println("box rotation: " + box.getRectangle().getRotate());
     }
 
     public static void calculateNormalVector(Box box) {
         if (box.gravityVector == null) {
+            // having a gravity vector is necessary for calculation
             calculateGravityVector(box);
         }
 
@@ -59,18 +71,23 @@ public final class VectorMath {
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
         double rotationAngle = box.getRectangle().getRotate();
 
+        // Point representing the center of the box
         Point2D center = new Point2D(positionCenterX, positionCenterY);
 
-        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
-        double vectorY = box.getRectangle().getY();
+        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2; //Center X of box
+        double vectorY = box.getRectangle().getY(); // Top edge of the box
 
+        // Rotate around the center point
         Rotate rotate = new Rotate(rotationAngle, center.getX(), center.getY());
         Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
 
+        // Coordinates extracted after rotation
         double newPositionX = rotatedVector.getX();
         double newPositionY = rotatedVector.getY();
 
+
         double angle = box.rectangle.getRotate();
+        // Magnitude calculated from component perpendicular to plane
         double magnitude = massValue * gravityValue * Math.cos(Math.toRadians(angle));
 
         VectorDisplay normalVector = new VectorDisplay(newPositionX, newPositionY,
@@ -95,11 +112,14 @@ public final class VectorMath {
 
     public static void calculateFrictionVector(Box box) {
         if (box.normalVector == null) {
+            // having a normal vector is necessary for calculation
             calculateNormalVector(box);
         }
 
+        // Coefficient of friction
         double coefficient = Double.parseDouble(Sandbox.coefficientField.getText());
 
+        // Adapt to 2 different incline directions
         double frictionAngle = box.rectangle.getRotate();
         if (frictionAngle < 180) {
             frictionAngle += 180;
@@ -107,15 +127,17 @@ public final class VectorMath {
             frictionAngle -= 180;
         }
 
-        double maxFriction = coefficient * box.normalVector.getTrueLength();
+        double maxFriction = coefficient * box.normalVector.getTrueLength(); //using normal vector => needed it
         double gravityAlongIncline =
                 Math.abs(box.gravityVector.getTrueLength() * Math.sin(Math.toRadians(frictionAngle)));
 
         double magnitude;
         if (gravityAlongIncline >= maxFriction) {
+            // Dynamic system => friction doesn't stop box slide
             magnitude = maxFriction;
             box.isSliding = true;
         } else {
+            // Static equilibrium => friction is strong enough to stop box
             magnitude = gravityAlongIncline;
             box.isSliding = false;
         }
@@ -124,25 +146,29 @@ public final class VectorMath {
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
         double rotationAngle = box.getRectangle().getRotate();
 
+        // Point representing box center
         Point2D center = new Point2D(positionCenterX, positionCenterY);
 
-        double vectorX;
+        double vectorX;     // Accounts for 2 incline directions
         if (box.rectangle.getRotate() < 180) {
-            vectorX = box.getRectangle().getX();
+            vectorX = box.getRectangle().getX();    // put on the left
             frictionAngle = box.rectangle.getRotate() + 180;
         } else {
-            vectorX = box.getRectangle().getX() + box.getRectangle().getWidth();
+            vectorX = box.getRectangle().getX() + box.getRectangle().getWidth();    // put on the right
             frictionAngle = box.rectangle.getRotate();
         }
-        double vectorY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
+        double vectorY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;    // center y
 
+        // Rotating around the center point
         Rotate rotate = new Rotate(rotationAngle, center.getX(), center.getY());
         Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
 
+        // Coordinated from rotated box
         double newPositionX = rotatedVector.getX() + 5;
         double newPositionY = rotatedVector.getY() + 5;
 
         if (box.isPulled) {
+            // flipping if box is pulled against normal movement
             frictionAngle += 180;
         }
 
@@ -167,6 +193,7 @@ public final class VectorMath {
 
     public static void calculateTension1Rope(Box box, Rope rope) {
         if (box.gravityVector == null) {
+            // having a gravity vector is necessary for magnitude calculation
             calculateGravityVector(box);
         }
 
@@ -175,14 +202,17 @@ public final class VectorMath {
         double boxRotationAngle = box.getRectangle().getRotate();
         double ropeRotationAngle = rope.getOrientation();
 
+        // Point in box's center
         Point2D center = new Point2D(positionCenterX, positionCenterY);
 
-        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
-        double vectorY = box.getRectangle().getY();
+        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2; //center x of box
+        double vectorY = box.getRectangle().getY(); //top edge of the box
 
+        // Rotate around the center point
         Rotate rotate = new Rotate(boxRotationAngle, center.getX(), center.getY());
         Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
 
+        // Coordinates from rotated box
         double newPositionX = rotatedVector.getX();
         double newPositionY = rotatedVector.getY();
 
@@ -192,6 +222,7 @@ public final class VectorMath {
         double yTension = 0;
 
         if (!box.snappedToPlane) {
+            // Free hanging box
             magnitude = box.gravityVector.getTrueLength();
             angle = 270;
 
@@ -199,8 +230,10 @@ public final class VectorMath {
             yTension = magnitude;
         }
         if (box.isSliding && isRopeHigherThanBox(box, rope)) {
+            // On incline, but rope stops sliding
             xTension = -1 * box.totalXForce;
             yTension = -1 * box.totalYForce;
+            // Parallel component creates static equilibrium
             magnitude = Math.sqrt(xTension * xTension + yTension * yTension);
             angle = ropeRotationAngle + 180;
         }
@@ -210,6 +243,7 @@ public final class VectorMath {
         box.tensionVector1 = tensionVector;
         Sandbox.sandBoxPane.getChildren().add(tensionVector);
 
+        // In static equilibrium, so manually setting net force to 0
         box.totalXForce = 0;
         box.totalYForce = 0;
 
@@ -224,6 +258,7 @@ public final class VectorMath {
 
     public static void calculateTension2Ropes(Box box, Rope leftRope, Rope rightRope) {
         if (box.gravityVector == null) {
+            // having a gravity vector is necessary for magnitude calculation
             calculateGravityVector(box);
         }
 
@@ -234,14 +269,17 @@ public final class VectorMath {
         double leftRopeRotationAngle = normalizeAngle(360 - leftRope.getOrientation());
         double rightRopeRotationAngle = normalizeAngle(360 - rightRope.getOrientation());
 
+        // Point around box center
         Point2D center = new Point2D(positionCenterX, positionCenterY);
 
-        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
-        double vectorY = box.getRectangle().getY();
+        double vectorX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2; // Middle x
+        double vectorY = box.getRectangle().getY(); // Top edge
 
+        // Rotate around the center point
         Rotate rotate = new Rotate(boxRotationAngle, center.getX(), center.getY());
         Point2D rotatedVector = rotate.transform(new Point2D(vectorX, vectorY));
 
+        // Coordinates from rotated box
         double newPositionX = rotatedVector.getX();
         double newPositionY = rotatedVector.getY();
 
@@ -256,6 +294,7 @@ public final class VectorMath {
             double rightAngleRad = Math.toRadians(leftRopeRotationAngle);
             double leftAngleRad = Math.toRadians(rightRopeRotationAngle);
 
+            // Trigonometry to cancel out forces and give static equilibrium
             double rightMagnitude = Math.abs(box.gravityVector.getTrueLength() /
                     ((Math.cos(rightAngleRad) / Math.cos(leftAngleRad)) + Math.sin(rightAngleRad)));
             double leftMagnitude = Math.abs((rightMagnitude * Math.cos(rightAngleRad)) / Math.cos(leftAngleRad));
@@ -291,6 +330,7 @@ public final class VectorMath {
                     adaptComponentOrientation(rightTensionY)
             );
 
+            // Manually setting net force to 0 since its static equilibrium
             box.totalXForce = 0;
             box.totalYForce = 0;
         } else {
@@ -447,6 +487,8 @@ public final class VectorMath {
 
 
         if(!box1.isSnapped && !box2.isSnapped) {
+            // Atwood machine setup
+
             magnitude = (2 * m1 * m2 * gravityValue) / (m1 + m2);
 
             box1Angle = 270;
@@ -456,6 +498,7 @@ public final class VectorMath {
             xTension2 = 0;
             yTension2 = magnitude;
 
+            // Sign of totalY forces will correctly adapt them to be up or down
             box1.totalYForce = -1*(weight1 - magnitude);
             box2.totalYForce = -1*(weight2 - magnitude);
             box1.totalXForce = 0;
@@ -465,6 +508,8 @@ public final class VectorMath {
         }
 
         else if(box1.isSnapped && box2.isSnapped) {
+            // Double incline => WIP
+
             // Magnitude calculation
             // Calculate component of weight along the incline
             double inclineWeight1 = weight1 * Math.sin(Math.toRadians(box1Angle));
@@ -590,6 +635,7 @@ public final class VectorMath {
     }
 
     public static void calculateNetVector(Box box) {
+        // Directly takes box center
         double positionCenterX = box.getRectangle().getX() + box.getRectangle().getWidth() / 2;
         double positionCenterY = box.getRectangle().getY() + box.getRectangle().getHeight() / 2;
 
@@ -599,17 +645,18 @@ public final class VectorMath {
         System.out.println("\nIn Net Vector Calculations (" + box + "):");
         System.out.println("box x force:" + box.totalXForce + "; box y force:" + box.totalYForce);
 
+        // Basic Pythagoras Theorem for magnitude
         double magnitude = Math.sqrt(xComponent*xComponent + yComponent*yComponent);
         if(magnitude < 0.0001) {  // Using a small threshold instead of exact zero check
             magnitude = 0;
         }
 
-        double boxAngle = box.getRectangle().getRotate() + 90;
+        double boxAngle = box.getRectangle().getRotate() + 90; // +90 adapts for javaFX angle system
         double netAngle;
 
         System.out.println("net magnitude: " + magnitude);
 
-//        //Angle calculation for all 4 cases
+//        //Angle calculation for all 4 cases (OLD METHOD => kept if new caused problem)
 //        if(xComponent !=0 && yComponent !=0) {
 //            double phi = Math.toDegrees(Math.atan(yComponent / xComponent)) + 180; //Angle between net vector and x component (used as reference)
 //
@@ -675,7 +722,7 @@ public final class VectorMath {
 
     private static VectorDisplay adaptComponentOrientation(VectorDisplay vector) {
         if (vector.getTrueLength() < 0) {
-            // flip the sign of the true length while maintaining visual length
+            // flip the sign of the true length while keeping visual length
             vector.setDisplayLength(-1 * vector.getTrueLength());
             vector.setRotation((vector.getRotation() + 180) % 360);
         }

@@ -23,6 +23,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * This class creates the GUI for the main menu, the options and credits screens.
+ * <br> When the user launches the application, this class will run first.
+ * <p>
+ * Each section is labelled accordingly with inline comments
+ */
+
 public class GUI extends Application {
     VBox mainMenuRoot = new VBox();
     StackPane optionsRoot = new StackPane();
@@ -45,6 +52,7 @@ public class GUI extends Application {
     // Instantiate SoundPlayer
     private final SoundPlayer menuSoundPlayer = new SoundPlayer();
     public static MediaPlayer backgroundMusicPlayer;
+
 
     public void start(Stage primaryStage) {
         primaryStage.setMaxHeight(650);
@@ -116,6 +124,7 @@ public class GUI extends Application {
         logoView.setTranslateY(-50);
         logoView.setEffect(new DropShadow());
 
+        // Menu buttons
         VBox buttonBox = new VBox();
         buttonBox.setSpacing(15);
 
@@ -198,8 +207,7 @@ public class GUI extends Application {
         musicVolumeLabel.getStyleClass().add("textStyle");
         Slider musicVolumeSlider = new Slider(0, 1, SoundPlayer.getVolume()); // Set slider to current volume
         musicVolumeSlider.getStyleClass().add("slider");
-        musicVolumeSlider.valueProperty().addListener((
-                _, _, newValue) -> {
+        musicVolumeSlider.valueProperty().addListener((_, _, newValue) -> {
             SoundPlayer.setVolume(newValue.doubleValue()); // Update volume
             if (backgroundMusicPlayer != null) {
                 backgroundMusicPlayer.setVolume(newValue.doubleValue());
@@ -370,7 +378,7 @@ public class GUI extends Application {
     /**
      * Applies the specified resolution to the stage
      * @param stage The stage to apply the resolution to
-     * @param resolution The resolution string in format "widthxheight"
+     * @param resolution The resolution string in format "width x height"
      */
     private void applyResolution(Stage stage, String resolution) {
         if (resolution == null || resolution.isEmpty()) {

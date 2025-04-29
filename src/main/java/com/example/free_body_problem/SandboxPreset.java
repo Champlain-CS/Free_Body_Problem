@@ -198,7 +198,9 @@ public class SandboxPreset {
         leftBox.setBoxUnderRope();
         rightBox.setBoxUnderRope();
 
+// Use Platform.runLater to ensure text fields are properly positioned after the scene is laid out
         javafx.application.Platform.runLater(() -> {
+            // Reposition boxes again to update all internal positions including text fields
             leftBox.setBoxUnderRope();
             rightBox.setBoxUnderRope();
         });

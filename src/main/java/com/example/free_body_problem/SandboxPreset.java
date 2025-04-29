@@ -110,7 +110,7 @@ public class SandboxPreset {
         double boxX = boxCenterX - boxWidth / 2;
         double boxY = boxCenterY - boxHeight / 2;
 
-        Box box = new Box(boxX, boxY, boxWidth, boxHeight, Color.WHITE, sandboxPane, planes);
+        Box box = new Box(boxX, boxY - boxHeight/2 - 5, boxWidth, boxHeight, Color.WHITE, sandboxPane, planes);
         physicsObjectList.add(box);
         box.addDragListener();
 
@@ -119,9 +119,7 @@ public class SandboxPreset {
         box.snappedPlane = plane;
         plane.connectedBoxes.add(box);
 
-        box.getRectangle().setRotate(-45-180);
-
-        sandboxPane.getChildren().add(box.getRectangle());
+        box.getRectangle().setRotate(315);
 
         sandbox.updatePlaneList();
 
@@ -141,6 +139,7 @@ public class SandboxPreset {
     }
 
     private void hangingBoxScenario() {
+
 
     }
 }

@@ -44,6 +44,8 @@ public final class VectorMath {
         Sandbox.sandBoxPane.getChildren().add(gravityVector);
 
         box.totalYForce -= magnitude;
+
+        System.out.println("box rotation: " + box.getRectangle().getRotate());
     }
 
     public static void calculateNormalVector(Box box) {

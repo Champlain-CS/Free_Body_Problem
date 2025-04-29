@@ -38,9 +38,9 @@ public class SandboxPreset {
         presetSelector.getItems().addAll(
                 "Select a preset...",
                 "Inclined Plane",
-                "Simple Pulley",
                 "Atwood Machine",
-                "Hanging Box"
+                "Hanging Box",
+                "Two Rope Hanging Box"
         );
         presetSelector.setValue("Select a preset...");
 
@@ -57,14 +57,14 @@ public class SandboxPreset {
                     case "Inclined Plane":
                         createInclinedPlaneScenario();
                         break;
-                    case "Simple Pulley":
-                        twoRopeHangingBoxScenario();
-                        break;
                     case "Atwood Machine":
                         createAtwoodMachineScenario();
                         break;
                     case "Hanging Box":
                         hangingBoxScenario();
+                        break;
+                    case "Two Rope Hanging Box":
+                        twoRopeHangingBoxScenario();
                         break;
                 }
                 soundPlayer.playSound("src/main/resources/sounds/Place.wav");

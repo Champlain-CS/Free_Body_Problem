@@ -154,8 +154,8 @@ public class SandboxPreset {
         // Calculate rope positions - symmetrically placed
         double separation = 500; // Distance between rope attachment points
         double roofCenterX = Sandbox.sandBoxPane.getWidth() / 2;
-        double leftRopeStartX = roofCenterX - separation/2;
-        double rightRopeStartX = roofCenterX + separation/2;
+        double leftRopeStartX = roofCenterX - separation/2 - 1;  // 1 pixel to the left
+        double rightRopeStartX = roofCenterX + separation/2 + 1;  // 1 pixel to the right
         double boxCenterX = box.getCenterX();
         double boxCenterY = box.getCenterY();
 

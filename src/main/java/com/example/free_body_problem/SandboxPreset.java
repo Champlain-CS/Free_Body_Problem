@@ -80,154 +80,67 @@ public class SandboxPreset {
     }
 
     private void createInclinedPlaneScenario() {
-        // Create an inclined plane at 30 degrees
-        double centerX = sandboxPane.getWidth() / 2;
-        double centerY = sandboxPane.getHeight() / 2;
+        sandboxPane.getChildren().removeIf(node -> node instanceof VectorDisplay);
 
-        double planeLength = 300;
-        double angle = 30;
-        double angleRad = Math.toRadians(angle);
+        double planeLength = 250; // Slightly shorter for better visibility
+        double startX = sandboxPane.getWidth() / 3;
+        double startY = sandboxPane.getHeight() * 2/3; // Start lower on the screen
+        double endX = startX + planeLength * Math.cos(Math.toRadians(45));
+        double endY = startY - planeLength * Math.sin(Math.toRadians(45)); // 45 degrees upward
 
-        double startX = centerX - planeLength * Math.cos(angleRad) / 2;
-        double startY = centerY + planeLength * Math.sin(angleRad) / 2;
+        Plane plane = new Plane(startX, startY, endX, endY, Color.BLACK, sandbox);
+        planes.add(plane);
+        physicsObjectList.add(plane);
 
-        // Create a box on the plane
-        double boxWidth = 80;
-        double boxHeight = 60;
-        Box box = new Box(startX + planeLength * 0.25 * Math.cos(angleRad),
-                startY - planeLength * 0.25 * Math.sin(angleRad) - boxHeight,
-                boxWidth, boxHeight, Color.WHITE, sandboxPane, planes);
+        sandboxPane.getChildren().add(plane.getLine());
+        plane.addLineResizeListener();
+        plane.addDragListener();
+        sandboxPane.getChildren().addAll(
+                plane.getStartHandle(),
+                plane.getEndHandle()
+        );
 
+        double boxWidth = 100;
+        double boxHeight = 80;
+
+        double boxPosOnPlane = 0.33; // 33% along the plane
+        double boxCenterX = startX + (endX - startX) * boxPosOnPlane;
+        double boxCenterY = startY + (endY - startY) * boxPosOnPlane;
+
+        double boxX = boxCenterX - boxWidth / 2;
+        double boxY = boxCenterY - boxHeight / 2;
+
+        Box box = new Box(boxX, boxY, boxWidth, boxHeight, Color.WHITE, sandboxPane, planes);
         physicsObjectList.add(box);
-        sandboxPane.getChildren().add(box.getRectangle());
         box.addDragListener();
 
-        // Snap box to plane
-        Snapping.snapBoxToPlane(box, planes);
+        box.isSnapped = true;
+        box.snappedToPlane = true;
+        box.snappedPlane = plane;
+        plane.connectedBoxes.add(box);
+
+        box.getRectangle().setRotate(-45-180);
+
+        sandboxPane.getChildren().add(box.getRectangle());
+
+        sandbox.updatePlaneList();
+
+        if (sandbox.isDisplayingVectors) {
+            sandbox.updateAllVectors();
+        }
+
+        soundPlayer.playSound("src/main/resources/sounds/Place.wav");
     }
 
     private void createSimplePulleyScenario() {
-        double centerX = sandboxPane.getWidth() / 2;
-        double centerY = sandboxPane.getHeight() / 3;
 
-        // Create pulley
-        Pulley pulley = new Pulley(centerX, centerY, 40, 30, Color.BLACK, Color.GRAY, sandboxPane);
-        sandboxPane.getChildren().add(pulley.getCircleGroup());
-        pulley.addDragListener();
-        physicsObjectList.add(pulley);
-
-        // Create boxes
-        Box leftBox = new Box(centerX - 150, centerY + 150, 70, 70, Color.WHITE, sandboxPane, planes);
-        Box rightBox = new Box(centerX + 150, centerY + 150, 70, 70, Color.WHITE, sandboxPane, planes);
-
-        physicsObjectList.add(leftBox);
-        physicsObjectList.add(rightBox);
-
-        sandboxPane.getChildren().add(leftBox.getRectangle());
-        sandboxPane.getChildren().add(rightBox.getRectangle());
-
-        leftBox.addDragListener();
-        rightBox.addDragListener();
-
-        // Create ropes
-        Rope leftRope = new Rope(centerX - 40, centerY, leftBox.getCenterX(), leftBox.getCenterY(),
-                false, physicsObjectList);
-        Rope rightRope = new Rope(centerX + 40, centerY, rightBox.getCenterX(), rightBox.getCenterY(),
-                false, physicsObjectList);
-
-        sandboxPane.getChildren().add(leftRope.getLine());
-        sandboxPane.getChildren().add(rightRope.getLine());
-
-        leftRope.addLineResizeListener();
-        rightRope.addLineResizeListener();
-        leftRope.addDragListener();
-        rightRope.addDragListener();
-
-        physicsObjectList.add(leftRope);
-        physicsObjectList.add(rightRope);
-
-        // Connect ropes to objects
-        Snapping.snapRopeStart(pulley, leftRope);
-        Snapping.snapRopeEnd(leftBox, leftRope);
-        Snapping.snapRopeStart(pulley, rightRope);
-        Snapping.snapRopeEnd(rightBox, rightRope);
     }
 
     private void createAtwoodMachineScenario() {
-        double centerX = sandboxPane.getWidth() / 2;
-        double centerY = sandboxPane.getHeight() * 0.25;
 
-        // Create pulley
-        Pulley pulley = new Pulley(centerX, centerY, 40, 30, Color.BLACK, Color.GRAY, sandboxPane);
-        sandboxPane.getChildren().add(pulley.getCircleGroup());
-        pulley.addDragListener();
-        physicsObjectList.add(pulley);
-
-        // Create boxes with different masses
-        Box leftBox = new Box(centerX - 100, centerY + 150, 60, 60, Color.WHITE, sandboxPane, planes);
-        // Set mass using property instead of setMass method
-        leftBox.getProperties().put("mass", 1.0); // 1 kg
-
-        Box rightBox = new Box(centerX + 100, centerY + 150, 70, 70, Color.WHITE, sandboxPane, planes);
-        // Set mass using property instead of setMass method
-        rightBox.getProperties().put("mass", 2.0); // 2 kg - heavier
-
-        physicsObjectList.add(leftBox);
-        physicsObjectList.add(rightBox);
-
-        leftBox.addDragListener();
-        rightBox.addDragListener();
-
-        // Create ropes
-        Rope leftRope = new Rope(centerX - 40, centerY, leftBox.getCenterX(), leftBox.getCenterY(),
-                false, physicsObjectList);
-        Rope rightRope = new Rope(centerX + 40, centerY, rightBox.getCenterX(), rightBox.getCenterY(),
-                false, physicsObjectList);
-
-        sandboxPane.getChildren().add(leftRope.getLine());
-        sandboxPane.getChildren().add(rightRope.getLine());
-
-        leftRope.addLineResizeListener();
-        rightRope.addLineResizeListener();
-        leftRope.addDragListener();
-        rightRope.addDragListener();
-
-        physicsObjectList.add(leftRope);
-        physicsObjectList.add(rightRope);
-
-        // Connect ropes to objects
-        Snapping.snapRopeStart(pulley, leftRope);
-        Snapping.snapRopeEnd(leftBox, leftRope);
-        Snapping.snapRopeStart(pulley, rightRope);
-        Snapping.snapRopeEnd(rightBox, rightRope);
     }
 
     private void hangingBoxScenario() {
-        double centerX = sandboxPane.getWidth() / 2;
-        double centerY = sandboxPane.getHeight() / 3;
 
-        // Create pulley
-        Pulley pulley = new Pulley(centerX, centerY, 40, 30, Color.BLACK, Color.GRAY, sandboxPane);
-        sandboxPane.getChildren().add(pulley.getCircleGroup());
-        pulley.addDragListener();
-        physicsObjectList.add(pulley);
-
-        // Create a box
-        Box box = new Box(centerX - 100, centerY + 150, 70, 70, Color.WHITE, sandboxPane, planes);
-        physicsObjectList.add(box);
-        sandboxPane.getChildren().add(box.getRectangle());
-        box.addDragListener();
-
-        // Create a rope
-        Rope rope = new Rope(centerX - 40, centerY, box.getCenterX(), box.getCenterY(),
-                false, physicsObjectList);
-        sandboxPane.getChildren().add(rope.getLine());
-        rope.addLineResizeListener();
-        rope.addDragListener();
-        physicsObjectList.add(rope);
-
-        // Connect rope to object
-        Snapping.snapRopeStart(pulley, rope);
-        Snapping.snapRopeEnd(box, rope);
     }
 }

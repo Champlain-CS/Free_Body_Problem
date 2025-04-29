@@ -39,7 +39,7 @@ public class Sandbox extends Application {
     public static final double HANDLE_RADIUS = 5; // Handle radius for resizing
     private HBox helpBox;
     private HBox formulaBox;
-    private boolean isDisplayingVectors = false;
+    boolean isDisplayingVectors = false;
     public static Roof sandBoxRoof;
     static TextField gravityField;
     static TextField coefficientField;
@@ -718,7 +718,7 @@ public class Sandbox extends Application {
         }
     }
 
-    private void updateAllVectors() {
+    void updateAllVectors() {
         // Clear all existing vectors
         sandBoxPane.getChildren().removeIf(node -> node instanceof VectorDisplay);
 
@@ -732,7 +732,7 @@ public class Sandbox extends Application {
         System.out.println("Break");
     }
 
-    private void addDragHandlers(Node button, Pane sandBoxPane, String shapeType) {
+    public void addDragHandlers(Node button, Pane sandBoxPane, String shapeType) {
         button.setOnDragDetected(event -> {
             Dragboard db = button.startDragAndDrop(TransferMode.ANY);
             ClipboardContent content = new ClipboardContent();

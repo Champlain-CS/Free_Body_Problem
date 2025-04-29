@@ -57,7 +57,7 @@ public class SandboxPreset {
                         createInclinedPlaneScenario();
                         break;
                     case "Simple Pulley":
-                        createSimplePulleyScenario();
+                        twoRopeHangingBoxScenario();
                         break;
                     case "Atwood Machine":
                         createAtwoodMachineScenario();
@@ -130,8 +130,82 @@ public class SandboxPreset {
         soundPlayer.playSound("src/main/resources/sounds/Place.wav");
     }
 
-    private void createSimplePulleyScenario() {
+    private void twoRopeHangingBoxScenario() {
 
+        // Set box dimensions as specified
+        double boxWidth = 100;
+        double boxHeight = 80;
+
+        // Get the roof for reference
+        Roof roof = Sandbox.getRoof();
+        double roofBottomY = roof.getY() + roof.getHeight();
+
+        // Calculate the box position - center horizontally, below center vertically
+        double boxX = Sandbox.sandBoxPane.getWidth() / 2 - boxWidth / 2;
+        double boxY = Sandbox.sandBoxPane.getHeight() / 2 + 100;
+
+        // Create the box
+        Box box = new Box(boxX, boxY, boxWidth, boxHeight, Color.WHITE, Sandbox.sandBoxPane, planes);
+        box.getTextField().setText("10"); // 10kg box
+        physicsObjectList.add(box);
+
+        // Calculate rope positions - symmetrically placed
+        double separation = 500; // Distance between rope attachment points
+        double roofCenterX = Sandbox.sandBoxPane.getWidth() / 2;
+        double leftRopeStartX = roofCenterX - separation/2;
+        double rightRopeStartX = roofCenterX + separation/2;
+        double boxCenterX = box.getCenterX();
+        double boxCenterY = box.getCenterY();
+
+        // Create left rope
+        Rope leftRope = new Rope(leftRopeStartX, roofBottomY, boxCenterX, boxCenterY,
+                false, physicsObjectList);
+        leftRope.getStyleClass().add("rope-line");
+        Sandbox.sandBoxPane.getChildren().add(leftRope);
+        Sandbox.sandBoxPane.getChildren().addAll(leftRope.getStartHandle(), leftRope.getEndHandle());
+        leftRope.addLineResizeListener();
+        leftRope.addDragListener();
+        physicsObjectList.add(leftRope);
+
+        // Create right rope
+        Rope rightRope = new Rope(rightRopeStartX, roofBottomY, boxCenterX, boxCenterY,
+                false, physicsObjectList);
+        rightRope.getStyleClass().add("rope-line");
+        Sandbox.sandBoxPane.getChildren().add(rightRope);
+        Sandbox.sandBoxPane.getChildren().addAll(rightRope.getStartHandle(), rightRope.getEndHandle());
+        rightRope.addLineResizeListener();
+        rightRope.addDragListener();
+        physicsObjectList.add(rightRope);
+
+        // Connect ropes to box and roof
+        box.connectedRopes.put(leftRope, false);
+        leftRope.setEndConnection(box);
+        box.connectedRopes.put(rightRope, false);
+        rightRope.setEndConnection(box);
+
+        roof.connectedRopes.put(leftRope, true);
+        leftRope.setStartConnection(roof);
+        roof.connectedRopes.put(rightRope, true);
+        rightRope.setStartConnection(roof);
+
+        // Position the box under the ropes
+        box.setBoxUnderRope();
+
+        // Display the angle between the ropes
+        box.displayRopeAngle();
+
+        // Use Platform.runLater to ensure text fields are properly positioned
+        javafx.application.Platform.runLater(() -> {
+            box.getTextField().requestFocus();
+            box.getTextField().selectAll();
+        });
+
+        // Update vectors if enabled
+        if (sandbox.isDisplayingVectors) {
+            sandbox.updateAllVectors();
+        }
+
+        soundPlayer.playSound("src/main/resources/sounds/Place.wav");
     }
 
     private void createAtwoodMachineScenario() {
